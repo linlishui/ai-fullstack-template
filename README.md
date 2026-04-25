@@ -82,9 +82,27 @@ docker compose up --build
 
 1. 先执行 `scripts/check_prerequisites.sh` 检查本地工具链
 2. 编写或更新 `requirements/requirement.md`
-3. 触发 `prompts/00-generate-from-requirement.md`
-4. 触发 `prompts/07-fix-and-verify.md`
+3. 执行 `scripts/run_full_flow.sh`
 5. 进入 `generated/<project-slug>/` 执行 `docker compose up --build`
+
+## 一键执行
+
+如果本机已安装并登录 `codex` CLI，可以直接执行：
+
+```bash
+./scripts/run_full_flow.sh
+```
+
+该脚本会顺序执行：
+
+1. 基于 `requirements/requirement.md` 调用总控提示词生成项目
+2. 调用修复验证提示词检查并修复生成结果
+
+如果你只想执行生成，不想立即进入修复验证，可使用：
+
+```bash
+./scripts/run_full_flow.sh --generate-only
+```
 
 ## 模板层与生成层
 

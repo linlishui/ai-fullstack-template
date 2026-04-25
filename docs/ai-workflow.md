@@ -30,3 +30,13 @@
 ## 推荐入口
 
 通常直接从 `prompts/00-generate-from-requirement.md` 作为总控入口，让 AI 串行完成上述阶段。
+
+## 一键入口
+
+如果本机已安装 `codex` CLI，可直接运行：
+
+```bash
+./scripts/run_full_flow.sh
+```
+
+该脚本会依次调用总控提示词与修复验证提示词。
