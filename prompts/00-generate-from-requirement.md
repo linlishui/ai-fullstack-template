@@ -19,16 +19,19 @@
 ```text
 generated/<project-slug>/
   README.md
+  .gitignore
   .env.example
   compose.yaml
+  requirements/
+  docs/
+  scripts/
+  openspec/
   backend/
   frontend/
 ```
 
 如果需求需要附加目录，也必须创建在 `generated/<project-slug>/` 下，例如：
 
-- `generated/<project-slug>/docs/`
-- `generated/<project-slug>/scripts/`
 - `generated/<project-slug>/infra/`
 - `generated/<project-slug>/tests/`
 
@@ -54,16 +57,24 @@ generated/<project-slug>/
 
 - 创建 `generated/<project-slug>/`
 - 创建项目级 `README.md`
+- 创建项目级 `.gitignore`
 - 创建项目级 `.env.example`
-- 预留 `backend/`、`frontend/` 目录
+- 预留 `requirements/`、`docs/`、`scripts/`、`openspec/`、`backend/`、`frontend/` 目录
 - 后续所有生成内容都必须写入该目录树
 
 ### 阶段 3：生成 OpenSpec
 
-- 更新 `openspec/project.md` 中与当前项目相关的部分
-- 在 `openspec/specs/` 中生成或更新业务规格文档
-- 必要时在 `openspec/changes/` 下生成变更记录、设计与任务拆分
+- 直接在 `generated/<project-slug>/openspec/` 中生成当前业务相关的 OpenSpec
+- 项目级 `openspec/` 必须包含 `project.md` 副本
+- 项目级 `openspec/changes/` 必须包含完整变更副本，例如 `proposal.md`、`tasks.md` 与其他必要说明
 - 规格中必须体现接口、数据模型、模块边界、权限与验证要求
+
+### 阶段 3.5：同步项目级上下文
+
+- 将当前业务需求快照同步输出到 `generated/<project-slug>/requirements/`
+- 生成项目级 `docs/`，至少包含开发说明与架构说明
+- 生成项目级 `scripts/`，至少包含验证或清理脚本
+- 确保生成结果可作为独立工程包脱离模板仓库继续开发
 
 ### 阶段 4：生成后端
 
@@ -128,6 +139,12 @@ generated/<project-slug>/
 - 必须覆盖后端、前端、MySQL、Redis、JWT、CORS、应用运行端口等配置
 - 不得依赖仓库根目录 `.env.example` 作为唯一项目运行配置说明
 
+### 阶段 10.55：生成项目级忽略文件
+
+- 在 `generated/<project-slug>/.gitignore` 中生成项目级忽略规则
+- 必须忽略运行与构建产物，例如 `.env`、虚拟环境、`node_modules`、`dist`、测试缓存、日志
+- 不得忽略源码、文档、`compose.yaml`、`.env.example` 等应保留的工程文件
+
 ### 阶段 10.6：生成项目级验证命令
 
 - 在 `generated/<project-slug>/README.md` 中加入完整验证命令
@@ -152,6 +169,7 @@ generated/<project-slug>/
 - 再汇报 OpenSpec 产物
 - 再生成代码
 - 明确告知最终输出目录 `generated/<project-slug>/`
-- 明确列出已创建的项目级文件，包括 `README.md`、`.env.example`、`compose.yaml`
+- 明确列出已创建的项目级文件，包括 `README.md`、`.gitignore`、`.env.example`、`compose.yaml`
+- 明确列出已同步的项目级上下文目录，包括 `requirements/`、`docs/`、`scripts/`、`openspec/`
 - 生成后主动执行基础检查
 - 修改时保持现有模板文件风格一致

@@ -6,7 +6,7 @@
 2. 根据模板补充 `requirements/requirement.md`
 3. 让 Codex 执行 `prompts/00-generate-from-requirement.md`
 4. 让 Codex 执行 `prompts/07-fix-and-verify.md`
-5. 根据 `scripts/verify_project.sh` 提示完成验证
+5. 根据 `scripts/verify_project.sh` 对 `generated/<project-slug>/` 完成验证
 
 ## 开发原则
 

@@ -27,11 +27,6 @@
 ├── .env.example
 ├── requirements/
 │   └── requirement.md
-├── openspec/
-│   ├── project.md
-│   ├── specs/
-│   │   └── system.md
-│   └── changes/
 ├── prompts/
 │   ├── 00-generate-from-requirement.md
 │   ├── 01-analyze-requirement.md
@@ -83,7 +78,7 @@ docker compose up --build
 1. 先执行 `scripts/check_prerequisites.sh` 检查本地工具链
 2. 编写或更新 `requirements/requirement.md`
 3. 执行 `scripts/run_full_flow.sh`
-5. 进入 `generated/<project-slug>/` 执行 `docker compose up --build`
+4. 进入 `generated/<project-slug>/` 执行 `docker compose up --build`
 
 ## 一键执行
 
@@ -108,17 +103,26 @@ docker compose up --build
 
 为了方便后续迁移到其他目录继续开发，当前仓库按两层组织：
 
-- 模板层：`requirements/`、`openspec/`、`prompts/`、`docs/`、`scripts/`
+- 模板层：`requirements/`、`prompts/`、`docs/`、`scripts/`
 - 生成层：`generated/<project-slug>/` 下的全部业务实现文件
 
 这意味着：
 
 - 模板层负责定义工作流、规范、提示词和需求入口
+- OpenSpec 仅存在于生成层的 `generated/<project-slug>/openspec/`
 - 生成层负责承载具体业务代码与部署实现
 - 每次生成时，应按需求内容创建 `generated/<project-slug>/`
-- 典型输出包括 `generated/<project-slug>/backend/`、`generated/<project-slug>/frontend/`、`generated/<project-slug>/compose.yaml`、`generated/<project-slug>/.env.example`、`generated/<project-slug>/README.md`
+- 典型输出包括 `generated/<project-slug>/requirements/`、`generated/<project-slug>/docs/`、`generated/<project-slug>/scripts/`、`generated/<project-slug>/openspec/`、`generated/<project-slug>/backend/`、`generated/<project-slug>/frontend/`、`generated/<project-slug>/compose.yaml`、`generated/<project-slug>/.env.example`、`generated/<project-slug>/.gitignore`、`generated/<project-slug>/README.md`
 - 迁移仓库位置时，不依赖机器本地绝对路径
 - 如需重新生成项目，可保留模板层，仅清理生成层
+- 生成层的目标是形成一个可单独拎走继续开发的独立工程包，而不仅仅是代码输出目录
+
+模板级验证脚本也支持直接对某个生成项目执行检查：
+
+```bash
+./scripts/verify_project.sh generated/<project-slug>
+./scripts/verify_project.sh generated/<project-slug> --with-compose-up
+```
 
 ## 注意事项
 

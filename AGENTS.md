@@ -12,12 +12,13 @@
 ## OpenSpec 规则
 
 - 必须先读取 `requirements/requirement.md`
-- 必须先更新 `openspec/project.md`、`openspec/specs/` 与必要的 `openspec/changes/`
+- 必须先在 `generated/<project-slug>/openspec/` 中生成当前业务相关的 OpenSpec
+- 生成结果必须是可单独迁移和继续开发的独立工程包
 - 规格中必须覆盖需求、架构、接口、数据模型、任务拆分
 - 没有规格，不得直接生成完整业务代码
 - 生成实现时，必须统一输出到 `generated/<project-slug>/`
 - 必须先初始化项目级目录，再开始写业务代码
-- 项目级目录至少包含 `README.md`、`.env.example`、`compose.yaml`、`backend/`、`frontend/`
+- 项目级目录至少包含 `README.md`、`.gitignore`、`.env.example`、`compose.yaml`、`requirements/`、`docs/`、`scripts/`、`backend/`、`frontend/`、`openspec/`
 
 ## 项目输出结构规则
 
@@ -26,8 +27,13 @@
 ```text
 generated/<project-slug>/
   README.md
+  .gitignore
   .env.example
   compose.yaml
+  requirements/
+  docs/
+  scripts/
+  openspec/
   backend/
   frontend/
 ```
@@ -107,6 +113,9 @@ generated/<project-slug>/frontend/
 - 所有配置必须来自环境变量
 - `.env.example` 中必须给出完整示例键名
 - 每个生成项目都必须有自己的 `generated/<project-slug>/.env.example`
+- 每个生成项目都必须有自己的 `generated/<project-slug>/.gitignore`
+- 项目级 `.gitignore` 必须忽略运行与构建产物，例如 `.env`、虚拟环境、`node_modules`、`dist`、测试缓存、日志
+- 项目级 `.gitignore` 不得错误忽略源码、`README.md`、`compose.yaml` 等工程文件
 - 敏感信息不得提交到仓库
 - 认证、授权、输入校验、错误处理必须纳入实现
 
@@ -115,6 +124,11 @@ generated/<project-slug>/frontend/
 - 业务模块必须按模块拆分
 - 接口层、服务层、数据访问层职责必须清晰
 - 前后端目录结构必须支持后续 AI 增量迭代
+- 项目级 `requirements/` 必须跟随生成项目一起输出，至少包含当前业务需求快照
+- 项目级 `docs/` 必须跟随生成项目一起输出，至少包含开发与架构说明
+- OpenSpec 仅保留在项目级 `generated/<project-slug>/openspec/` 中，不再在模板根目录维护业务级 OpenSpec 副本
+- 项目级 `openspec/` 必须跟随生成项目一起输出，至少包含 `project.md`、当前业务规格与完整的变更文档副本，例如 `proposal.md`、`tasks.md` 及其他必要说明
+- 项目级 `scripts/` 必须跟随生成项目一起输出，至少包含验证或清理等项目级辅助脚本
 - migration、测试、文档必须与实现同步更新
 - 项目级 `README.md` 必须与生成后的真实目录结构保持一致
 - 验证命令必须写入项目级 `README.md`

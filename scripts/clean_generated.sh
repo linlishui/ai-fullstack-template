@@ -8,4 +8,4 @@ rm -rf generated/*
 
 touch generated/.gitkeep
 
-echo "Kept requirements/, prompts/, openspec/, docs/ and scripts/ intact."
+echo "Kept requirements/, prompts/, docs/ and scripts/ intact."

@@ -22,7 +22,8 @@
 
 ## 模板与实现分层
 
-- 模板资产包括 `requirements/`、`openspec/`、`prompts/`、`docs/`、`scripts/`
+- 模板资产包括 `requirements/`、`prompts/`、`docs/`、`scripts/`
 - 生成资产包括 `generated/<project-slug>/` 下的全部业务代码与部署文件
+- OpenSpec 只在生成资产中的 `generated/<project-slug>/openspec/` 维护
 - 模板资产应尽量稳定，生成资产允许多次重建或迁移
 - 仓库内文档和提示词不应依赖当前机器绝对路径
