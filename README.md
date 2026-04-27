@@ -175,5 +175,5 @@ Claude Code 推荐写法：
 
 详细策略见：
 
-- [docs/ai-workflow.md](/Users/lishui/IdeaProjects/ai-fullstack-template/docs/ai-workflow.md)
-- [docs/generation-quality.md](/Users/lishui/IdeaProjects/ai-fullstack-template/docs/generation-quality.md)
+- [docs/ai-workflow.md](docs/ai-workflow.md)
+- [docs/generation-quality.md](docs/generation-quality.md)
