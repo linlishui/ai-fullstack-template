@@ -58,13 +58,13 @@
 
 根据 `docs/requirement-template.md` 填写业务需求，不要直接开始生成代码。
 
-### 第二步：让 Codex 执行 `prompts/00-generate-from-requirement.md`
+### 第二步：让 AI CLI 执行 `prompts/00-generate-from-requirement.md`
 
-在 Codex CLI 中明确要求其读取并执行 `prompts/00-generate-from-requirement.md`，让其基于 `requirements/requirement.md` 自动完成规格和实现生成。
+在 `codex` 或 `claude` CLI 中明确要求其读取并执行 `prompts/00-generate-from-requirement.md`，让其基于 `requirements/requirement.md` 自动完成规格和实现生成。
 
-### 第三步：让 Codex 执行 `prompts/07-fix-and-verify.md`
+### 第三步：让 AI CLI 执行 `prompts/07-fix-and-verify.md`
 
-生成完成后，再让 Codex 读取并执行 `prompts/07-fix-and-verify.md`，自动检查、修复并验证项目。
+生成完成后，再让同一个 AI CLI 读取并执行 `prompts/07-fix-and-verify.md`，自动检查、修复并验证项目。
 
 ### 第四步：进入生成项目目录并运行 `docker compose up --build`
 
@@ -85,7 +85,7 @@ docker compose up --build
 
 ## 一键执行
 
-如果本机已安装并登录 `codex` CLI，可以直接执行：
+如果本机已安装并登录 `codex` 或 `claude` CLI，可以直接执行：
 
 ```bash
 ./scripts/run_full_flow.sh
@@ -95,11 +95,24 @@ docker compose up --build
 
 1. 基于 `requirements/requirement.md` 调用总控提示词生成项目
 2. 调用修复验证提示词检查并修复生成结果
+3. 默认按 `AI_CLI=auto` 自动检测执行器，优先 `codex`，其次 `claude`
 
 如果你只想执行生成，不想立即进入修复验证，可使用：
 
 ```bash
 ./scripts/run_full_flow.sh --generate-only
+```
+
+如需显式指定 Claude Code CLI，可使用：
+
+```bash
+AI_CLI=claude ./scripts/run_full_flow.sh
+```
+
+如需调整 Claude Code CLI 的权限模式，可使用：
+
+```bash
+AI_CLI=claude CLAUDE_PERMISSION_MODE=bypassPermissions ./scripts/run_full_flow.sh
 ```
 
 ## 模板层与生成层
@@ -115,7 +128,7 @@ docker compose up --build
 - OpenSpec 仅存在于生成层的 `generated/<project-slug>/openspec/`
 - 生成层负责承载具体业务代码与部署实现
 - 每次生成时，应按需求内容创建 `generated/<project-slug>/`
-- 典型输出包括 `generated/<project-slug>/requirements/`、`generated/<project-slug>/docs/`、`generated/<project-slug>/docs/key-business-actions-checklist.md`、`generated/<project-slug>/scripts/`、`generated/<project-slug>/openspec/`、`generated/<project-slug>/backend/`、`generated/<project-slug>/frontend/`、`generated/<project-slug>/compose.yaml`、`generated/<project-slug>/.env.example`、`generated/<project-slug>/.gitignore`、`generated/<project-slug>/README.md`
+- 典型输出包括 `generated/<project-slug>/requirements/`、`generated/<project-slug>/docs/`、`generated/<project-slug>/docs/key-business-actions-checklist.md`、`generated/<project-slug>/scripts/`、`generated/<project-slug>/openspec/project.md`、`generated/<project-slug>/openspec/specs/<capability>/spec.md`、`generated/<project-slug>/openspec/changes/<change-id>/`、`generated/<project-slug>/backend/`、`generated/<project-slug>/frontend/`、`generated/<project-slug>/compose.yaml`、`generated/<project-slug>/.env.example`、`generated/<project-slug>/.gitignore`、`generated/<project-slug>/README.md`
 - 迁移仓库位置时，不依赖机器本地绝对路径
 - 如需重新生成项目，可保留模板层，仅清理生成层
 - 生成层的目标是形成一个可单独拎走继续开发的独立工程包，而不仅仅是代码输出目录

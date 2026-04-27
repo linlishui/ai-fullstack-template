@@ -67,7 +67,8 @@ generated/<project-slug>/
 
 - 直接在 `generated/<project-slug>/openspec/` 中生成当前业务相关的 OpenSpec
 - 项目级 `openspec/` 必须包含 `project.md` 副本
-- 项目级 `openspec/changes/` 必须包含完整变更副本，例如 `proposal.md`、`tasks.md` 与其他必要说明
+- 项目级 `openspec/specs/<capability>/spec.md` 必须包含当前业务的正式规格，至少提供一个 capability spec
+- 项目级 `openspec/changes/<change-id>/` 必须包含完整变更副本，至少包括 `proposal.md`、`design.md`、`tasks.md`
 - 规格中必须体现接口、数据模型、模块边界、权限与验证要求
 
 ### 阶段 3.5：同步项目级上下文

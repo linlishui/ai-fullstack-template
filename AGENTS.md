@@ -127,7 +127,7 @@ generated/<project-slug>/frontend/
 - 项目级 `requirements/` 必须跟随生成项目一起输出，至少包含当前业务需求快照
 - 项目级 `docs/` 必须跟随生成项目一起输出，至少包含开发与架构说明
 - OpenSpec 仅保留在项目级 `generated/<project-slug>/openspec/` 中，不再在模板根目录维护业务级 OpenSpec 副本
-- 项目级 `openspec/` 必须跟随生成项目一起输出，至少包含 `project.md`、当前业务规格与完整的变更文档副本，例如 `proposal.md`、`tasks.md` 及其他必要说明
+- 项目级 `openspec/` 必须跟随生成项目一起输出，至少包含 `project.md`、`specs/<capability>/spec.md` 形式的当前业务规格，以及 `changes/<change-id>/proposal.md`、`design.md`、`tasks.md` 等完整变更文档
 - 项目级 `scripts/` 必须跟随生成项目一起输出，至少包含验证或清理等项目级辅助脚本
 - migration、测试、文档必须与实现同步更新
 - 项目级 `README.md` 必须与生成后的真实目录结构保持一致

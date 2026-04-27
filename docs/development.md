@@ -4,8 +4,8 @@
 
 1. 执行 `scripts/check_prerequisites.sh`
 2. 根据模板补充 `requirements/requirement.md`
-3. 让 Codex 执行 `prompts/00-generate-from-requirement.md`
-4. 让 Codex 执行 `prompts/07-fix-and-verify.md`
+3. 让 `codex` 或 `claude` 执行 `prompts/00-generate-from-requirement.md`
+4. 让同一个 AI CLI 执行 `prompts/07-fix-and-verify.md`
 5. 根据 `scripts/verify_project.sh` 对 `generated/<project-slug>/` 完成验证；如项目提供 `scripts/check_business_flow.sh`，可通过 `--with-compose-up` 自动一并执行
 
 ## 开发原则

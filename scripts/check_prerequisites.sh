@@ -24,3 +24,15 @@ if docker compose version >/dev/null 2>&1; then
 else
   echo "[MISSING] docker compose"
 fi
+
+if command -v codex >/dev/null 2>&1; then
+  echo "[OK] codex"
+else
+  echo "[MISSING] codex"
+fi
+
+if command -v claude >/dev/null 2>&1; then
+  echo "[OK] claude"
+else
+  echo "[MISSING] claude"
+fi

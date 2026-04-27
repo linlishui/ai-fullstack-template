@@ -55,13 +55,24 @@
 
 ## 一键入口
 
-如果本机已安装 `codex` CLI，可直接运行：
+如果本机已安装 `codex` 或 `claude` CLI，可直接运行：
 
 ```bash
 ./scripts/run_full_flow.sh
 ```
 
 该脚本会依次调用总控提示词与修复验证提示词。
+
+默认情况下脚本会按 `AI_CLI=auto` 自动选择执行器：
+
+- 优先使用 `codex`
+- 如果 `codex` 不存在，则回退到 `claude`
+
+如需固定使用 Claude Code CLI：
+
+```bash
+AI_CLI=claude ./scripts/run_full_flow.sh
+```
 
 ## 补充说明
 

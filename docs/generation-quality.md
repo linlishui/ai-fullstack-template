@@ -64,7 +64,7 @@
 模板级审计关注：
 
 - 项目级文件是否齐全
-- OpenSpec 是否齐全
+- OpenSpec 是否齐全，且至少同时包含 `project.md`、`specs/<capability>/spec.md`、`changes/<change-id>/proposal.md`
 - 需求快照、文档、脚本是否同步输出
 - 前后端核心入口是否存在
 - `.env.example` 是否覆盖关键配置
