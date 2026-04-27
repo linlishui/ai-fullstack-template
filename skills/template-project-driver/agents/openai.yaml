@@ -1,0 +1,4 @@
+interface:
+  display_name: "Template Project Driver"
+  short_description: "OpenSpec-first fullstack template workflow"
+  default_prompt: "Use $template-project-driver for this repository's staged workflow: read requirements/requirement.md, create generated/<project-slug>/openspec/ before implementation, then generate and verify the standalone project in generated/<project-slug>/."

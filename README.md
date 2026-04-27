@@ -23,8 +23,12 @@
 .
 ├── README.md
 ├── AGENTS.md
+├── CLAUDE.md
 ├── .gitignore
 ├── .env.example
+├── .claude/
+│   └── skills/
+│       └── template-project-driver/
 ├── requirements/
 │   └── requirement.md
 ├── prompts/
@@ -39,10 +43,16 @@
 │   └── 08-security-review.md
 ├── scripts/
 │   ├── check_prerequisites.sh
+│   ├── audit_generated_project.sh
 │   ├── verify_project.sh
 │   └── clean_generated.sh
 ├── generated/
 │   └── .gitkeep
+├── skills/
+│   ├── shared/
+│   │   ├── template-project-driver-core.md
+│   │   └── template-project-driver-workflow-map.md
+│   └── template-project-driver/
 └── docs/
     ├── architecture.md
     ├── development.md
@@ -63,11 +73,11 @@
 
 ### 第二步：让 AI CLI 执行 `prompts/00-generate-from-requirement.md`
 
-在 `codex` 或 `claude` CLI 中明确要求其读取并执行 `prompts/00-generate-from-requirement.md`，让其基于 `requirements/requirement.md` 自动完成规格和实现生成。
+在 Codex 或 Claude Code 中明确要求其读取并执行 `prompts/00-generate-from-requirement.md`，让其基于 `requirements/requirement.md` 自动完成规格和实现生成。
 
 ### 第三步：让 AI CLI 执行 `prompts/07-fix-and-verify.md`
 
-生成完成后，再让同一个 AI CLI 读取并执行 `prompts/07-fix-and-verify.md`，自动检查、修复并验证项目。
+生成完成后，再让同一端 AI 继续读取并执行 `prompts/07-fix-and-verify.md`，自动检查、修复并验证项目。
 
 ### 第四步：进入生成项目目录并运行 `docker compose up --build`
 
@@ -78,45 +88,37 @@ cd generated/<project-slug>
 docker compose up --build
 ```
 
+## 显式调用 Skill
+
+当前模板工程同时兼容 Codex 与 Claude Code。两端都使用同名 skill `template-project-driver`，但仓库内的挂载位置不同：
+
+- Codex skill：`skills/template-project-driver/`
+- Claude Code skill：`.claude/skills/template-project-driver/`
+- 统一目标：读取 `requirements/requirement.md`，先生成 `generated/<project-slug>/openspec/`，再生成 `generated/<project-slug>/` 下的独立工程，并执行审计与验证
+
+推荐把“要调用 skill”直接写进提示词，避免 AI 只按自然语言自由发挥。
+
+Codex 推荐写法：
+
+```text
+Use $template-project-driver for this repository. Read requirements/requirement.md, generate OpenSpec first in generated/<project-slug>/openspec/, then generate the standalone project in generated/<project-slug>/ and run audit plus verification.
+```
+
+Claude Code 推荐写法：
+
+```text
+请使用 template-project-driver skill 执行当前模板流程：先读取 requirements/requirement.md，在 generated/<project-slug>/openspec/ 中生成 OpenSpec，再把完整项目输出到 generated/<project-slug>/，最后执行模板级审计与项目级验证。
+```
+
+如果不显式点名 skill，至少也应明确要求 AI 遵守“先 OpenSpec、后实现、最后验证”的顺序。
+
 ## 推荐工作方式
 
 1. 先执行 `scripts/check_prerequisites.sh` 检查本地工具链
 2. 编写或更新 `requirements/requirement.md`
-3. 执行 `scripts/run_full_flow.sh`
+3. 在 Codex 中显式使用 `$template-project-driver`，或在 Claude Code 中显式要求使用 `template-project-driver` skill；也可手动执行 `prompts/00-generate-from-requirement.md`
 4. 进入 `generated/<project-slug>/` 执行 `docker compose up --build`
 5. 执行 `scripts/audit_generated_project.sh generated/<project-slug>` 做模板级结构审计
-
-## 一键执行
-
-如果本机已安装并登录 `codex` 或 `claude` CLI，可以直接执行：
-
-```bash
-./scripts/run_full_flow.sh
-```
-
-该脚本会顺序执行：
-
-1. 基于 `requirements/requirement.md` 调用总控提示词生成项目
-2. 调用修复验证提示词检查并修复生成结果
-3. 默认按 `AI_CLI=auto` 自动检测执行器，优先 `codex`，其次 `claude`
-
-如果你只想执行生成，不想立即进入修复验证，可使用：
-
-```bash
-./scripts/run_full_flow.sh --generate-only
-```
-
-如需显式指定 Claude Code CLI，可使用：
-
-```bash
-AI_CLI=claude ./scripts/run_full_flow.sh
-```
-
-如需调整 Claude Code CLI 的权限模式，可使用：
-
-```bash
-AI_CLI=claude CLAUDE_PERMISSION_MODE=bypassPermissions ./scripts/run_full_flow.sh
-```
 
 ## 模板层与生成层
 

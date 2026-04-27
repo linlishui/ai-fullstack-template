@@ -53,31 +53,11 @@
 
 通常直接从 `prompts/00-generate-from-requirement.md` 作为总控入口，让 AI 串行完成上述阶段。
 
-## 一键入口
-
-如果本机已安装 `codex` 或 `claude` CLI，可直接运行：
-
-```bash
-./scripts/run_full_flow.sh
-```
-
-该脚本会依次调用总控提示词与修复验证提示词。
-
-默认情况下脚本会按 `AI_CLI=auto` 自动选择执行器：
-
-- 优先使用 `codex`
-- 如果 `codex` 不存在，则回退到 `claude`
-
-如需固定使用 Claude Code CLI：
-
-```bash
-AI_CLI=claude ./scripts/run_full_flow.sh
-```
+在 Codex 中，也可显式使用 `$template-project-driver`；在 Claude Code 中，也可显式要求使用 `template-project-driver` skill，由 skill 按阶段驱动完整流程。
 
 ## 补充说明
 
-- `run_full_flow.sh` 解决“生成 + 修复验证”的主流程
-- `audit_generated_project.sh` 解决“结构与规范是否达标”的模板级质量门禁
-- `verify_project.sh` 解决“项目是否真的可执行”的工程级质量门禁
+- `audit_generated_project.sh` 解决”结构与规范是否达标”的模板级质量门禁
+- `verify_project.sh` 解决”项目是否真的可执行”的工程级质量门禁
 - `verify_project.sh` 也作为业务校验入口，自动调用项目级 `scripts/check_business_flow.sh`
-- `docs/business-checklist-template.md` 提供“需求驱动”的关键业务动作回归模板
+- `docs/business-checklist-template.md` 提供”需求驱动”的关键业务动作回归模板
