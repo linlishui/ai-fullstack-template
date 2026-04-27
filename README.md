@@ -48,6 +48,9 @@
     ├── development.md
     ├── ai-workflow.md
     ├── business-checklist-template.md
+    ├── frontend-style-guide.md
+    ├── page-blueprints.md
+    ├── frontend-review-checklist.md
     ├── generation-quality.md
     └── requirement-template.md
 ```

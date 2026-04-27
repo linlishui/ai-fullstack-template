@@ -7,8 +7,11 @@
 - `generated/<project-slug>/requirements/` 下的需求快照
 - `generated/<project-slug>/openspec/` 下的规格文档
 - `generated/<project-slug>/docs/key-business-actions-checklist.md`
+- `docs/frontend-review-checklist.md`
+- 如果存在，读取 `generated/<project-slug>/docs/frontend-ui-checklist.md`
 
 如果 `generated/<project-slug>/docs/key-business-actions-checklist.md` 不存在，必须先基于当前需求补生成一份，再继续修复与验证。
+如果 `generated/<project-slug>/docs/frontend-ui-checklist.md` 不存在，必须先补生成一份前端 UI 检查清单，再继续修复与验证。
 
 必须至少检查以下内容：
 
@@ -19,10 +22,12 @@
 - `cd generated/<project-slug>/frontend && npm run build`
 - `cd generated/<project-slug>/frontend && npm run lint`
 - 如果存在 `generated/<project-slug>/scripts/check_business_flow.sh`，在服务启动后必须执行它
+- 对照前端审计清单检查页面结构、视觉一致性、状态完整性与响应式风险
 
 执行要求：
 
 - 先根据当前需求确认 3-5 个关键业务动作，并对照项目级回归清单核对它们的验证状态
+- 先核对项目级前端 UI 检查清单，确认是否缺失主题 token、状态设计、移动端适配和页面蓝图落地
 - 逐项运行并记录结果
 - 如果发现明显错误，优先直接修复
 - 修复后重新执行相关检查
@@ -33,6 +38,7 @@
 输出要求：
 
 - 先列出关键业务动作回归清单中的动作与最新验证状态
+- 列出前端 UI 检查清单中的主要项与最新状态
 - 列出已执行的检查项
 - 列出已修复的问题
 - 列出仍未解决的问题

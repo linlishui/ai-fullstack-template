@@ -7,6 +7,7 @@
 3. 让 `codex` 或 `claude` 执行 `prompts/00-generate-from-requirement.md`
 4. 让同一个 AI CLI 执行 `prompts/07-fix-and-verify.md`
 5. 根据 `scripts/verify_project.sh` 对 `generated/<project-slug>/` 完成验证；如项目提供 `scripts/check_business_flow.sh`，可通过 `--with-compose-up` 自动一并执行
+6. 对照 `docs/frontend-review-checklist.md` 检查生成页面是否满足结构、状态、响应式和视觉一致性要求
 
 ## 开发原则
 

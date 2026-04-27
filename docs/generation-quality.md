@@ -66,6 +66,7 @@
 - 项目级文件是否齐全
 - OpenSpec 是否齐全，且至少同时包含 `project.md`、`specs/<capability>/spec.md`、`changes/<change-id>/proposal.md`
 - 需求快照、文档、脚本是否同步输出
+- 前端是否同步输出页面质量相关说明或检查清单
 - 前后端核心入口是否存在
 - `.env.example` 是否覆盖关键配置
 - README 是否包含验证命令
@@ -83,6 +84,7 @@
 - Docker Compose 配置是否可解析
 - 后端测试与 lint 是否通过
 - 前端构建与 lint 是否通过
+- 前端是否对照 `docs/frontend-review-checklist.md` 补做了结构、视觉、状态和响应式检查
 - 如果项目存在 `generated/<project-slug>/scripts/check_business_flow.sh`，是否已在服务启动后执行关键业务动作检查
 - 如有需要，再加 `--with-compose-up` 验证容器启动
 
