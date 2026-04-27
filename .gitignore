@@ -48,9 +48,5 @@ temp/
 .cache/
 
 # Generated projects
-generated/**/.venv/
-generated/**/node_modules/
-generated/**/dist/
-generated/**/.pytest_cache/
-generated/**/.ruff_cache/
-generated/**/__pycache__/
+generated/*
+!generated/.gitkeep

@@ -14,9 +14,10 @@ This script runs:
 3. backend ruff check .
 4. frontend npm run build
 5. frontend npm run lint
+6. project business flow checks if generated/<project-slug>/scripts/check_business_flow.sh exists and services are started
 
 Optional:
-6. docker compose up --build -d
+7. docker compose up --build -d
 EOF
 }
 
@@ -79,6 +80,30 @@ run_backend_check() {
   )
 }
 
+run_business_flow_check() {
+  local project_dir="$1"
+  local script_path="$project_dir/scripts/check_business_flow.sh"
+  local with_compose_up="$2"
+
+  if [[ ! -f "$script_path" ]]; then
+    echo "No project business flow check script found at $script_path, skipping business flow verification."
+    return
+  fi
+
+  if [[ "$with_compose_up" != true ]]; then
+    echo "Project business flow check script found, but services were not started by this run. Re-run with --with-compose-up to execute business flow verification."
+    return
+  fi
+
+  if [[ ! -x "$script_path" ]]; then
+    echo "Project business flow check script is not executable: $script_path" >&2
+    exit 1
+  fi
+
+  echo "Running project business flow checks in $project_dir"
+  "$script_path"
+}
+
 echo "Running docker compose config in $PROJECT_DIR"
 docker compose --env-file "$PROJECT_DIR/.env.example" -f "$PROJECT_DIR/compose.yaml" config >/dev/null
 
@@ -96,5 +121,7 @@ echo "Running frontend checks in $PROJECT_DIR/frontend"
   npm run build
   npm run lint
 )
+
+run_business_flow_check "$PROJECT_DIR" "$WITH_COMPOSE_UP"
 
 echo "Verification completed for $PROJECT_DIR"

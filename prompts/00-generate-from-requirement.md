@@ -49,6 +49,7 @@ generated/<project-slug>/
 
 - 提炼项目目标、用户角色、功能模块、页面列表、数据实体、权限规则、业务流程、异常场景、非功能需求
 - 输出结构化分析结果
+- 判断认证、注册、登录是否是当前需求的核心链路，还是仅作为支撑能力存在
 - 基于需求内容生成一个稳定、可读的 `project-slug`
 - 如果需求中已明确项目英文名或系统标识，优先使用其规范化结果作为 `project-slug`
 - `project-slug` 应仅包含小写字母、数字和连字符
@@ -73,6 +74,7 @@ generated/<project-slug>/
 
 - 将当前业务需求快照同步输出到 `generated/<project-slug>/requirements/`
 - 生成项目级 `docs/`，至少包含开发说明与架构说明
+- 在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中生成一份基于当前需求提炼的关键业务动作回归清单
 - 生成项目级 `scripts/`，至少包含验证或清理脚本
 - 确保生成结果可作为独立工程包脱离模板仓库继续开发
 
@@ -104,6 +106,7 @@ generated/<project-slug>/
 - 前端必须按页面、模块、组件、hooks、api 分层
 - 不要把所有逻辑堆进 `App.tsx`
 - 页面、表单、数据请求与状态处理要与需求一致
+- 如果认证不是当前需求的核心链路，只实现最小可用认证支撑，不要过度展开注册/登录页面、认证体验或围绕认证增加大量非必要逻辑
 - 前端必须提供可执行的构建、lint 和开发命令
 
 ### 阶段 8：生成 Docker Compose
@@ -149,6 +152,7 @@ generated/<project-slug>/
 
 - 在 `generated/<project-slug>/README.md` 中加入完整验证命令
 - 如有必要，在 `generated/<project-slug>/scripts/` 中生成验证脚本
+- 如果需求存在明确主链路动作或状态流转校验需求，应在 `generated/<project-slug>/scripts/check_business_flow.sh` 中生成项目级业务验证脚本
 - 验证命令至少应覆盖：
   - `docker compose config`
   - `docker compose up --build`
@@ -163,6 +167,20 @@ generated/<project-slug>/
 - 优先修复可自动识别的问题
 - 最终输出仍存在的风险项与待人工确认项
 
+### 阶段 11.5：业务闭环自查
+
+在结束前，必须至少自查以下高风险点：
+
+- 先在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中记录基于当前需求提炼出的 3-5 个关键业务动作
+- 先基于当前需求提炼出 3-5 个最关键的业务动作，并逐一验证这些动作是否真正可执行，而不是只有页面或接口占位
+- 如果认证只属于支撑能力，则认证自查应以“最小可用且不阻塞主链路”为标准，不要把认证当作默认主要验收对象
+- 关键状态流转是否有明确入口，不要默认使用固定示例，必须以当前需求中的真实流转为准
+- 与需求对应的关键视图（例如列表、详情页、工作台、审批视图、运营视图等）是否与真实状态一致
+- 表单校验失败或接口失败时，页面是否会给出明确反馈，而不是静默失败
+- 首次启动时依赖的数据、字典、分类、配置或其他初始化资源是否能自动准备，避免关键页面空白不可用
+
+如发现上述问题，必须优先修复后再结束任务。
+
 ## 输出要求
 
 - 先汇报需求解析结果
@@ -172,4 +190,7 @@ generated/<project-slug>/
 - 明确列出已创建的项目级文件，包括 `README.md`、`.gitignore`、`.env.example`、`compose.yaml`
 - 明确列出已同步的项目级上下文目录，包括 `requirements/`、`docs/`、`scripts/`、`openspec/`
 - 生成后主动执行基础检查
+- 生成后主动说明已完成哪些质量自查
+- 明确说明 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中记录了哪些关键业务动作及其验证状态
+- 如果已生成 `generated/<project-slug>/scripts/check_business_flow.sh`，明确说明它覆盖了哪些关键业务动作
 - 修改时保持现有模板文件风格一致

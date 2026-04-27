@@ -47,6 +47,8 @@
     ├── architecture.md
     ├── development.md
     ├── ai-workflow.md
+    ├── business-checklist-template.md
+    ├── generation-quality.md
     └── requirement-template.md
 ```
 
@@ -79,6 +81,7 @@ docker compose up --build
 2. 编写或更新 `requirements/requirement.md`
 3. 执行 `scripts/run_full_flow.sh`
 4. 进入 `generated/<project-slug>/` 执行 `docker compose up --build`
+5. 执行 `scripts/audit_generated_project.sh generated/<project-slug>` 做模板级结构审计
 
 ## 一键执行
 
@@ -112,7 +115,7 @@ docker compose up --build
 - OpenSpec 仅存在于生成层的 `generated/<project-slug>/openspec/`
 - 生成层负责承载具体业务代码与部署实现
 - 每次生成时，应按需求内容创建 `generated/<project-slug>/`
-- 典型输出包括 `generated/<project-slug>/requirements/`、`generated/<project-slug>/docs/`、`generated/<project-slug>/scripts/`、`generated/<project-slug>/openspec/`、`generated/<project-slug>/backend/`、`generated/<project-slug>/frontend/`、`generated/<project-slug>/compose.yaml`、`generated/<project-slug>/.env.example`、`generated/<project-slug>/.gitignore`、`generated/<project-slug>/README.md`
+- 典型输出包括 `generated/<project-slug>/requirements/`、`generated/<project-slug>/docs/`、`generated/<project-slug>/docs/key-business-actions-checklist.md`、`generated/<project-slug>/scripts/`、`generated/<project-slug>/openspec/`、`generated/<project-slug>/backend/`、`generated/<project-slug>/frontend/`、`generated/<project-slug>/compose.yaml`、`generated/<project-slug>/.env.example`、`generated/<project-slug>/.gitignore`、`generated/<project-slug>/README.md`
 - 迁移仓库位置时，不依赖机器本地绝对路径
 - 如需重新生成项目，可保留模板层，仅清理生成层
 - 生成层的目标是形成一个可单独拎走继续开发的独立工程包，而不仅仅是代码输出目录
@@ -120,9 +123,17 @@ docker compose up --build
 模板级验证脚本也支持直接对某个生成项目执行检查：
 
 ```bash
+./scripts/audit_generated_project.sh generated/<project-slug>
 ./scripts/verify_project.sh generated/<project-slug>
 ./scripts/verify_project.sh generated/<project-slug> --with-compose-up
 ```
+
+建议顺序：
+
+1. `./scripts/audit_generated_project.sh generated/<project-slug>`
+2. `./scripts/verify_project.sh generated/<project-slug>`
+
+如果生成项目提供了 `generated/<project-slug>/scripts/check_business_flow.sh`，模板验证脚本会在 `--with-compose-up` 场景下自动执行它，把关键业务动作检查纳入正式验证流程。
 
 ## 注意事项
 
@@ -130,3 +141,21 @@ docker compose up --build
 - 规格必须先于代码生成
 - 所有敏感配置必须通过环境变量注入
 - 生成后必须保留可验证的测试与构建流程
+
+## 质量门禁
+
+为了提高通过 AI 生成项目的一次成功率，建议把质量检查拆成两层：
+
+- 模板级审计：检查目录、OpenSpec、README、环境变量模板、核心入口文件是否齐全
+- 项目级验证：检查 compose、pytest、ruff、npm build、npm lint 是否真正可执行；如果项目提供业务校验脚本，则在服务启动后自动执行关键业务动作检查
+
+此外，还应保留一份需求驱动的关键业务动作回归清单：
+
+- 模板参考：`docs/business-checklist-template.md`
+- 项目输出：`generated/<project-slug>/docs/key-business-actions-checklist.md`
+- 作用：避免 AI 只完成静态结构和构建通过，却遗漏真正的主链路动作与状态流转
+
+详细策略见：
+
+- [docs/ai-workflow.md](/Users/lishui/IdeaProjects/ai-fullstack-template/docs/ai-workflow.md)
+- [docs/generation-quality.md](/Users/lishui/IdeaProjects/ai-fullstack-template/docs/generation-quality.md)
