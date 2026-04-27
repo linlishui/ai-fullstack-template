@@ -102,8 +102,17 @@ generated/<project-slug>/
 
 ### 阶段 7：生成前端
 
+#### 阶段 7a：前端工具链初始化
+
 - 使用 React、TypeScript、Vite、Tailwind CSS、shadcn/ui、TanStack Query、React Hook Form、Zod
 - 前端必须生成到 `generated/<project-slug>/frontend/`
+- 推荐使用成熟组件库（如 shadcn/ui）初始化基础 UI 层，避免手写 Button、Input、Dialog 等基础组件
+- 推荐安装图标库（如 Lucide React），确保页面操作有语义图标
+- 先读取 `docs/design-tokens.md` 作为主题 token 默认参考，按业务需求微调配色和风格
+- 先读取 `docs/component-patterns.md` 了解必须覆盖的交互模式
+
+#### 阶段 7b：前端业务代码生成
+
 - 前端必须按页面、模块、组件、hooks、api 分层
 - 不要把所有逻辑堆进 `App.tsx`
 - 生成前必须先读取模板中的前端规范文档，例如页面蓝图、设计规范、前端审计清单
@@ -111,6 +120,11 @@ generated/<project-slug>/
 - 页面、表单、数据请求与状态处理要与需求一致
 - 页面必须有清晰的信息层级和主次操作层级，不允许只生成默认白底表单或表格堆叠
 - 必须补齐加载态、空态、错误态、禁用态、提交中态和成功反馈
+- 列表页和详情页加载时使用骨架屏（Skeleton）占位，禁止纯文字 "Loading..."
+- 空态必须包含图标、说明文字和引导操作，禁止只显示 "No data"
+- 增删改操作必须通过 Toast 给出成功或失败反馈
+- 破坏性操作必须通过确认弹窗拦截
+- 按钮至少提供 primary、secondary、outline、destructive、ghost 五种变体
 - 必须保证桌面端与移动端都可正常使用
 - 如果认证不是当前需求的核心链路，只实现最小可用认证支撑，不要过度展开注册/登录页面、认证体验或围绕认证增加大量非必要逻辑
 - 在 `generated/<project-slug>/docs/` 中至少输出一份项目级前端实现说明或前端 UI 审计清单，记录页面结构、主题方向和状态设计

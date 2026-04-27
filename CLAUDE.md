@@ -43,6 +43,9 @@ cd generated/<project-slug> && docker compose up --build
 | `prompts/07-fix-and-verify.md` | 修复验证 prompt |
 | `docs/ai-workflow.md` | 工作流说明 |
 | `docs/frontend-style-guide.md` | 前端设计规范 |
+| `docs/design-tokens.md` | 默认主题 token 参考（色值、字号、间距等） |
+| `docs/component-patterns.md` | 交互模式与组件质量标准 |
+| `docs/page-blueprints.md` | 页面结构蓝图 |
 | `docs/generation-quality.md` | 质量保障策略 |
 | `scripts/run_full_flow.sh` | 一键生成脚本 |
 | `requirements/requirement.md` | 业务需求输入 |
