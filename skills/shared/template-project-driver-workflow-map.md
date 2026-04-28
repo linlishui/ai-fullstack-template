@@ -22,17 +22,30 @@ Use this file as the source-of-truth map for the current repository when running
 - `docs/generation-quality.md`
   - Defines main-loop priority, validation minimums, and typical high-risk failures.
 
+## Backend, Testing, And Deployment Guidance
+
+Read these before generating non-trivial backend, verification, or runtime work:
+
+- `docs/backend-spec.md`
+- `docs/testing-spec.md`
+- `docs/deployment-spec.md`
+
+Use them as the primary rule sources for:
+
+- backend layering, contracts, security, data consistency, migrations, and health checks
+- test coverage priorities, key business-action regression, and verification gates
+- compose structure, Dockerfiles, environment variables, startup flow, and runtime validation
+
 ## Frontend Guidance
 
 Read these before generating non-trivial frontend work:
 
+- `docs/frontend-ui-spec.md`
 - `docs/design-tokens.md`
 - `docs/component-patterns.md`
-- `docs/page-blueprints.md`
-- `docs/frontend-style-guide.md`
-- `docs/frontend-review-checklist.md`
+- `docs/frontend-anti-patterns.md`
 
-Use them to shape theme tokens, page hierarchy, interaction patterns, and quality checks.
+Use `docs/frontend-ui-spec.md` as the main frontend rule source, then use the others to shape theme tokens, interaction patterns, and visual expression.
 
 ## Prompt Entry Points
 
@@ -45,14 +58,18 @@ Use them to shape theme tokens, page hierarchy, interaction patterns, and qualit
   - OpenSpec generation stage.
 - `prompts/03-generate-backend.md`
   - Backend generation stage.
+  - Read together with `docs/backend-spec.md`, `docs/testing-spec.md`, and `docs/deployment-spec.md`.
 - `prompts/04-generate-frontend.md`
   - Frontend generation stage.
 - `prompts/05-generate-docker.md`
   - Compose and deployment stage.
+  - Read together with `docs/deployment-spec.md`, `docs/backend-spec.md`, and `docs/testing-spec.md`.
 - `prompts/06-generate-tests.md`
   - Test generation stage.
+  - Read together with `docs/testing-spec.md`, `docs/backend-spec.md`, `docs/frontend-ui-spec.md`, and `docs/deployment-spec.md`.
 - `prompts/07-fix-and-verify.md`
   - Repair and verification stage.
+  - Cross-check against backend, testing, deployment, and frontend spec entrypoints before final handoff.
 - `prompts/08-security-review.md`
   - Security review stage.
 
@@ -135,5 +152,8 @@ At the project level, README should also expose:
 - Writing business implementation outside `generated/<project-slug>/`
 - Leaving project-level docs, env example, or helper scripts incomplete
 - Building UI without required loading, empty, error, or submitting feedback
+- Generating backend code without spec-driven module boundaries, migration discipline, or resource-level authorization
+- Treating tests as optional after build passes, or skipping project-level business-flow regression
+- Shipping compose files without complete env examples, health checks, or startup instructions
 - Overbuilding authentication when auth is not the requirement's main loop
 - Passing static build checks while main business actions still cannot be executed

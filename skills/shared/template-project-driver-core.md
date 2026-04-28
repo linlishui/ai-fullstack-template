@@ -23,6 +23,9 @@ Read these before generating anything substantial:
 3. `README.md`
 4. `docs/ai-workflow.md`
 5. `docs/generation-quality.md`
+6. `docs/backend-spec.md`
+7. `docs/testing-spec.md`
+8. `docs/deployment-spec.md`
 
 Also read the shared workflow map at `skills/shared/template-project-driver-workflow-map.md` when exact source-of-truth paths, stage mapping, or validation commands are needed.
 
@@ -95,6 +98,7 @@ generated/<project-slug>/
 ### Stage 4: Generate Backend
 
 - Use `FastAPI + Pydantic v2 + SQLAlchemy 2.x async + Alembic`.
+- Treat `docs/backend-spec.md` as the backend source of truth for layering, contracts, security, migrations, health checks, and verification expectations.
 - Organize backend into clear modules such as `api/`, `core/`, `db/`, `models/`, `repositories/`, `schemas/`, `services/`, and `tests/`.
 - Keep configuration, auth, persistence, and route handling separated.
 - Read settings from environment variables only.
@@ -104,14 +108,17 @@ generated/<project-slug>/
 - Use `React + TypeScript + Vite`.
 - Organize code into `app/`, `api/`, `components/`, `features/`, `hooks/`, `pages/`, `schemas/`, or equivalent modular structure.
 - Prefer `TanStack Query`, `React Hook Form`, and `Zod`.
-- Read `docs/design-tokens.md`, `docs/component-patterns.md`, `docs/page-blueprints.md`, `docs/frontend-style-guide.md`, and `docs/frontend-review-checklist.md` before shaping the UI.
+- Treat `docs/frontend-ui-spec.md` as the frontend source of truth. Read it first, then follow its referenced detailed documents such as `docs/design-tokens.md`, `docs/component-patterns.md`, and `docs/frontend-anti-patterns.md` as needed.
 - Ensure loading, empty, error, disabled, submitting, and success states exist.
 - Keep responsive behavior and visual hierarchy intentional; avoid placeholder-grade UI.
 
 ### Stage 6: Generate Deployment And Tests
 
+- Treat `docs/deployment-spec.md` as the deployment and runtime source of truth.
+- Treat `docs/testing-spec.md` as the testing and regression source of truth.
 - Create `compose.yaml` for at least `frontend`, `backend`, `mysql`, and `redis`.
 - Provide backend tests, `ruff check`, frontend build, and frontend lint support.
+- Ensure `.env.example`, Dockerfiles, health checks, startup instructions, and key business-action validation paths align with those specs.
 - Add `scripts/check_business_flow.sh` when the requirement defines business actions that can be asserted after startup.
 
 ### Stage 7: Audit And Verify

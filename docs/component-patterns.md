@@ -1,6 +1,6 @@
 # Component Patterns
 
-本文件定义生成前端时必须覆盖的交互模式和组件质量标准。推荐使用成熟组件库（如 shadcn/ui、Radix UI、Headless UI）实现，避免纯手写基础 UI 组件。
+本文件补充 `docs/frontend-ui-spec.md`，只负责“组件与交互模式”。总入口中的硬规则依然有效；本文件不重复总规范、反模式和审查清单。
 
 ## 1. 组件库选型
 
@@ -188,3 +188,39 @@ async function handleDelete(id: string) {
 - **表单提交中态**：按钮显示 loading spinner + 禁用，文字改为进行时态（如 "提交中..."）
 - **页面过渡**：列表项和卡片使用 `transition` 实现 hover 效果（如轻微上浮、阴影加深）
 - **响应式菜单**：移动端使用 Sheet（侧边抽屉）替代顶部水平导航
+
+## 9. 受限操作提示
+
+未登录、无权限或缺少前置条件时，点击操作不能静默失败，也不能只是“按钮点了没反应”。
+
+推荐处理方式：
+
+- 未登录：跳转登录页或弹出登录弹窗，并提示“登录后可继续此操作”
+- 无权限：保留控件可见性，但通过 Tooltip、Inline Message 或 Toast 说明权限限制
+- 缺少前置条件：明确提示缺什么，并提供下一步入口，例如“请先选择项目”“请先完成安装”
+- 默认禁用的控件：附近需要有可见说明文字，不能只靠灰色态表达原因
+
+推荐实现：
+
+```tsx
+import { toast } from "sonner";
+
+function handleInstallClick() {
+  if (!session) {
+    toast.info("请先登录后再安装 Skill");
+    navigate("/login", { state: { redirectTo: location.pathname } });
+    return;
+  }
+
+  if (!selectedWorkspaceId) {
+    toast.warning("请先选择工作区");
+    return;
+  }
+
+  mutateInstall();
+}
+```
+
+验收标准：用户点击受限操作后，必须在 1 次交互内知道“为什么不能做”和“下一步该做什么”。
+
+与布局稳定性、按钮不换行、长文本截断、原生控件禁用等通用硬规则相关的内容，以 `docs/frontend-ui-spec.md` 和 `docs/frontend-anti-patterns.md` 为准。

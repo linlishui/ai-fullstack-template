@@ -126,6 +126,10 @@ generated/<project-slug>/backend/
 - 列表和详情页加载时推荐使用骨架屏（Skeleton）占位，避免纯文字 "Loading..."
 - 增删改操作应通过 Toast 提示给出成功或失败反馈
 - 破坏性操作（删除、下线等）应通过确认弹窗拦截
+- 禁止在页面中直接裸写原生 `select`、`button`、`input` 作为业务控件；必须优先封装为统一 UI 组件或复用成熟组件库组件，以保证样式和交互一致性
+- 所有操作按钮默认必须保证 `whitespace-nowrap`，不得因为容器挤压而换行；若空间不足，应优先调整布局、最小宽度或改为折叠操作，而不是允许按钮文本断裂
+- 列表卡片、表格行、筛选栏、审核区、表单操作区中出现的标题、分类名、版本号和按钮文本，必须显式处理 `truncate`、换行策略或最小宽度，禁止依赖浏览器默认布局
+- 筛选区、搜索区、操作区使用 `grid` 或 `flex` 时，必须定义最小列宽或 `minmax(...)` 约束，避免下拉框、输入框、按钮在窄宽度下变形
 - 主题 token 默认参考 `docs/design-tokens.md`，可按业务需求调整
 - 交互模式应覆盖 `docs/component-patterns.md` 中定义的必要模式
 - 前端视觉实现必须优先遵循项目级设计规范，不允许只生成“能用但无层次”的默认样式
@@ -192,4 +196,5 @@ generated/<project-slug>/frontend/
 - 生成代码后必须校验 Docker Compose、后端测试、前端构建
 - 后端至少验证 `pytest` 与 `ruff check`
 - 前端至少验证 `npm run build` 与 `npm run lint`
+- 前端除 `build` 和 `lint` 外，还必须对照 `docs/frontend-ui-spec.md` 中的验收清单做一轮视觉与可用性自查，重点检查按钮换行、控件变形、长文本溢出和移动端筛选区布局
 - 发现明显错误后应先修复再结束任务

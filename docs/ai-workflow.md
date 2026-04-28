@@ -27,9 +27,13 @@
 ### 阶段 4：生成实现
 
 - 在 `generated/<project-slug>/` 下创建当前需求对应的实现目录
+- 后端实现先读取 `docs/backend-spec.md`
 - 使用 `prompts/03-generate-backend.md`
+- 前端实现先读取 `docs/frontend-ui-spec.md`
 - 使用 `prompts/04-generate-frontend.md`
+- 部署实现先读取 `docs/deployment-spec.md`
 - 使用 `prompts/05-generate-docker.md`
+- 测试实现先读取 `docs/testing-spec.md`
 - 使用 `prompts/06-generate-tests.md`
 - 在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中输出基于当前需求的关键业务动作回归清单
 
@@ -62,4 +66,5 @@
 - `verify_project.sh` 解决”项目是否真的可执行”的工程级质量门禁
 - `verify_project.sh` 也作为业务校验入口，自动调用项目级 `scripts/check_business_flow.sh`
 - `docs/business-checklist-template.md` 提供”需求驱动”的关键业务动作回归模板
+- `docs/backend-spec.md`、`docs/testing-spec.md`、`docs/deployment-spec.md` 共同补齐后端、验证和交付阶段的规则入口
 - 六项原则不是额外备注，而是每次生成、修复、审计和交付时都必须逐项映射到实际产物与验证动作的硬约束

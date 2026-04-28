@@ -55,6 +55,13 @@
 - `frontend npm run build`
 - `frontend npm run lint`
 
+对应规则入口：
+
+- 后端实现与分层：`docs/backend-spec.md`
+- 测试与验证：`docs/testing-spec.md`
+- 部署与容器：`docs/deployment-spec.md`
+- 前端 UI：`docs/frontend-ui-spec.md`
+
 ### 4. 不允许静默失败
 
 生成结果必须避免以下常见问题：
@@ -95,7 +102,10 @@
 - Docker Compose 配置是否可解析
 - 后端测试与 lint 是否通过
 - 前端构建与 lint 是否通过
-- 前端是否对照 `docs/frontend-review-checklist.md` 补做了结构、视觉、状态和响应式检查
+- 前端是否对照 `docs/frontend-ui-spec.md` 中的验收清单补做了结构、视觉、状态和响应式检查
+- 后端是否对照 `docs/backend-spec.md` 完成分层、配置、安全、迁移和接口契约自查
+- 测试是否对照 `docs/testing-spec.md` 覆盖关键业务动作、异常与回归路径
+- 部署是否对照 `docs/deployment-spec.md` 补齐环境变量、健康检查、启动说明和容器依赖
 - 如果项目存在 `generated/<project-slug>/scripts/check_business_flow.sh`，是否已在服务启动后执行关键业务动作检查
 - 如有需要，再加 `--with-compose-up` 验证容器启动
 

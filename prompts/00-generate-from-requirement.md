@@ -92,6 +92,7 @@ generated/<project-slug>/
 
 ### 阶段 4：生成后端
 
+- 先读取 `docs/backend-spec.md`
 - 使用 Python 3.12+、FastAPI、Pydantic v2、SQLAlchemy 2.x async、Alembic、pytest、ruff
 - 后端必须生成到 `generated/<project-slug>/backend/`
 - 后端必须拆分为可维护目录结构，不得将所有逻辑写入单文件
@@ -143,6 +144,7 @@ generated/<project-slug>/
 
 ### 阶段 8：生成 Docker Compose
 
+- 先读取 `docs/deployment-spec.md`
 - 生成 `generated/<project-slug>/compose.yaml`
 - 至少包含 `frontend`、`backend`、`mysql`、`redis`
 - 所有配置从 `.env` 读取
@@ -151,6 +153,7 @@ generated/<project-slug>/
 
 ### 阶段 9：生成测试
 
+- 先读取 `docs/testing-spec.md`
 - 为后端生成 `pytest` 测试
 - 为关键逻辑和关键接口补基础测试
 - 为前端补必要的最小测试或至少确保构建与 lint 可通过

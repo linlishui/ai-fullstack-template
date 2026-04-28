@@ -1,6 +1,16 @@
 # Design Tokens
 
-本文件提供默认主题 token 参考值。生成前端时以此为起点，按业务需求微调配色与风格。
+本文件是前端 token 默认参考值文档，只负责提供颜色、字体、间距、圆角、阴影、断点和动效时序的建议起点。
+
+它不负责定义页面结构、组件模式、禁止项或验收规则；这些内容分别以下列文档为准：
+
+- 总入口与硬规则：`docs/frontend-ui-spec.md`
+- 视觉与页面表达：`docs/frontend-ui-spec.md`
+- 组件与交互模式：`docs/component-patterns.md`
+- 反模式：`docs/frontend-anti-patterns.md`
+- 审查清单：`docs/frontend-ui-spec.md` 中的验收清单
+
+生成前端时，应以本文件作为 token 初始值来源，再按业务需求微调，而不是把本文件理解为另一套独立前端规范。
 
 ## 1. 中性色（Neutral）
 

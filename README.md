@@ -57,11 +57,13 @@
     ├── architecture.md
     ├── development.md
     ├── ai-workflow.md
+    ├── backend-spec.md
     ├── business-checklist-template.md
-    ├── frontend-style-guide.md
-    ├── page-blueprints.md
-    ├── frontend-review-checklist.md
+    ├── deployment-spec.md
+    ├── frontend-ui-spec.md
+    ├── frontend-anti-patterns.md
     ├── generation-quality.md
+    ├── testing-spec.md
     └── requirement-template.md
 ```
 
@@ -159,6 +161,11 @@ Claude Code 推荐写法：
 - 规格必须先于代码生成
 - 所有敏感配置必须通过环境变量注入
 - 生成后必须保留可验证的测试与构建流程
+- 前端生成应以 `docs/frontend-ui-spec.md` 为总入口，并主动避开 `docs/frontend-anti-patterns.md` 中列出的反模式
+- 推荐把 `docs/frontend-ui-spec.md` 作为前端规范总入口，再按其中指引读取细分文档
+- 后端生成应以 `docs/backend-spec.md` 为总入口
+- 测试与验证应以 `docs/testing-spec.md` 为总入口
+- 部署与运行应以 `docs/deployment-spec.md` 为总入口
 
 ## 质量门禁
 
@@ -177,3 +184,6 @@ Claude Code 推荐写法：
 
 - [docs/ai-workflow.md](docs/ai-workflow.md)
 - [docs/generation-quality.md](docs/generation-quality.md)
+- [docs/backend-spec.md](docs/backend-spec.md)
+- [docs/testing-spec.md](docs/testing-spec.md)
+- [docs/deployment-spec.md](docs/deployment-spec.md)

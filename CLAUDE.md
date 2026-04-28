@@ -56,9 +56,12 @@ cd generated/<project-slug> && docker compose up --build
 | `prompts/00-generate-from-requirement.md` | 全量生成 prompt |
 | `prompts/07-fix-and-verify.md` | 修复验证 prompt |
 | `docs/ai-workflow.md` | 工作流说明 |
-| `docs/frontend-style-guide.md` | 前端设计规范 |
+| `docs/backend-spec.md` | 后端总规范与验收入口 |
+| `docs/testing-spec.md` | 测试与验证总规范入口 |
+| `docs/deployment-spec.md` | 部署与运行总规范入口 |
+| `docs/frontend-ui-spec.md` | 前端总规范与验收入口 |
 | `docs/design-tokens.md` | 默认主题 token 参考（色值、字号、间距等） |
 | `docs/component-patterns.md` | 交互模式与组件质量标准 |
-| `docs/page-blueprints.md` | 页面结构蓝图 |
+| `docs/frontend-anti-patterns.md` | 前端反模式与禁止项 |
 | `docs/generation-quality.md` | 质量保障策略 |
 | `requirements/requirement.md` | 业务需求输入 |
