@@ -9,6 +9,8 @@
 3. 再基于规格生成后端、前端、部署与测试代码
 4. 自动修复明显问题并完成基础验证
 
+同时，模板默认以“接近生产级高分实现”为目标，而不只是通过最基础的 build 和 lint。生成链路会显式约束安全、可观测性、前端容错、部署资产与关键业务回归路径。
+
 ## 默认技术栈
 
 - 后端：Python 3.12+、FastAPI、Pydantic v2、SQLAlchemy 2.x async、Alembic、MySQL 8、Redis 7、JWT、pytest、ruff
@@ -16,6 +18,17 @@
 - 部署：Docker Compose
 - 配置：统一通过 `.env` 管理
 - 规格管理：OpenSpec 风格组织需求、设计和任务
+
+## 生产级默认基线
+
+为减少评审高频失分项，模板默认要求生成项目尽量具备以下基线：
+
+- 后端：版本化 API、统一响应结构、全局异常处理、分页、`created_at/updated_at` 审计字段、依赖可用性健康检查、限流或预留限流接入点、基础 Logging/Metrics/Tracing 挂载位
+- 前端：统一 HTTP 客户端、ErrorBoundary、关键路由懒加载、Skeleton/Empty/Error/Toast/Confirm Dialog、未登录/无权限/缺少前置条件的显式提示
+- 安全：环境变量化配置、非通配 CORS、JWT/Refresh Token、安全 Cookie、CSRF 防护、安全响应头、关键操作审计日志
+- 部署：多阶段 Dockerfile、`compose.yaml`、Nginx 反向代理、CI 工作流、容器健康检查、README 中完整启动与验证说明
+- 质量：后端 `pytest` + `ruff check`、前端 `npm run build` + `npm run lint`、项目级关键业务动作清单与必要时的 `scripts/check_business_flow.sh`
+- AI 工具链：项目级 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md` 与 review/fix 记录模板，确保独立工程可继续被 AI 接手
 
 ## 仓库结构
 
@@ -136,6 +149,7 @@ Claude Code 推荐写法：
 - 生成层负责承载具体业务代码与部署实现
 - 每次生成时，应按需求内容创建 `generated/<project-slug>/`
 - 典型输出包括 `generated/<project-slug>/requirements/`、`generated/<project-slug>/docs/`、`generated/<project-slug>/docs/key-business-actions-checklist.md`、`generated/<project-slug>/scripts/`、`generated/<project-slug>/openspec/project.md`、`generated/<project-slug>/openspec/specs/<capability>/spec.md`、`generated/<project-slug>/openspec/changes/<change-id>/`、`generated/<project-slug>/backend/`、`generated/<project-slug>/frontend/`、`generated/<project-slug>/compose.yaml`、`generated/<project-slug>/.env.example`、`generated/<project-slug>/.gitignore`、`generated/<project-slug>/README.md`
+- 生产级增强输出通常还包括 `generated/<project-slug>/AGENTS.md`、`generated/<project-slug>/CLAUDE.md`、`generated/<project-slug>/docs/ai-workflow.md`、`generated/<project-slug>/docs/review-log.md`、`generated/<project-slug>/docs/fix-log.md`、`generated/<project-slug>/docs/frontend-ui-checklist.md`、`generated/<project-slug>/docs/production-readiness-checklist.md`、`generated/<project-slug>/infra/nginx/`、`generated/<project-slug>/.github/workflows/`
 - 迁移仓库位置时，不依赖机器本地绝对路径
 - 如需重新生成项目，可保留模板层，仅清理生成层
 - 生成层的目标是形成一个可单独拎走继续开发的独立工程包，而不仅仅是代码输出目录
@@ -172,12 +186,16 @@ Claude Code 推荐写法：
 
 为了提高通过 AI 生成项目的一次成功率，建议把质量检查拆成两层：
 
-- 模板级审计：检查目录、OpenSpec、README、环境变量模板、核心入口文件是否齐全
+- 模板级审计：检查目录、OpenSpec、README、环境变量模板、核心入口文件、前端 UI 清单、生产就绪清单、CI 工作流与 Nginx 配置是否齐全
 - 项目级验证：检查 compose、pytest、ruff、npm build、npm lint 是否真正可执行；如果项目提供业务校验脚本，则在服务启动后自动执行关键业务动作检查
 
 此外，还应保留一份需求驱动的关键业务动作回归清单：
 
 - 模板参考：`docs/business-checklist-template.md`
+- 前端清单模板：`docs/frontend-ui-checklist-template.md`
+- 生产就绪模板：`docs/production-readiness-template.md`
+- 项目级 AI 规则模板：`docs/project-agents-template.md`、`docs/project-claude-template.md`
+- 项目级 AI 协作模板：`docs/ai-collaboration-template.md`
 - 项目输出：`generated/<project-slug>/docs/key-business-actions-checklist.md`
 - 作用：避免 AI 只完成静态结构和构建通过，却遗漏真正的主链路动作与状态流转
 

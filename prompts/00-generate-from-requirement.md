@@ -30,6 +30,8 @@
 ```text
 generated/<project-slug>/
   README.md
+  AGENTS.md
+  CLAUDE.md
   .gitignore
   .env.example
   compose.yaml
@@ -86,7 +88,12 @@ generated/<project-slug>/
 
 - 将当前业务需求快照同步输出到 `generated/<project-slug>/requirements/`
 - 生成项目级 `docs/`，至少包含开发说明与架构说明
+- 生成项目级 `AGENTS.md` 与 `CLAUDE.md`，让独立工程保留 AI 协作规则
+- 在 `generated/<project-slug>/docs/ai-workflow.md` 中生成项目级 AI 工作流说明
+- 在 `generated/<project-slug>/docs/review-log.md` 与 `generated/<project-slug>/docs/fix-log.md` 中生成审查/修复记录模板
 - 在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中生成一份基于当前需求提炼的关键业务动作回归清单
+- 在 `generated/<project-slug>/docs/frontend-ui-checklist.md` 中生成前端 UI 自查清单
+- 在 `generated/<project-slug>/docs/production-readiness-checklist.md` 中生成生产就绪清单，至少覆盖 Logging、Metrics、Tracing、CORS、安全头、Refresh Token、CSRF、审计日志、Nginx、CI、健康检查与资源限制
 - 生成项目级 `scripts/`，至少包含验证或清理脚本
 - 确保生成结果可作为独立工程包脱离模板仓库继续开发
 
@@ -97,6 +104,7 @@ generated/<project-slug>/
 - 后端必须生成到 `generated/<project-slug>/backend/`
 - 后端必须拆分为可维护目录结构，不得将所有逻辑写入单文件
 - 生成配置管理、数据库连接、路由、schema、service、repository、认证与错误处理
+- 默认补齐 API 版本化、统一响应结构、全局异常处理、分页、资源级授权、结构化日志、依赖可用性健康检查，以及 Metrics/Tracing 接入位或说明
 - 后端必须提供可执行的测试、lint 和启动命令
 
 ### 阶段 5：生成数据库模型和 Alembic migration
@@ -130,8 +138,10 @@ generated/<project-slug>/
 - 生成前必须先读取模板中的前端规范文档，例如页面蓝图、设计规范、前端审计清单
 - 必须先定义主题 token 或 CSS 变量，统一颜色、字号、间距、圆角、阴影和断点
 - 页面、表单、数据请求与状态处理要与需求一致
+- 必须有统一 HTTP 请求封装与错误处理，禁止业务页面裸写 `fetch`
 - 页面必须有清晰的信息层级和主次操作层级，不允许只生成默认白底表单或表格堆叠
 - 必须补齐加载态、空态、错误态、禁用态、提交中态和成功反馈
+- 必须至少提供一处 ErrorBoundary，以及关键路由的 `React.lazy + Suspense` 懒加载
 - 列表页和详情页加载时使用骨架屏（Skeleton）占位，禁止纯文字 "Loading..."
 - 空态必须包含图标、说明文字和引导操作，禁止只显示 "No data"
 - 增删改操作必须通过 Toast 给出成功或失败反馈
@@ -146,9 +156,12 @@ generated/<project-slug>/
 
 - 先读取 `docs/deployment-spec.md`
 - 生成 `generated/<project-slug>/compose.yaml`
-- 至少包含 `frontend`、`backend`、`mysql`、`redis`
+- 至少包含 `nginx`、`frontend`、`backend`、`mysql`、`redis`
 - 所有配置从 `.env` 读取
-- 为开发运行提供合理的端口、依赖和健康检查配置
+- 为开发运行提供合理的端口、依赖、资源限制和健康检查配置
+- 生成 Nginx 反向代理配置与基础安全头
+- 为前后端 Dockerfile 优先采用多阶段构建
+- 生成 `.github/workflows/ci.yml`，至少覆盖 lint -> test -> build
 - 如需容器构建文件，也必须放在 `generated/<project-slug>/` 下的相应服务目录内
 
 ### 阶段 9：生成测试
@@ -156,6 +169,7 @@ generated/<project-slug>/
 - 先读取 `docs/testing-spec.md`
 - 为后端生成 `pytest` 测试
 - 为关键逻辑和关键接口补基础测试
+- 至少补一类数据库/Redis/超时等异常路径测试
 - 为前端补必要的最小测试或至少确保构建与 lint 可通过
 
 ### 阶段 10：生成 README
@@ -170,6 +184,7 @@ generated/<project-slug>/
   - 本地开发命令
   - 测试与 lint 命令
   - Docker Compose 启动命令
+  - Nginx、CI、健康检查、迁移与业务验证脚本说明
 
 ### 阶段 10.5：生成项目级环境文件
 
@@ -208,6 +223,7 @@ generated/<project-slug>/
 
 - 先在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中记录基于当前需求提炼出的 3-5 个关键业务动作
 - 先基于当前需求提炼出 3-5 个最关键的业务动作，并逐一验证这些动作是否真正可执行，而不是只有页面或接口占位
+- 统一响应结构、全局异常处理、分页、ErrorBoundary、统一 HTTP 错误处理、Nginx、CI 和生产就绪清单是否已经落地，而不是只在文档中提到
 - 如果认证只属于支撑能力，则认证自查应以“最小可用且不阻塞主链路”为标准，不要把认证当作默认主要验收对象
 - 关键状态流转是否有明确入口，不要默认使用固定示例，必须以当前需求中的真实流转为准
 - 与需求对应的关键视图（例如列表、详情页、工作台、审批视图、运营视图等）是否与真实状态一致
@@ -224,10 +240,12 @@ generated/<project-slug>/
 - 再生成代码
 - 明确告知最终输出目录 `generated/<project-slug>/`
 - 明确列出已创建的项目级文件，包括 `README.md`、`.gitignore`、`.env.example`、`compose.yaml`
+- 明确列出已创建的项目级 AI 文件，包括 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md`
 - 明确列出已同步的项目级上下文目录，包括 `requirements/`、`docs/`、`scripts/`、`openspec/`
 - 生成后主动执行基础检查
 - 生成后主动说明已完成哪些质量自查
 - 生成后必须单独说明六项硬性质量原则分别由哪些目录、文件、测试、脚本或检查动作承载
 - 明确说明 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中记录了哪些关键业务动作及其验证状态
+- 明确说明 `generated/<project-slug>/docs/frontend-ui-checklist.md` 与 `generated/<project-slug>/docs/production-readiness-checklist.md` 中记录了哪些高风险检查项及其状态
 - 如果已生成 `generated/<project-slug>/scripts/check_business_flow.sh`，明确说明它覆盖了哪些关键业务动作
 - 修改时保持现有模板文件风格一致

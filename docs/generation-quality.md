@@ -55,6 +55,16 @@
 - `frontend npm run build`
 - `frontend npm run lint`
 
+如果需求允许生成更完整的工程资产，默认还应具备：
+
+- Nginx 反向代理配置
+- CI 工作流文件
+- 项目级 AI 规则文件与协作记录模板
+- 前端 UI 自查清单
+- 生产就绪清单
+- 健康检查依赖验证
+- Logging / Metrics / Tracing 的接入位或说明
+
 对应规则入口：
 
 - 后端实现与分层：`docs/backend-spec.md`
@@ -85,7 +95,11 @@
 - OpenSpec 是否齐全，且至少同时包含 `project.md`、`specs/<capability>/spec.md`、`changes/<change-id>/proposal.md`
 - 需求快照、文档、脚本是否同步输出
 - 前端是否同步输出页面质量相关说明或检查清单
+- 是否同步输出生产就绪清单
+- 是否包含 `.github/workflows/` 与 `infra/nginx/`
+- 是否包含项目级 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md`
 - 前后端核心入口是否存在
+- 后端安全、错误处理、统一响应、健康检查等基础模块是否存在
 - `.env.example` 是否覆盖关键配置
 - README 是否包含验证命令
 
@@ -124,6 +138,10 @@
 - 需求中的核心角色是否都能完成自己的关键动作
 - 关键状态是否有明确入口触发，而不是只存在后端接口或数据库状态
 - 关键接口是否有权限校验和输入校验
+- 是否存在统一响应结构、全局异常处理、分页与资源级授权
+- 是否为关键模型补齐 `created_at/updated_at`，必要时补软删除语义
+- 是否已覆盖 Logging、Metrics、Tracing、安全头、Refresh Token 和 CSRF 等生产级要求
+- 是否已把 AI 工具链规则和审查/修复记录下沉到生成项目本身，而不是只保留在模板仓库
 - 关键列表、详情、工作台、审批或运营视图是否与真实状态一致
 - 空数据、重复数据、越权访问、失败提交是否有反馈
 - 初始化项目后，系统是否能以最小步骤跑起来

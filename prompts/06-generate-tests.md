@@ -14,7 +14,8 @@
 - 后端补充 `pytest` 测试
 - 后端测试默认位于 `generated/<project-slug>/backend/`
 - 覆盖关键接口、关键业务规则和关键异常场景
+- 至少覆盖一类数据库异常、Redis 异常、超时或重复提交边界
 - 前端至少确保 `build` 与 `lint` 能通过
 - 前端项目默认位于 `generated/<project-slug>/frontend/`
 - 如项目已引入测试框架，可补充关键页面或表单测试
-- 必须同步维护项目级关键业务动作回归清单，必要时补 `scripts/check_business_flow.sh`
+- 必须同步维护项目级关键业务动作回归清单、前端 UI 清单和生产就绪清单，必要时补 `scripts/check_business_flow.sh`

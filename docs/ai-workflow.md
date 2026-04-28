@@ -35,13 +35,18 @@
 - 使用 `prompts/05-generate-docker.md`
 - 测试实现先读取 `docs/testing-spec.md`
 - 使用 `prompts/06-generate-tests.md`
+- 在 `generated/<project-slug>/AGENTS.md` 与 `generated/<project-slug>/CLAUDE.md` 中输出项目级 AI 协作规则
+- 在 `generated/<project-slug>/docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md` 中输出项目级 AI 工作流与记录模板
 - 在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中输出基于当前需求的关键业务动作回归清单
+- 在 `generated/<project-slug>/docs/frontend-ui-checklist.md` 中输出前端 UI 自查清单
+- 在 `generated/<project-slug>/docs/production-readiness-checklist.md` 中输出生产就绪清单，至少覆盖 Logging、Metrics、Tracing、安全、Nginx、CI、健康检查与资源限制
 
 ### 阶段 5：修复与验证
 
 - 使用 `prompts/07-fix-and-verify.md`
 - 使用 `prompts/08-security-review.md`
 - 修复后必须重新核对关键业务动作回归清单，而不只是重跑构建命令
+- 修复后必须重新核对生产就绪清单中的高风险项，而不只是确认文件存在
 
 ### 阶段 6：模板级审计
 
@@ -63,7 +68,7 @@
 
 ## 补充说明
 
-- `audit_generated_project.sh` 解决”结构与规范是否达标”的模板级质量门禁
+- `audit_generated_project.sh` 解决”结构与规范是否达标”的模板级质量门禁，并检查前端 UI 清单、生产就绪清单、CI/Nginx 等高分资产
 - `verify_project.sh` 解决”项目是否真的可执行”的工程级质量门禁
 - `verify_project.sh` 也作为业务校验入口，自动调用项目级 `scripts/check_business_flow.sh`
 - `docs/business-checklist-template.md` 提供”需求驱动”的关键业务动作回归模板

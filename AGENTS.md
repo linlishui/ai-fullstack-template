@@ -23,6 +23,7 @@
 - 实现必须遵循仓库约定的技术栈、分层结构与配置规范
 - 前后端都应优先采用成熟方案，不重复手写基础设施或基础 UI 组件
 - 认证、鉴权、输入校验、错误处理、环境变量配置和启动流程必须完整
+- 默认以生产级高分基线为目标，显式覆盖统一响应、全局异常处理、分页、可观测性、安全头、Nginx、CI/CD、前端容错与健康检查
 
 ### 3. 可测试性
 
@@ -58,6 +59,8 @@
 - 生成实现时，必须统一输出到 `generated/<project-slug>/`
 - 必须先初始化项目级目录，再开始写业务代码
 - 项目级目录至少包含 `README.md`、`.gitignore`、`.env.example`、`compose.yaml`、`requirements/`、`docs/`、`scripts/`、`backend/`、`frontend/`、`openspec/`
+- 如按生产级基线生成，应同时包含 `infra/nginx/` 与 `.github/workflows/`
+- 独立工程默认还应包含项目级 `AGENTS.md`、`CLAUDE.md` 与 AI 协作记录文档
 
 ## 项目输出结构规则
 
@@ -66,15 +69,24 @@
 ```text
 generated/<project-slug>/
   README.md
+  AGENTS.md
+  CLAUDE.md
   .gitignore
   .env.example
   compose.yaml
   requirements/
   docs/
+    ai-workflow.md
+    review-log.md
+    fix-log.md
   scripts/
   openspec/
   backend/
   frontend/
+  infra/
+    nginx/
+  .github/
+    workflows/
 ```
 
 如业务需要扩展目录，也必须放在 `generated/<project-slug>/` 下，不得散落到模板根目录。
@@ -87,6 +99,7 @@ generated/<project-slug>/
 - 必须使用 `FastAPI + Pydantic v2 + SQLAlchemy 2.x async + Alembic`
 - 数据库连接、Redis 连接、JWT 配置必须来自环境变量
 - 必须为关键业务接口补充测试
+- 默认提供 `api/v1` 路由、统一响应结构、全局异常处理、分页、资源级授权、结构化日志、数据库与 Redis 连通性健康检查
 - 推荐后端目录骨架如下：
 
 ```text
@@ -111,6 +124,7 @@ generated/<project-slug>/backend/
 - `db/` 用于数据库会话、基类、初始化与 Redis 封装
 - `tests/` 必须独立存在，不要把测试混入业务目录
 - 后端至少应提供：依赖声明、应用入口、配置管理、迁移目录、测试目录
+- 如实现 Refresh Token，应补 Cookie 安全属性与 CSRF 防护
 - 若需求复杂，可新增 `tasks/`、`clients/`、`workers/` 等目录，但必须职责明确
 
 ## 前端规则
@@ -121,6 +135,8 @@ generated/<project-slug>/backend/
 - 表单校验优先使用 `React Hook Form + Zod`
 - 服务端数据获取优先使用 `TanStack Query`
 - UI 应保持可扩展，不要生成所有逻辑堆叠在单一组件中
+- 必须有统一 HTTP 客户端与错误处理，禁止业务页面裸写 `fetch`
+- 必须至少提供一处 ErrorBoundary，以及关键路由的 `React.lazy + Suspense` 懒加载
 - 推荐使用成熟组件库（如 shadcn/ui）搭建基础 UI 层，避免手写已有的基础 UI 组件（Button、Input、Dialog 等）
 - 推荐使用图标库（如 Lucide React），操作按钮、菜单项、状态标识应带语义图标
 - 列表和详情页加载时推荐使用骨架屏（Skeleton）占位，避免纯文字 "Loading..."
@@ -183,6 +199,8 @@ generated/<project-slug>/frontend/
 - 前后端目录结构必须支持后续 AI 增量迭代
 - 项目级 `requirements/` 必须跟随生成项目一起输出，至少包含当前业务需求快照
 - 项目级 `docs/` 必须跟随生成项目一起输出，至少包含开发与架构说明
+- 项目级 `docs/` 还应包含 `key-business-actions-checklist.md`、`frontend-ui-checklist.md`、`production-readiness-checklist.md`
+- 项目级 AI 协作文件应跟随生成项目一起输出，至少包含 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md`
 - OpenSpec 仅保留在项目级 `generated/<project-slug>/openspec/` 中，不再在模板根目录维护业务级 OpenSpec 副本
 - 项目级 `openspec/` 必须跟随生成项目一起输出，至少包含 `project.md`、`specs/<capability>/spec.md` 形式的当前业务规格，以及 `changes/<change-id>/proposal.md`、`design.md`、`tasks.md` 等完整变更文档
 - 项目级 `scripts/` 必须跟随生成项目一起输出，至少包含验证或清理等项目级辅助脚本
@@ -197,4 +215,5 @@ generated/<project-slug>/frontend/
 - 后端至少验证 `pytest` 与 `ruff check`
 - 前端至少验证 `npm run build` 与 `npm run lint`
 - 前端除 `build` 和 `lint` 外，还必须对照 `docs/frontend-ui-spec.md` 中的验收清单做一轮视觉与可用性自查，重点检查按钮换行、控件变形、长文本溢出和移动端筛选区布局
+- 生成项目还应补齐 `infra/nginx/`、`.github/workflows/ci.yml`、生产就绪清单与必要时的业务流验证脚本
 - 发现明显错误后应先修复再结束任务

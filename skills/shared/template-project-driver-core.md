@@ -39,9 +39,10 @@ Also read the shared workflow map at `skills/shared/template-project-driver-work
 6. Generate OpenSpec in `generated/<project-slug>/openspec/` before writing backend or frontend business code.
 7. Synchronize project-level context into `generated/<project-slug>/requirements/`, `docs/`, `scripts/`, and `openspec/`.
 8. Generate implementation into `generated/<project-slug>/` only. Do not scatter business code into the repository root.
-9. Run template-level audit and project-level verification after generation.
-10. Fix obvious failures before stopping.
-11. Report the final output directory, what was validated, and what risks or assumptions remain.
+9. Treat production-grade review items as default requirements, not optional polish, especially for observability, security, frontend resilience, Nginx, and CI assets.
+10. Run template-level audit and project-level verification after generation.
+11. Fix obvious failures before stopping.
+12. Report the final output directory, what was validated, and what risks or assumptions remain.
 
 ## Required Generated Project Shape
 
@@ -50,6 +51,8 @@ Initialize and keep this minimum structure:
 ```text
 generated/<project-slug>/
   README.md
+  AGENTS.md
+  CLAUDE.md
   .gitignore
   .env.example
   compose.yaml
@@ -59,6 +62,8 @@ generated/<project-slug>/
   openspec/
   backend/
   frontend/
+  infra/nginx/
+  .github/workflows/
 ```
 
 ## Non-Negotiable Rules
@@ -69,6 +74,8 @@ generated/<project-slug>/
 - Pull all secrets and runtime configuration from environment variables.
 - Keep backend and frontend modular. Do not collapse the system into `main.py` or `App.tsx`.
 - Generate verification artifacts together with implementation: tests, README commands, `.env.example`, and any project-level helper scripts.
+- Generate review-oriented checklists together with implementation: `docs/key-business-actions-checklist.md`, `docs/frontend-ui-checklist.md`, and `docs/production-readiness-checklist.md`.
+- Generate project-level AI collaboration assets together with implementation: `AGENTS.md`, `CLAUDE.md`, `docs/ai-workflow.md`, `docs/review-log.md`, and `docs/fix-log.md`.
 - Prefer minimal authentication when auth is only a supporting capability rather than the business core.
 - Validate key business actions from the actual requirement, not from a fixed demo checklist.
 
@@ -91,8 +98,9 @@ generated/<project-slug>/
 
 - Write project `README.md` that matches the actual generated structure.
 - Write `.gitignore` with runtime and build ignores only.
-- Write `.env.example` with backend, frontend, MySQL, Redis, JWT, CORS, and port-related keys as needed.
-- Create `docs/architecture.md`, `docs/development.md`, and `docs/key-business-actions-checklist.md`.
+- Write `.env.example` with backend, frontend, MySQL, Redis, JWT, refresh-token, CORS, cookie-security, and port-related keys as needed.
+- Create `docs/architecture.md`, `docs/development.md`, `docs/key-business-actions-checklist.md`, `docs/frontend-ui-checklist.md`, and `docs/production-readiness-checklist.md`.
+- Create project-level AI context files `AGENTS.md`, `CLAUDE.md`, `docs/ai-workflow.md`, `docs/review-log.md`, and `docs/fix-log.md`.
 - Add project-level scripts when validation or cleanup needs a stable entrypoint.
 
 ### Stage 4: Generate Backend
@@ -101,6 +109,7 @@ generated/<project-slug>/
 - Treat `docs/backend-spec.md` as the backend source of truth for layering, contracts, security, migrations, health checks, and verification expectations.
 - Organize backend into clear modules such as `api/`, `core/`, `db/`, `models/`, `repositories/`, `schemas/`, `services/`, and `tests/`.
 - Keep configuration, auth, persistence, and route handling separated.
+- Default to versioned APIs, unified response structures, global exception handling, pagination, structured logging, dependency-aware health checks, and observability hooks.
 - Read settings from environment variables only.
 
 ### Stage 5: Generate Frontend
@@ -109,6 +118,7 @@ generated/<project-slug>/
 - Organize code into `app/`, `api/`, `components/`, `features/`, `hooks/`, `pages/`, `schemas/`, or equivalent modular structure.
 - Prefer `TanStack Query`, `React Hook Form`, and `Zod`.
 - Treat `docs/frontend-ui-spec.md` as the frontend source of truth. Read it first, then follow its referenced detailed documents such as `docs/design-tokens.md`, `docs/component-patterns.md`, and `docs/frontend-anti-patterns.md` as needed.
+- Default to a unified HTTP layer, route-level lazy loading, ErrorBoundary coverage, and explicit unauthorized or blocked-action feedback.
 - Ensure loading, empty, error, disabled, submitting, and success states exist.
 - Keep responsive behavior and visual hierarchy intentional; avoid placeholder-grade UI.
 
@@ -116,9 +126,9 @@ generated/<project-slug>/
 
 - Treat `docs/deployment-spec.md` as the deployment and runtime source of truth.
 - Treat `docs/testing-spec.md` as the testing and regression source of truth.
-- Create `compose.yaml` for at least `frontend`, `backend`, `mysql`, and `redis`.
+- Create `compose.yaml` for at least `nginx`, `frontend`, `backend`, `mysql`, and `redis`.
 - Provide backend tests, `ruff check`, frontend build, and frontend lint support.
-- Ensure `.env.example`, Dockerfiles, health checks, startup instructions, and key business-action validation paths align with those specs.
+- Ensure `.env.example`, Dockerfiles, Nginx config, CI workflow, health checks, startup instructions, and key business-action validation paths align with those specs.
 - Add `scripts/check_business_flow.sh` when the requirement defines business actions that can be asserted after startup.
 
 ### Stage 7: Audit And Verify
@@ -144,4 +154,5 @@ When finishing work with this skill, always state:
 - whether OpenSpec was produced before code generation
 - which audit and verification commands were run
 - which key business actions were captured in `docs/key-business-actions-checklist.md`
+- which frontend and production-readiness checklist items remain open
 - any remaining assumption, risk, or manual follow-up

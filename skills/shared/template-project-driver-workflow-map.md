@@ -34,7 +34,7 @@ Use them as the primary rule sources for:
 
 - backend layering, contracts, security, data consistency, migrations, and health checks
 - test coverage priorities, key business-action regression, and verification gates
-- compose structure, Dockerfiles, environment variables, startup flow, and runtime validation
+- compose structure, Dockerfiles, Nginx, CI assets, environment variables, startup flow, and runtime validation
 
 ## Frontend Guidance
 
@@ -76,7 +76,7 @@ Use `docs/frontend-ui-spec.md` as the main frontend rule source, then use the ot
 ## Script Entry Points
 
 - `scripts/audit_generated_project.sh generated/<project-slug>`
-  - Checks required project-level files, directories, OpenSpec paths, env keys, and README verification command references.
+  - Checks required project-level files, directories, OpenSpec paths, review checklists, env keys, CI/Nginx assets, and README verification command references.
 - `scripts/verify_project.sh generated/<project-slug>`
   - Runs `docker compose config`, backend `pytest`, backend `ruff check .`, frontend `npm run build`, and frontend `npm run lint`.
 - `scripts/verify_project.sh generated/<project-slug> --with-compose-up`
@@ -99,6 +99,8 @@ Minimum structure:
 ```text
 generated/<project-slug>/
   README.md
+  AGENTS.md
+  CLAUDE.md
   .gitignore
   .env.example
   compose.yaml
@@ -108,6 +110,8 @@ generated/<project-slug>/
   openspec/
   backend/
   frontend/
+  infra/nginx/
+  .github/workflows/
 ```
 
 Minimum synchronized project context:
@@ -116,6 +120,11 @@ Minimum synchronized project context:
 - `docs/architecture.md`
 - `docs/development.md`
 - `docs/key-business-actions-checklist.md`
+- `docs/frontend-ui-checklist.md`
+- `docs/production-readiness-checklist.md`
+- `docs/ai-workflow.md`
+- `docs/review-log.md`
+- `docs/fix-log.md`
 - `openspec/project.md`
 - `openspec/specs/<capability>/spec.md`
 - `openspec/changes/<change-id>/proposal.md`
@@ -151,8 +160,12 @@ At the project level, README should also expose:
 - Skipping OpenSpec and jumping directly into code
 - Writing business implementation outside `generated/<project-slug>/`
 - Leaving project-level docs, env example, or helper scripts incomplete
+- Omitting CI workflow, Nginx assets, or production-readiness checklist while claiming production-grade output
+- Omitting project-level AI rules and review/fix trace files, leaving the standalone project without AI collaboration context
 - Building UI without required loading, empty, error, or submitting feedback
+- Generating frontend code without ErrorBoundary, route lazy loading, or unified HTTP error handling
 - Generating backend code without spec-driven module boundaries, migration discipline, or resource-level authorization
+- Shipping backend code without unified responses, global exception handling, pagination, or dependency-aware health checks
 - Treating tests as optional after build passes, or skipping project-level business-flow regression
 - Shipping compose files without complete env examples, health checks, or startup instructions
 - Overbuilding authentication when auth is not the requirement's main loop

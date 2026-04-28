@@ -5,9 +5,10 @@
 - 是否存在硬编码密码、Redis 地址、JWT secret
 - 环境变量是否完整
 - JWT、认证、授权实现是否存在明显缺陷
+- Refresh Token、Cookie、CSRF、防暴力破解与资源级授权是否存在明显缺陷
 - 输入校验是否缺失
 - 错误处理是否泄漏敏感信息
-- Docker 与 Compose 配置是否暴露不必要风险
+- Docker、Nginx、Compose 与 CI 配置是否暴露不必要风险
 
 输出要求：
 
