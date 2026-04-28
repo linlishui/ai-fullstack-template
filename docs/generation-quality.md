@@ -71,6 +71,7 @@
 - 测试与验证：`docs/testing-spec.md`
 - 部署与容器：`docs/deployment-spec.md`
 - 前端 UI：`docs/frontend-ui-spec.md`
+- 生产级评分门禁：`docs/production-grade-rubric.md`
 
 ### 4. 不允许静默失败
 
@@ -141,6 +142,7 @@
 - 是否存在统一响应结构、全局异常处理、分页与资源级授权
 - 是否为关键模型补齐 `created_at/updated_at`，必要时补软删除语义
 - 是否已覆盖 Logging、Metrics、Tracing、安全头、Refresh Token 和 CSRF 等生产级要求
+- 是否已把 `docs/production-grade-rubric.md` 中的安全、测试、OpenAPI、限流、Docker 与可观测性要求落到代码和脚本，而不是只写在文档中
 - 是否已把 AI 工具链规则和审查/修复记录下沉到生成项目本身，而不是只保留在模板仓库
 - 关键列表、详情、工作台、审批或运营视图是否与真实状态一致
 - 空数据、重复数据、越权访问、失败提交是否有反馈

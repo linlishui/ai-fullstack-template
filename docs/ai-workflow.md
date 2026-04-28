@@ -8,6 +8,7 @@
 - 优先保证当前需求里最关键的业务闭环，再补次优先级功能
 - 生成完成后必须通过模板级审计与项目级验证
 - 生成结果必须同时满足六项原则：功能完整性、技术实现质量、可测试性、设计文档与 Spec Driven、AI 工具链使用、代码可维护性
+- 生产级高分项以 `docs/production-grade-rubric.md` 为硬门禁，不得只在文档中声明已覆盖
 
 这里的“业务闭环”应由当前需求决定，而不是固定等同于认证流程。
 如果需求包含认证，则认证属于关键动作之一；如果需求重点不在认证，则不应默认把大量时间消耗在注册/登录环节。
@@ -28,18 +29,21 @@
 
 - 在 `generated/<project-slug>/` 下创建当前需求对应的实现目录
 - 后端实现先读取 `docs/backend-spec.md`
+- 后端实现同时读取 `docs/production-grade-rubric.md`
 - 使用 `prompts/03-generate-backend.md`
 - 前端实现先读取 `docs/frontend-ui-spec.md`
 - 使用 `prompts/04-generate-frontend.md`
 - 部署实现先读取 `docs/deployment-spec.md`
 - 使用 `prompts/05-generate-docker.md`
 - 测试实现先读取 `docs/testing-spec.md`
+- 测试实现同时读取 `docs/production-grade-rubric.md`
 - 使用 `prompts/06-generate-tests.md`
 - 在 `generated/<project-slug>/AGENTS.md` 与 `generated/<project-slug>/CLAUDE.md` 中输出项目级 AI 协作规则
 - 在 `generated/<project-slug>/docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md` 中输出项目级 AI 工作流与记录模板
 - 在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中输出基于当前需求的关键业务动作回归清单
 - 在 `generated/<project-slug>/docs/frontend-ui-checklist.md` 中输出前端 UI 自查清单
-- 在 `generated/<project-slug>/docs/production-readiness-checklist.md` 中输出生产就绪清单，至少覆盖 Logging、Metrics、Tracing、安全、Nginx、CI、健康检查与资源限制
+- 在 `generated/<project-slug>/docs/production-readiness-checklist.md` 中输出生产就绪清单，至少覆盖 Logging、Metrics、Tracing、安全、Nginx、CI、健康检查、资源限制、限流、OpenAPI、前端测试和 `.dockerignore`
+- 在 `generated/<project-slug>/docs/security-notes.md`、`docs/observability.md` 与 `docs/test-plan.md` 中记录安全取舍、token 存储策略、审计日志、rate limiting、metrics/tracing、测试覆盖和生产部署注意事项
 
 ### 阶段 5：修复与验证
 
@@ -52,12 +56,14 @@
 
 - 执行 `./scripts/audit_generated_project.sh generated/<project-slug>`
 - 确认目录、OpenSpec、README、环境变量模板、核心入口文件齐全
+- 确认生产级代码/配置证据齐全：rate limiting、request id、metrics、OpenAPI 导出、`.dockerignore`、Nginx gzip、安全管理员初始化、前端测试和业务流脚本
 
 ### 阶段 7：项目级验证
 
 - 执行 `./scripts/verify_project.sh generated/<project-slug>`
 - 如需验证容器启动，再执行 `./scripts/verify_project.sh generated/<project-slug> --with-compose-up`
 - 如果生成项目存在 `generated/<project-slug>/scripts/check_business_flow.sh`，验证脚本会在 `--with-compose-up` 场景下自动执行它
+- 验证脚本会执行前端测试和 OpenAPI 导出；缺失这些能力时会失败
 - `verify_project.sh` 会先自动执行 `scripts/check_prerequisites.sh`，预检 `docker`、`docker compose`、`python3`、`node`、`npm` 是否存在；缺失时直接失败
 
 ## 推荐入口
@@ -68,7 +74,7 @@
 
 ## 补充说明
 
-- `audit_generated_project.sh` 解决”结构与规范是否达标”的模板级质量门禁，并检查前端 UI 清单、生产就绪清单、CI/Nginx 等高分资产
+- `audit_generated_project.sh` 解决”结构与规范是否达标”的模板级质量门禁，并检查前端 UI 清单、生产就绪清单、安全说明、可观测性说明、测试计划、CI/Nginx、限流、metrics、OpenAPI 等高分资产
 - `verify_project.sh` 解决”项目是否真的可执行”的工程级质量门禁
 - `verify_project.sh` 也作为业务校验入口，自动调用项目级 `scripts/check_business_flow.sh`
 - `docs/business-checklist-template.md` 提供”需求驱动”的关键业务动作回归模板

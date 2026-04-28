@@ -16,6 +16,7 @@
 - 验证命令
 - 禁止行为
 - 本项目的 AI 工作方式与交付要求
+- 生产级硬门禁：安全、限流、可观测性、OpenAPI、Docker、CI、测试覆盖
 
 ## 推荐模板
 
@@ -40,12 +41,18 @@
 - Keep code modular
 - Do not hardcode secrets
 - Keep tests and docs in sync with implementation
+- Do not introduce implicit admin promotion through email prefixes or usernames
+- Keep Redis-backed rate limiting, request id, metrics, OpenAPI export, and business-flow verification working
 
 ## Verification
 
 - docker compose config
 - backend pytest
+- backend pytest coverage
 - backend ruff check
 - frontend npm run build
 - frontend npm run lint
+- frontend npm test
+- scripts/export_openapi.sh
+- scripts/check_business_flow.sh
 ```

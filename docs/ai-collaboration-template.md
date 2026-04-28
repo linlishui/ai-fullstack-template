@@ -9,12 +9,16 @@
 - `generated/<project-slug>/docs/ai-workflow.md`
 - `generated/<project-slug>/docs/review-log.md`
 - `generated/<project-slug>/docs/fix-log.md`
+- `generated/<project-slug>/docs/security-notes.md`
+- `generated/<project-slug>/docs/observability.md`
+- `generated/<project-slug>/docs/test-plan.md`
 
 ## 目的
 
 - 让独立工程迁移后仍保留 AI 工作规则
 - 让后续 AI 和人工能够追踪 review、修复和验证记录
 - 让评分中的 AI 工具链项在项目级有明确落地产物
+- 让安全、可观测性和测试策略能被后续 AI 继续审计，而不是散落在 README 中
 
 ## review-log 建议字段
 

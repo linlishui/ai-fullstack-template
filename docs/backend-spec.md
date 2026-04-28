@@ -8,6 +8,7 @@
 - `docs/testing-spec.md`：测试策略、验证边界与质量门禁
 - `docs/deployment-spec.md`：运行、容器、环境与发布约束
 - `docs/generation-quality.md`：模板级与项目级总体质量要求
+- `docs/production-grade-rubric.md`：生产级评分硬门禁
 
 ## 1. 目标
 
@@ -42,6 +43,8 @@
 - Redis 7
 - pytest
 - ruff
+- prometheus-client 或等价 metrics 方案
+- Redis-backed rate limiting 中间件
 
 不要绕开既定技术栈重写基础设施，也不要引入与模板目标不一致的框架组合。
 
@@ -108,7 +111,11 @@ backend/
 
 - 数据库、Redis、JWT、CORS 等配置必须来自环境变量
 - 默认采用 Bearer Token / JWT 方案时，签名密钥、过期时间和算法必须可配置
-- 如果实现 Refresh Token，默认要求单独的刷新密钥或明确的刷新令牌策略，并对刷新端点做 CSRF 防护
+- JWT 示例密钥必须达到 32 字节以上；测试可使用固定弱密钥但不得作为生产默认值
+- 管理员初始化必须通过 seed 脚本、一次性 bootstrap token 或显式环境变量控制，禁止使用 email 前缀、用户名约定等隐式提权规则
+- 如果实现 Refresh Token，默认要求单独的刷新密钥或明确的刷新令牌策略，并对刷新端点做 Origin/CSRF 防护
+- 如果 Refresh Token 使用 Cookie，必须设置 `HttpOnly`、`SameSite=Strict`、`Secure` 环境感知，并保证 logout/delete cookie 属性一致
+- 登录、注册、刷新 token、关键写操作必须接入 Redis-backed rate limiting；不能只在文档中“预留”
 - 鉴权必须同时覆盖接口入口和关键业务动作，不允许只在前端控制
 - 关键资源必须校验归属权、角色或管理员权限
 - 对创建、更新、审核、下线、删除等写操作，必须防止越权
@@ -121,6 +128,8 @@ backend/
 - 只有登录校验，没有资源级授权
 - 把管理员动作暴露给普通用户
 - 把内部异常、堆栈或 SQL 错误直接返回给前端
+- 使用 localStorage 存储长期 token 且没有风险说明或替代方案
+- 依赖 email 前缀或固定测试账号获得管理员权限
 
 ## 7. 数据模型与持久化规则
 
@@ -144,12 +153,14 @@ backend/
 - 生成项目必须包含 Alembic 初始化配置和首批 migration
 - 数据模型变更必须同步 migration，不允许“改模型不改迁移”
 - migration 应可重复执行且顺序明确
+- migration 必须包含 downgrade 回滚路径
 - 首次启动依赖的数据结构不得靠手工建表
+- 首次启动依赖的分类、字典、管理员账号等必须提供 seed 脚本或 bootstrap 命令
 
 ## 8. Redis 与异步基础能力
 
 - Redis 接入必须有明确用途，例如缓存、会话、限流、任务状态或短期临时数据
-- 生产级模板优先将 Redis 预留给限流、会话、刷新令牌或短期缓存，而不是空接入
+- 生产级模板默认将 Redis 用于限流和短期安全状态；不接受只有 readiness ping 的空接入
 - Redis 封装必须集中管理连接和序列化约束
 - 不要为了“用了 Redis”而增加无价值缓存
 - 如引入后台任务、事件或异步副作用，必须明确失败重试和可观测性边界
@@ -157,8 +168,9 @@ backend/
 ## 9. 可观测性与运维基础
 
 - 应提供结构化日志或至少稳定日志格式
-- 日志应尽量包含 `request_id`、`trace_id` 或其他链路字段
-- 应至少预留 Metrics 与 Tracing 的接入位、配置项或文档说明
+- 必须提供 request id/correlation id 中间件，并在响应头和结构化日志中输出
+- 必须提供 `/metrics` 端点，至少暴露进程存活、请求计数、请求耗时、错误计数等基础指标
+- Tracing 可以通过配置开关启用，但必须有真实接入代码或明确 extension point，不接受空字符串 placeholder
 - 启动日志应明确环境、服务端口和关键依赖状态
 - 健康检查必须能区分进程存活与依赖可用性，并至少校验数据库与 Redis 连通性
 - 对关键失败路径，应记录必要上下文但避免泄漏敏感信息
@@ -168,8 +180,10 @@ backend/
 - 列表查询默认避免 N+1 问题
 - 分页接口必须限制页大小上限
 - 对高频列表查询，优先使用显式 eager loading、索引与受控排序，避免隐式懒加载失控
+- SQLAlchemy async 响应序列化不得触发懒加载；返回前必须 eager load 或转换为 DTO
 - 写操作不得依赖前端传入的派生字段作为唯一真实来源
 - 对可能增长较快的查询条件、排序字段和关联字段，应考虑索引
+- 文本搜索不得默认使用无索引 `LIKE '%keyword%'` 作为唯一方案；应使用 FULLTEXT/前缀索引/受控搜索字段或在文档中说明规模限制
 - 不要为了“看起来简单”而把所有业务逻辑堆成一条超长函数
 
 ## 11. 必须覆盖的测试与验证点
@@ -182,6 +196,7 @@ backend/
 - 权限与越权场景
 - 输入校验失败场景
 - 关键异常或冲突场景
+- 认证失败、越权、重复提交、非法状态流转、数据库唯一约束冲突、Redis 不可用或限流触发
 - migration 与启动所需的最小初始化路径
 
 详细策略见 `docs/testing-spec.md`。
@@ -209,6 +224,8 @@ backend/
 - 是否同步生成了 Alembic migration、测试和启动说明
 - `.env.example` 是否覆盖数据库、Redis、JWT、CORS 和运行端口
 - 是否存在统一响应、全局异常处理、分页、资源级授权、限流或其明确接入点
-- 是否提供了结构化日志、依赖可用性健康检查与 Metrics/Tracing 接入说明
+- 是否提供了 request id、结构化日志、依赖可用性健康检查、真实 `/metrics` 和 Tracing extension point
+- 是否提供 OpenAPI 导出脚本，并在 CI 或验证脚本中执行
+- 是否没有隐式管理员提权、弱生产密钥、长期 token localStorage 默认方案等高危安全设计
 - `pytest` 与 `ruff check` 是否可执行
 - 健康检查和容器启动是否与 `docs/deployment-spec.md` 一致

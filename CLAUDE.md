@@ -40,13 +40,15 @@ AI Fullstack Auto Implementation Template — 从业务需求自动生成可部�
 
 ```bash
 # 后端
-cd generated/<project-slug>/backend && pytest && ruff check .
+cd generated/<project-slug>/backend && pytest --cov=app --cov-report=term-missing && ruff check .
 
 # 前端
-cd generated/<project-slug>/frontend && npm run build && npm run lint
+cd generated/<project-slug>/frontend && npm run build && npm run lint && npm test -- --run
 
 # 整体
-cd generated/<project-slug> && docker compose up --build
+./scripts/audit_generated_project.sh generated/<project-slug>
+./scripts/verify_project.sh generated/<project-slug>
+./scripts/verify_project.sh generated/<project-slug> --with-compose-up
 ```
 
 ## 重要文件索引
@@ -64,6 +66,9 @@ cd generated/<project-slug> && docker compose up --build
 | `docs/business-checklist-template.md` | 关键业务动作与项目级回归清单模板 |
 | `docs/frontend-ui-checklist-template.md` | 前端 UI 清单模板 |
 | `docs/production-readiness-template.md` | 生产就绪清单模板 |
+| `docs/security-notes-template.md` | 项目级安全说明模板 |
+| `docs/observability-template.md` | 项目级可观测性说明模板 |
+| `docs/test-plan-template.md` | 项目级测试计划模板 |
 | `docs/project-agents-template.md` | 项目级 AGENTS 模板 |
 | `docs/project-claude-template.md` | 项目级 CLAUDE 模板 |
 | `docs/ai-collaboration-template.md` | 项目级 AI 协作资产模板 |
@@ -71,4 +76,5 @@ cd generated/<project-slug> && docker compose up --build
 | `docs/component-patterns.md` | 交互模式与组件质量标准 |
 | `docs/frontend-anti-patterns.md` | 前端反模式与禁止项 |
 | `docs/generation-quality.md` | 质量保障策略 |
+| `docs/production-grade-rubric.md` | 生产级评分硬门禁 |
 | `requirements/requirement.md` | 业务需求输入 |

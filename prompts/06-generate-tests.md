@@ -8,14 +8,18 @@
 - `docs/backend-spec.md`
 - `docs/frontend-ui-spec.md`
 - `docs/deployment-spec.md`
+- `docs/production-grade-rubric.md`
 
 要求：
 
 - 后端补充 `pytest` 测试
 - 后端测试默认位于 `generated/<project-slug>/backend/`
 - 覆盖关键接口、关键业务规则和关键异常场景
-- 至少覆盖一类数据库异常、Redis 异常、超时或重复提交边界
-- 前端至少确保 `build` 与 `lint` 能通过
+- 后端测试不得少于 8 个关键用例；必须覆盖成功路径、认证失败、越权、非法输入、重复/冲突、非法状态流转、限流或依赖异常中的合理子集
+- 至少覆盖一类数据库异常、Redis 异常、超时、限流触发或重复提交边界
+- 后端应提供覆盖率命令，例如 `pytest --cov=app --cov-report=term-missing`
+- 前端必须确保 `build`、`lint` 与 `test` 能通过
 - 前端项目默认位于 `generated/<project-slug>/frontend/`
-- 如项目已引入测试框架，可补充关键页面或表单测试
-- 必须同步维护项目级关键业务动作回归清单、前端 UI 清单和生产就绪清单，必要时补 `scripts/check_business_flow.sh`
+- 默认引入 Vitest/Testing Library 或等价测试框架，补充至少一个关键页面 smoke、表单校验、错误态/空态或未登录引导测试
+- 必须同步维护项目级关键业务动作回归清单、前端 UI 清单和生产就绪清单
+- 必须补 `scripts/check_business_flow.sh`；脚本应自包含、可重复执行、无需人工 token，覆盖关键角色差异和主状态流转

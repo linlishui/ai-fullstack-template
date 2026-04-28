@@ -10,10 +10,14 @@
 - `generated/<project-slug>/CLAUDE.md`
 - `generated/<project-slug>/docs/key-business-actions-checklist.md`
 - `generated/<project-slug>/docs/production-readiness-checklist.md`
+- `generated/<project-slug>/docs/security-notes.md`
+- `generated/<project-slug>/docs/observability.md`
+- `generated/<project-slug>/docs/test-plan.md`
 - `docs/backend-spec.md`
 - `docs/testing-spec.md`
 - `docs/deployment-spec.md`
 - `docs/frontend-ui-spec.md`
+- `docs/production-grade-rubric.md`
 - 按 `docs/frontend-ui-spec.md` 的引用关系按需读取前端细分文档，并优先使用其中的验收清单做前端验收
 - 如果存在，读取 `generated/<project-slug>/docs/frontend-ui-checklist.md`
 - 如果存在，读取 `generated/<project-slug>/docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md`
@@ -22,6 +26,7 @@
 如果 `generated/<project-slug>/docs/key-business-actions-checklist.md` 不存在，必须先基于当前需求补生成一份，再继续修复与验证。
 如果 `generated/<project-slug>/docs/frontend-ui-checklist.md` 不存在，必须先补生成一份前端 UI 检查清单，再继续修复与验证。
 如果 `generated/<project-slug>/docs/production-readiness-checklist.md` 不存在，必须先补生成一份生产就绪清单，再继续修复与验证。
+如果 `generated/<project-slug>/docs/security-notes.md`、`docs/observability.md` 或 `docs/test-plan.md` 不存在，必须先补齐，并确保内容能回溯到代码、配置、测试和 CI。
 如果项目级 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md` 缺失，必须先补齐，再继续修复与验证。
 
 必须至少检查以下内容：
@@ -32,11 +37,16 @@
 - `cd generated/<project-slug>/backend && ruff check .`
 - `cd generated/<project-slug>/frontend && npm run build`
 - `cd generated/<project-slug>/frontend && npm run lint`
+- `cd generated/<project-slug>/frontend && npm test -- --run`
+- `generated/<project-slug>/scripts/export_openapi.sh`
+- `scripts/audit_generated_project.sh generated/<project-slug>`
 - 如果存在 `generated/<project-slug>/scripts/check_business_flow.sh`，在服务启动后必须执行它
 - 对照前端审计清单检查页面结构、视觉一致性、状态完整性与响应式风险
 - 对照生产就绪清单检查统一响应、全局异常处理、Logging/Metrics/Tracing、CORS、安全头、Refresh Token、CSRF、Nginx、CI、健康检查与资源限制
 - 检查项目级 AI 规则文件与 review/fix 记录模板是否齐全且与当前项目结构一致
+- 检查项目级安全说明、可观测性说明和测试计划是否与实际代码、配置、测试、CI 对齐
 - 检查未登录、无权限和缺少前置条件时，关键点击是否会给出明确提示或跳转引导
+- 检查生产级硬门禁是否真实落地：限流、OpenAPI 导出、request id、metrics、`.dockerignore`、前端测试、安全管理员初始化、业务流脚本自包含
 
 执行要求：
 
@@ -45,6 +55,7 @@
 - 先按 `docs/backend-spec.md` 核对后端分层、配置、安全、迁移和健康检查是否缺项
 - 先按 `docs/testing-spec.md` 核对关键测试、业务流脚本和回归路径是否缺项
 - 先按 `docs/deployment-spec.md` 核对环境变量、Compose 依赖、健康检查和启动说明是否缺项
+- 先按 `docs/production-grade-rubric.md` 核对生产级高分项，并把缺项直接修复为代码/脚本/配置
 - 先核对项目级前端 UI 检查清单，并按 `docs/frontend-ui-spec.md` 校验是否缺失主题 token、状态设计、移动端适配和页面结构落地
 - 先核对项目级生产就绪清单，并按三色风险标记未完成的生产级要求
 - 先核对项目级 AI 协作文件是否可支撑后续 AI 继续迭代，而不是只依赖模板仓库
@@ -53,6 +64,7 @@
 - 修复后重新执行相关检查
 - 修复后必须重新检查受影响的关键业务动作，不允许只重跑构建命令就结束
 - 不要跳过失败项
+- 不要把“文档说明”当成通过；评审项必须能在代码、配置、测试、脚本或 CI 中找到落地证据
 - 如果某项因依赖缺失或外部环境限制无法完成，需要明确说明阻塞原因
 
 输出要求：

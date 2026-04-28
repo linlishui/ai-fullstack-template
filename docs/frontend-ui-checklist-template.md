@@ -22,6 +22,8 @@
 - 加载态、空态、错误态、提交中态、成功反馈是否齐全
 - 未登录、无权限、缺少前置条件时是否有明确提示
 - 按钮换行、控件变形、长文本溢出、移动端布局风险
+- token 存储风险与未登录/过期登录后的跳转反馈
+- 关键业务成功后列表、详情或工作台是否即时刷新
 
 ## 推荐模板
 
@@ -48,7 +50,10 @@
 - Unified HTTP handling:
 - Toast / Dialog / Skeleton:
 - Unauthorized feedback:
+- Token storage risk:
+- Query invalidation / refresh:
 - Mobile layout:
+- Component tests:
 
 ## Risks
 

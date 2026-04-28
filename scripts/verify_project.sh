@@ -11,15 +11,18 @@ Usage:
   ./scripts/verify_project.sh generated/<project-slug> --with-compose-up
 
 This script runs:
-1. docker compose config
-2. backend pytest
-3. backend ruff check .
-4. frontend npm run build
-5. frontend npm run lint
-6. project business flow checks if generated/<project-slug>/scripts/check_business_flow.sh exists and services are started
+1. template-level generated project audit
+2. docker compose config
+3. backend pytest
+4. backend ruff check .
+5. frontend npm run build
+6. frontend npm run lint
+7. frontend npm test if a test script exists
+8. OpenAPI export script if present
+9. project business flow checks if generated/<project-slug>/scripts/check_business_flow.sh exists and services are started
 
 Optional:
-7. docker compose up --build -d
+10. docker compose up --build -d
 EOF
 }
 
@@ -63,8 +66,25 @@ if [[ ! -f "$PROJECT_DIR/compose.yaml" ]]; then
   exit 1
 fi
 
+cleanup_compose() {
+  if [[ "$WITH_COMPOSE_UP" == true ]]; then
+    echo "Stopping compose services in $PROJECT_DIR"
+    (
+      cd "$PROJECT_DIR"
+      docker compose --env-file .env.example down
+    )
+  fi
+}
+
+if [[ "$WITH_COMPOSE_UP" == true ]]; then
+  trap cleanup_compose EXIT
+fi
+
 echo "Running prerequisite checks"
 "$SCRIPT_DIR/check_prerequisites.sh"
+
+echo "Running template-level audit in $PROJECT_DIR"
+"$SCRIPT_DIR/audit_generated_project.sh" "$PROJECT_DIR"
 
 run_backend_check() {
   local backend_dir="$1"
@@ -72,7 +92,11 @@ run_backend_check() {
   if [[ -x "$backend_dir/.venv/bin/pytest" && -x "$backend_dir/.venv/bin/ruff" ]]; then
     (
       cd "$backend_dir"
-      ./.venv/bin/pytest
+      if ./.venv/bin/python -c "import pytest_cov" >/dev/null 2>&1; then
+        ./.venv/bin/pytest --cov=app --cov-report=term-missing
+      else
+        ./.venv/bin/pytest
+      fi
       ./.venv/bin/ruff check .
     )
     return
@@ -80,9 +104,68 @@ run_backend_check() {
 
   (
     cd "$backend_dir"
-    pytest
+    if python -c "import pytest_cov" >/dev/null 2>&1; then
+      pytest --cov=app --cov-report=term-missing
+    else
+      pytest
+    fi
     ruff check .
   )
+}
+
+run_frontend_checks() {
+  local frontend_dir="$1"
+
+  (
+    cd "$frontend_dir"
+    npm run build
+    npm run lint
+    if npm run | grep -qE '^[[:space:]]+test'; then
+      npm test -- --run
+    else
+      echo "No frontend test script found; production-grade generation should add one." >&2
+      exit 1
+    fi
+  )
+}
+
+run_openapi_export() {
+  local project_dir="$1"
+
+  if [[ -x "$project_dir/scripts/export_openapi.sh" ]]; then
+    "$project_dir/scripts/export_openapi.sh"
+    return
+  fi
+
+  if [[ -f "$project_dir/backend/scripts/export_openapi.py" ]]; then
+    (
+      cd "$project_dir/backend"
+      if [[ -x .venv/bin/python ]]; then
+        .venv/bin/python scripts/export_openapi.py
+      else
+        python scripts/export_openapi.py
+      fi
+    )
+    return
+  fi
+
+  echo "Missing OpenAPI export script; production-grade generation must provide scripts/export_openapi.sh or backend/scripts/export_openapi.py" >&2
+  exit 1
+}
+
+wait_for_health() {
+  local base_url="${BASE_URL:-http://localhost:8080}"
+
+  echo "Waiting for health endpoint at ${base_url}/api/v1/health/ready"
+  for _ in {1..60}; do
+    if curl -fsS "${base_url}/api/v1/health/ready" >/dev/null 2>&1; then
+      return
+    fi
+    sleep 2
+  done
+
+  echo "Timed out waiting for ${base_url}/api/v1/health/ready" >&2
+  exit 1
 }
 
 run_business_flow_check() {
@@ -110,22 +193,28 @@ run_business_flow_check() {
 }
 
 echo "Running docker compose config in $PROJECT_DIR"
-docker compose --env-file "$PROJECT_DIR/.env.example" -f "$PROJECT_DIR/compose.yaml" config >/dev/null
+(
+  cd "$PROJECT_DIR"
+  docker compose --env-file .env.example config >/dev/null
+)
 
 if [[ "$WITH_COMPOSE_UP" == true ]]; then
   echo "Running docker compose up --build -d in $PROJECT_DIR"
-  docker compose --env-file "$PROJECT_DIR/.env.example" -f "$PROJECT_DIR/compose.yaml" up --build -d
+  (
+    cd "$PROJECT_DIR"
+    docker compose --env-file .env.example up --build -d
+  )
+  wait_for_health
 fi
 
 echo "Running backend checks in $PROJECT_DIR/backend"
 run_backend_check "$PROJECT_DIR/backend"
 
 echo "Running frontend checks in $PROJECT_DIR/frontend"
-(
-  cd "$PROJECT_DIR/frontend"
-  npm run build
-  npm run lint
-)
+run_frontend_checks "$PROJECT_DIR/frontend"
+
+echo "Running OpenAPI export check in $PROJECT_DIR"
+run_openapi_export "$PROJECT_DIR"
 
 run_business_flow_check "$PROJECT_DIR" "$WITH_COMPOSE_UP"
 

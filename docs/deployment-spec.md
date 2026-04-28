@@ -32,7 +32,9 @@
 - `generated/<project-slug>/.env.example`
 - `generated/<project-slug>/README.md`
 - `generated/<project-slug>/backend/Dockerfile`
+- `generated/<project-slug>/backend/.dockerignore`
 - `generated/<project-slug>/frontend/Dockerfile`
+- `generated/<project-slug>/frontend/.dockerignore`
 - `generated/<project-slug>/infra/nginx/`
 - `generated/<project-slug>/.github/workflows/`
 
@@ -57,8 +59,10 @@ Compose 服务至少包含：
 
 - 每个主要服务应有自己的 Dockerfile
 - Dockerfile 默认优先使用多阶段构建
+- 后端生产镜像不得依赖 editable install；应安装 wheel、requirements lock 或明确的非 editable package
 - 镜像构建步骤应尽量稳定、可缓存、可复现
 - 不要把本地开发垃圾文件打进镜像
+- `.dockerignore` 必须排除 `.venv`、`__pycache__`、`.pytest_cache`、`.ruff_cache`、`node_modules`、`dist`、日志与本地 `.env`
 - 启动命令应显式，不依赖人工进入容器后再执行
 
 ### 5.2 Compose
@@ -67,6 +71,7 @@ Compose 服务至少包含：
 - 服务名称、端口映射、依赖关系和卷定义必须清晰
 - 对数据库、缓存、后端等关键服务应提供健康检查
 - Nginx 应负责前端静态资源与 API 反向代理，并补基础安全头
+- Nginx 必须启用 gzip，并为 API proxy 设置合理 connect/read/send timeout
 - `depends_on` 只解决启动顺序，不等于可用性；关键服务应结合健康检查或启动脚本处理就绪问题
 - 如前后端存在联调依赖，前端指向后端的地址必须与容器网络和本地访问方式一致
 - 如资源约束不是明显不适用，Compose 应声明合理的内存/CPU 限制或至少在文档中说明部署建议
@@ -84,12 +89,14 @@ Compose 服务至少包含：
 - 默认使用非生产示例值，并要求使用者在真实环境覆盖
 - 跨域、Cookie、JWT 过期时间和调试开关等必须可配置
 - 不要在镜像或日志中泄漏敏感信息
-- CI 工作流中应预留 lint、test、build 基本流水线，必要时再扩展部署阶段
+- CI 工作流必须包含 lint、test、build 基本流水线，必要时再扩展部署阶段
+- CI 默认还应执行 `docker compose config`、OpenAPI 导出检查、前端测试、依赖安全审计或至少生成审计报告
 
 ## 8. 可观测性与健康检查
 
 - 后端至少应提供应用级健康检查端点
 - Compose 中的健康检查应体现真实依赖是否可用，而不只是进程存在
+- Nginx、Backend、MySQL、Redis 都必须有 healthcheck；Backend readiness 必须检查数据库和 Redis
 - 日志输出应便于定位启动失败、连接失败、迁移失败和端口冲突
 - 如项目存在业务校验脚本，应支持在容器启动后执行
 
@@ -131,8 +138,9 @@ Compose 服务至少包含：
 生成完成后，至少自查以下问题：
 
 - `compose.yaml`、`.env.example`、Dockerfile 是否齐全且互相一致
-- Nginx 配置、CI 工作流与健康检查是否齐全
+- Nginx 配置、gzip、安全头、proxy timeout、CI 工作流与健康检查是否齐全
 - 数据库、Redis、JWT、前端 API 地址等是否全部来自环境变量
+- `.dockerignore` 是否排除本地依赖、构建产物和敏感文件
 - 关键服务是否有健康检查和清晰依赖关系
 - 首次启动的 migration、种子数据或管理员初始化是否有明确路径
 - `docker compose config` 和 `docker compose up --build` 是否可执行

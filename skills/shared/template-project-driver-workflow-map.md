@@ -21,6 +21,8 @@ Use this file as the source-of-truth map for the current repository when running
   - Defines the staged generation sequence and quality gates.
 - `docs/generation-quality.md`
   - Defines main-loop priority, validation minimums, and typical high-risk failures.
+- `docs/production-grade-rubric.md`
+  - Converts strict fullstack review scoring into hard generation and verification gates.
 
 ## Backend, Testing, And Deployment Guidance
 
@@ -29,12 +31,15 @@ Read these before generating non-trivial backend, verification, or runtime work:
 - `docs/backend-spec.md`
 - `docs/testing-spec.md`
 - `docs/deployment-spec.md`
+- `docs/production-grade-rubric.md`
 
 Use them as the primary rule sources for:
 
 - backend layering, contracts, security, data consistency, migrations, and health checks
 - test coverage priorities, key business-action regression, and verification gates
 - compose structure, Dockerfiles, Nginx, CI assets, environment variables, startup flow, and runtime validation
+- production-grade security, rate limiting, metrics, OpenAPI export, Docker ignore files, frontend tests, and business-flow script requirements
+- project-level `security-notes.md`, `observability.md`, and `test-plan.md` content that must match code, config, tests, and CI
 
 ## Frontend Guidance
 
@@ -58,15 +63,15 @@ Use `docs/frontend-ui-spec.md` as the main frontend rule source, then use the ot
   - OpenSpec generation stage.
 - `prompts/03-generate-backend.md`
   - Backend generation stage.
-  - Read together with `docs/backend-spec.md`, `docs/testing-spec.md`, and `docs/deployment-spec.md`.
+  - Read together with `docs/backend-spec.md`, `docs/testing-spec.md`, `docs/deployment-spec.md`, and `docs/production-grade-rubric.md`.
 - `prompts/04-generate-frontend.md`
   - Frontend generation stage.
 - `prompts/05-generate-docker.md`
   - Compose and deployment stage.
-  - Read together with `docs/deployment-spec.md`, `docs/backend-spec.md`, and `docs/testing-spec.md`.
+  - Read together with `docs/deployment-spec.md`, `docs/backend-spec.md`, `docs/testing-spec.md`, and `docs/production-grade-rubric.md`.
 - `prompts/06-generate-tests.md`
   - Test generation stage.
-  - Read together with `docs/testing-spec.md`, `docs/backend-spec.md`, `docs/frontend-ui-spec.md`, and `docs/deployment-spec.md`.
+  - Read together with `docs/testing-spec.md`, `docs/backend-spec.md`, `docs/frontend-ui-spec.md`, `docs/deployment-spec.md`, and `docs/production-grade-rubric.md`.
 - `prompts/07-fix-and-verify.md`
   - Repair and verification stage.
   - Cross-check against backend, testing, deployment, and frontend spec entrypoints before final handoff.
@@ -76,9 +81,9 @@ Use `docs/frontend-ui-spec.md` as the main frontend rule source, then use the ot
 ## Script Entry Points
 
 - `scripts/audit_generated_project.sh generated/<project-slug>`
-  - Checks required project-level files, directories, OpenSpec paths, review checklists, env keys, CI/Nginx assets, and README verification command references.
+  - Checks required project-level files, directories, OpenSpec paths, review checklists, security/observability/test-plan docs, env keys, CI/Nginx assets, README verification command references, and production-grade gates.
 - `scripts/verify_project.sh generated/<project-slug>`
-  - Runs `docker compose config`, backend `pytest`, backend `ruff check .`, frontend `npm run build`, and frontend `npm run lint`.
+  - Runs template audit, `docker compose config`, backend `pytest`, backend `ruff check .`, frontend `npm run build`, frontend `npm run lint`, frontend tests, and OpenAPI export.
 - `scripts/verify_project.sh generated/<project-slug> --with-compose-up`
   - Adds `docker compose up --build -d` and runs `generated/<project-slug>/scripts/check_business_flow.sh` when present.
 - `scripts/check_prerequisites.sh`
@@ -122,6 +127,9 @@ Minimum synchronized project context:
 - `docs/key-business-actions-checklist.md`
 - `docs/frontend-ui-checklist.md`
 - `docs/production-readiness-checklist.md`
+- `docs/security-notes.md`
+- `docs/observability.md`
+- `docs/test-plan.md`
 - `docs/ai-workflow.md`
 - `docs/review-log.md`
 - `docs/fix-log.md`
@@ -154,6 +162,9 @@ At the project level, README should also expose:
 - backend `ruff check`
 - frontend `npm run build`
 - frontend `npm run lint`
+- frontend `npm test -- --run`
+- `scripts/export_openapi.sh`
+- `scripts/check_business_flow.sh`
 
 ## Common Failure Patterns
 
@@ -166,6 +177,10 @@ At the project level, README should also expose:
 - Generating frontend code without ErrorBoundary, route lazy loading, or unified HTTP error handling
 - Generating backend code without spec-driven module boundaries, migration discipline, or resource-level authorization
 - Shipping backend code without unified responses, global exception handling, pagination, or dependency-aware health checks
+- Shipping backend code without rate limiting, request id logging, metrics, OpenAPI export, or safe administrator bootstrap
+- Letting SQLAlchemy async lazy loading happen during response serialization
+- Shipping frontend auth with long-lived localStorage tokens and no security notes
+- Omitting `.dockerignore`, gzip, proxy timeout, or dependency audit/reporting
 - Treating tests as optional after build passes, or skipping project-level business-flow regression
 - Shipping compose files without complete env examples, health checks, or startup instructions
 - Overbuilding authentication when auth is not the requirement's main loop

@@ -8,7 +8,7 @@
 
 ### 1. 重点记录“容易失分但不应被遗漏”的能力
 
-至少覆盖：
+必须覆盖：
 
 - Logging / Metrics / Tracing
 - 统一响应结构与全局异常处理
@@ -17,6 +17,11 @@
 - 审计日志与资源级授权
 - 健康检查、Nginx、CI 工作流、Docker 多阶段构建
 - 资源限制、验证命令与业务流脚本
+- Redis-backed rate limiting
+- Request ID / Correlation ID
+- OpenAPI 导出
+- 生产 Dockerfile 非 editable install
+- backend/frontend `.dockerignore`
 
 ### 2. 每项都要标状态
 
@@ -74,10 +79,14 @@
 
 - Compose config:
 - Pytest:
+- Backend coverage:
 - Ruff:
 - Frontend build:
 - Frontend lint:
+- Frontend tests:
+- OpenAPI export:
 - Business flow script:
+- Template audit:
 
 ## Open Risks
 

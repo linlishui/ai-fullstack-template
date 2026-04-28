@@ -11,6 +11,7 @@
 - 后端、前端、测试、部署必须模块化组织
 - 所有业务实现必须统一输出到 `generated/<project-slug>/`
 - 生成完成后必须自动检查并修复明显问题
+- 必须读取并落实 `docs/production-grade-rubric.md`；其中的硬门禁必须落到代码、配置、测试或脚本中，不能只写入文档
 
 ## 六项硬性质量原则
 
@@ -22,6 +23,20 @@
 - 设计文档与 Spec Driven：必须先产出需求分析、OpenSpec、架构与任务拆分，再进入完整实现
 - AI 工具链使用：必须复用模板中的 prompts、docs、scripts、skill 与验证脚本完成全流程
 - 代码可维护性：目录结构、模块边界、命名、README、测试与迁移必须支持后续持续迭代
+
+## 生产级评分硬门禁
+
+默认生成目标是生产级高分独立工程，而不是 demo。除非需求明确排除，否则必须真实落地：
+
+- Redis-backed Rate Limiting，至少覆盖登录、注册、刷新 token 和关键写操作。
+- 安全管理员初始化，不允许 email 前缀、用户名约定或前端开关提权；必须提供 seed/bootstrap 脚本。
+- JWT/Refresh Token 策略：Refresh Cookie 必须 HttpOnly、SameSite=Strict、Secure 环境感知，并具备 CSRF/Origin 校验；若不实现 Refresh Token，必须说明短 access token 方案和风险。
+- Request ID 中间件、结构化访问日志、真实 `/metrics` 端点和 Tracing extension point。
+- OpenAPI 导出脚本，输出到 `docs/openapi.json` 或提供可执行导出命令。
+- 后端 `.dockerignore`、前端 `.dockerignore`、Nginx gzip、安全头和 proxy timeout。
+- 后端测试不少于 8 个关键用例，覆盖成功、认证失败、越权、非法输入、冲突、非法状态流转、限流/依赖异常中的合理子集。
+- 前端测试或页面 smoke 验证，不能只依赖 build/lint。
+- 项目级 `scripts/check_business_flow.sh` 必须自包含、可重复运行、无需人工 token。
 
 ## 输出目录硬约束
 
@@ -94,17 +109,24 @@ generated/<project-slug>/
 - 在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中生成一份基于当前需求提炼的关键业务动作回归清单
 - 在 `generated/<project-slug>/docs/frontend-ui-checklist.md` 中生成前端 UI 自查清单
 - 在 `generated/<project-slug>/docs/production-readiness-checklist.md` 中生成生产就绪清单，至少覆盖 Logging、Metrics、Tracing、CORS、安全头、Refresh Token、CSRF、审计日志、Nginx、CI、健康检查与资源限制
+- 在 `generated/<project-slug>/docs/security-notes.md` 中生成安全说明，必须覆盖管理员初始化、JWT/Refresh Token、token 存储、CSRF/Origin、Redis-backed rate limiting、资源级授权、输入校验和日志脱敏
+- 在 `generated/<project-slug>/docs/observability.md` 中生成可观测性说明，必须覆盖 Request ID、结构化日志、`/metrics`、健康检查、Tracing extension point、Nginx 日志与验证方式
+- 在 `generated/<project-slug>/docs/test-plan.md` 中生成测试计划，必须映射后端关键测试、前端测试、业务流脚本、覆盖率目标和未自动化风险
 - 生成项目级 `scripts/`，至少包含验证或清理脚本
 - 确保生成结果可作为独立工程包脱离模板仓库继续开发
 
 ### 阶段 4：生成后端
 
 - 先读取 `docs/backend-spec.md`
+- 同时读取 `docs/production-grade-rubric.md`
 - 使用 Python 3.12+、FastAPI、Pydantic v2、SQLAlchemy 2.x async、Alembic、pytest、ruff
 - 后端必须生成到 `generated/<project-slug>/backend/`
 - 后端必须拆分为可维护目录结构，不得将所有逻辑写入单文件
 - 生成配置管理、数据库连接、路由、schema、service、repository、认证与错误处理
 - 默认补齐 API 版本化、统一响应结构、全局异常处理、分页、资源级授权、结构化日志、依赖可用性健康检查，以及 Metrics/Tracing 接入位或说明
+- 默认补齐 request id、Redis-backed rate limiting、OpenAPI 导出、真实 metrics endpoint、审计日志、管理员 bootstrap/seed 脚本
+- 禁止通过 email 前缀、固定用户名、前端隐藏入口等方式获得管理员权限
+- 禁止让 SQLAlchemy async lazy loading 在响应序列化阶段触发隐式 IO；返回前必须 eager load 或转换为 DTO
 - 后端必须提供可执行的测试、lint 和启动命令
 
 ### 阶段 5：生成数据库模型和 Alembic migration
@@ -117,7 +139,7 @@ generated/<project-slug>/
 ### 阶段 6：生成 Redis 集成
 
 - 集成 Redis 7
-- 为缓存、会话、验证码、任务状态或其他合理用途提供基础封装
+- Redis 必须有真实用途，默认用于 rate limiting、刷新令牌/短期安全状态或缓存；不接受仅 ping readiness 的空接入
 - Redis 配置必须来自环境变量
 
 ### 阶段 7：生成前端
@@ -139,6 +161,7 @@ generated/<project-slug>/
 - 必须先定义主题 token 或 CSS 变量，统一颜色、字号、间距、圆角、阴影和断点
 - 页面、表单、数据请求与状态处理要与需求一致
 - 必须有统一 HTTP 请求封装与错误处理，禁止业务页面裸写 `fetch`
+- 认证态处理必须安全说明清晰；不得默认把长期 token 存入 localStorage
 - 页面必须有清晰的信息层级和主次操作层级，不允许只生成默认白底表单或表格堆叠
 - 必须补齐加载态、空态、错误态、禁用态、提交中态和成功反馈
 - 必须至少提供一处 ErrorBoundary，以及关键路由的 `React.lazy + Suspense` 懒加载
@@ -151,6 +174,7 @@ generated/<project-slug>/
 - 如果认证不是当前需求的核心链路，只实现最小可用认证支撑，不要过度展开注册/登录页面、认证体验或围绕认证增加大量非必要逻辑
 - 在 `generated/<project-slug>/docs/` 中至少输出一份项目级前端实现说明或前端 UI 审计清单，记录页面结构、主题方向和状态设计
 - 前端必须提供可执行的构建、lint 和开发命令
+- 前端必须提供最小测试命令或页面 smoke 验证，覆盖至少一个关键页面状态或表单校验
 
 ### 阶段 8：生成 Docker Compose
 
@@ -160,8 +184,11 @@ generated/<project-slug>/
 - 所有配置从 `.env` 读取
 - 为开发运行提供合理的端口、依赖、资源限制和健康检查配置
 - 生成 Nginx 反向代理配置与基础安全头
+- Nginx 必须启用 gzip、基础安全头、API proxy timeout 和前端静态资源缓存策略
 - 为前后端 Dockerfile 优先采用多阶段构建
+- 必须生成后端和前端 `.dockerignore`；后端生产 Dockerfile 不应依赖 editable install
 - 生成 `.github/workflows/ci.yml`，至少覆盖 lint -> test -> build
+- CI 还应覆盖 compose config、后端 coverage、OpenAPI 导出检查、前端测试、依赖安全审计或审计报告
 - 如需容器构建文件，也必须放在 `generated/<project-slug>/` 下的相应服务目录内
 
 ### 阶段 9：生成测试
@@ -169,8 +196,9 @@ generated/<project-slug>/
 - 先读取 `docs/testing-spec.md`
 - 为后端生成 `pytest` 测试
 - 为关键逻辑和关键接口补基础测试
+- 后端测试不得少于 8 个关键用例；必须覆盖认证失败、越权、非法输入、重复/冲突、非法状态流转、限流/依赖异常中的合理子集
 - 至少补一类数据库/Redis/超时等异常路径测试
-- 为前端补必要的最小测试或至少确保构建与 lint 可通过
+- 为前端补必要的最小测试；构建与 lint 不能替代前端测试
 
 ### 阶段 10：生成 README
 
@@ -207,13 +235,18 @@ generated/<project-slug>/
   - `docker compose config`
   - `docker compose up --build`
   - `backend pytest`
+  - `backend pytest --cov=app --cov-report=term-missing`
   - `backend ruff check`
   - `frontend npm run build`
   - `frontend npm run lint`
+  - `frontend npm test -- --run`
+  - `scripts/export_openapi.sh`
 
 ### 阶段 11：自动检查并修复明显问题
 
 - 检查导入错误、路径错误、环境变量遗漏、容器引用错误、构建脚本错误
+- 检查生产级门禁缺失：限流、OpenAPI 导出、request id、metrics、`.dockerignore`、前端测试、业务流脚本自包含、安全管理员初始化
+- 检查项目级文档缺失：`docs/security-notes.md`、`docs/observability.md`、`docs/test-plan.md` 必须与代码、配置、测试和 CI 互相对应
 - 优先修复可自动识别的问题
 - 最终输出仍存在的风险项与待人工确认项
 
@@ -246,6 +279,6 @@ generated/<project-slug>/
 - 生成后主动说明已完成哪些质量自查
 - 生成后必须单独说明六项硬性质量原则分别由哪些目录、文件、测试、脚本或检查动作承载
 - 明确说明 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中记录了哪些关键业务动作及其验证状态
-- 明确说明 `generated/<project-slug>/docs/frontend-ui-checklist.md` 与 `generated/<project-slug>/docs/production-readiness-checklist.md` 中记录了哪些高风险检查项及其状态
+- 明确说明 `generated/<project-slug>/docs/frontend-ui-checklist.md`、`generated/<project-slug>/docs/production-readiness-checklist.md`、`generated/<project-slug>/docs/security-notes.md`、`generated/<project-slug>/docs/observability.md` 与 `generated/<project-slug>/docs/test-plan.md` 中记录了哪些高风险检查项及其状态
 - 如果已生成 `generated/<project-slug>/scripts/check_business_flow.sh`，明确说明它覆盖了哪些关键业务动作
 - 修改时保持现有模板文件风格一致
