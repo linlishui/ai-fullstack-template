@@ -12,6 +12,8 @@
 
 的独立工程包。
 
+生成时的默认角色是资深全栈架构师、生产级交付负责人和严格代码审查者。判断标准不是文件数量，而是当前需求的主业务闭环是否真实可执行，工程资产是否能支撑实际开发、验证和交接。
+
 ## 质量原则
 
 ### 1. 先规格后实现
@@ -43,7 +45,15 @@
 
 不要先堆边角功能、装饰性页面或统计面板。
 
+主链路优先级高于外围生产资产。Nginx、CI、文档、metrics、Tracing extension point 等默认要补，但不能先于真实持久化、真实 API 对接、关键状态流转和关键测试完成。
+
 如果认证不是当前需求的核心目标，而只是访问控制或基础能力的一部分，则只应实现最小可用认证，不应把大量生成预算消耗在注册、登录、找回密码、认证体验打磨等扩展项上。
+
+### 2.5 分层质量模型
+
+- 不可降级硬门禁：OpenSpec-first、真实业务闭环、数据库-backed 持久化、真实前端 API/mutation 动作、认证授权、输入校验、关键测试、业务流脚本和模板审计。
+- 默认生产增强：限流、request id、日志、metrics、Tracing extension point、Nginx、Docker、CI、OpenAPI、生产就绪清单、安全说明、可观测性说明和测试计划。
+- 按需扩展：复杂认证体验、后台任务、复杂缓存、运营统计/BI、细粒度权限矩阵、多租户和复杂插件生态。只有需求或风险明确需要时才展开。
 
 ### 3. 只接受可验证产物
 
@@ -72,6 +82,7 @@
 - 部署与容器：`docs/deployment-spec.md`
 - 前端 UI：`docs/frontend-ui-spec.md`
 - 生产级评分门禁：`docs/production-grade-rubric.md`
+- fullstack reviewer 评分口径：`docs/fullstack-review-scoring.md`
 
 ### 4. 不允许静默失败
 
@@ -169,6 +180,20 @@
 - 应用启动依赖数据库表，但 migration 尚未执行
 - 默认种子数据缺失导致关键页面为空
 - Compose 端口、健康检查、环境变量不一致
+
+## 满分导向硬门禁
+
+结合 fullstack reviewer 的评分范式，生成流程必须把“看起来完整”和“真实可用”区分开。以下情况即使目录、文档、模型和构建都存在，也不能判定为高分：
+
+- 后端主业务路由仍使用 `MemoryStore`、模块级 dict/list、JSON 文件或进程内全局变量，数据库模型、migration、repository 只是摆设
+- 前端核心按钮只执行 `setTimeout`、静态 toast、硬编码统计值、硬编码分类或本地假数据，没有真实 API/hook/mutation
+- 登录态只有模块变量 token，没有注册/登录入口、会话状态、退出、401/refresh 策略或安全说明
+- readiness 只返回配置状态，未真实探测数据库和 Redis
+- metrics 使用 `request.url.path` 等高基数标签
+- Dockerfile 以 root 用户运行生产服务，或 Nginx CSP 在生产默认配置中硬编码 localhost
+- `index.html`、前端 lockfile、关键前端测试、业务流验证脚本缺失
+
+生成和修复时，优先让关键业务闭环在真实数据层、真实 API 和真实 UI 交互之间跑通，再补统计面板、装饰性页面或二级能力。
 
 ## 推荐改进节奏
 

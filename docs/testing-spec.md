@@ -8,7 +8,7 @@
 - `docs/frontend-ui-spec.md`
 - `docs/deployment-spec.md`
 - `docs/generation-quality.md`
-- `docs/business-checklist-template.md`
+- `docs/project-asset-templates.md`
 
 ## 1. 目标
 
@@ -141,7 +141,11 @@
 - 是否至少覆盖一条数据库/Redis/超时等异常路径
 - 后端测试数量不应少于 8 个关键用例；如果少于 8 个，必须在 review-log 中说明原因并补充业务流脚本覆盖
 - 必须覆盖认证失败、越权访问、非法输入、重复/冲突、非法状态流转、依赖异常/限流触发中的至少 4 类
+- 必须至少有一组测试证明核心业务接口写入数据库后可再次查询或被后续状态流转读取；只测试 `MemoryStore`、mock service、fixture 返回值或路由存在性不算达标
+- 测试代码不得让生产 API 依赖进程内全局 store 才能通过；如果需要 fake，只能放在 test fixture 或明确的 mock adapter 中
 - 前端应默认接入 Vitest/Testing Library 或等价方案，至少提供页面 smoke、表单校验、错误态/空态、未登录引导中的合理子集
+- 前端测试至少覆盖一个真实 API hook/mutation 驱动的页面状态或表单提交路径，禁止用纯 `setTimeout` 或静态 toast 作为“提交成功”证据
+- 生成项目必须包含前端 lockfile，并让 CI 使用对应包管理器的可复现安装命令
 - CI 中应执行覆盖率命令或至少输出覆盖率报告；生产级目标后端核心业务覆盖率不低于 70%
 - 前端是否完成构建、lint 与 UI 自查
 - 项目级验证命令是否写入 `generated/<project-slug>/README.md`

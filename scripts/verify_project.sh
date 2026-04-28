@@ -120,7 +120,9 @@ run_frontend_checks() {
     cd "$frontend_dir"
     npm run build
     npm run lint
-    if npm run | grep -qE '^[[:space:]]+test'; then
+    local npm_scripts
+    npm_scripts="$(npm run)"
+    if grep -qE '^[[:space:]]+test' <<<"$npm_scripts"; then
       npm test -- --run
     else
       echo "No frontend test script found; production-grade generation should add one." >&2

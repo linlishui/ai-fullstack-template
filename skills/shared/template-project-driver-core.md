@@ -6,6 +6,10 @@ This file is the shared workflow contract for the `template-project-driver` skil
 
 Treat this skill as the control layer for the current template repository, not as a generic app builder.
 
+Operate as a senior fullstack architect, production delivery owner, and strict reviewer. The goal is not to generate a demo; it is to deliver a standalone fullstack project that is runnable, verifiable, maintainable, and close to production quality within the current requirement scope.
+
+Prioritize the main business loop over peripheral production assets. Do not spend the main implementation budget on Nginx, CI, docs, dashboards, or observability placeholders while the core role actions, state transitions, permissions, persistence, API integration, and tests remain incomplete.
+
 Use it when the task is to manage or execute the repository's end-to-end generation flow from business requirement to generated fullstack project, including:
 
 - reading `requirements/requirement.md`
@@ -23,10 +27,16 @@ Read these before generating anything substantial:
 3. `README.md`
 4. `docs/ai-workflow.md`
 5. `docs/generation-quality.md`
-6. `docs/backend-spec.md`
-7. `docs/testing-spec.md`
-8. `docs/deployment-spec.md`
-9. `docs/production-grade-rubric.md`
+6. `docs/template-governance.md`
+7. `docs/production-grade-rubric.md`
+8. `docs/fullstack-review-scoring.md`
+
+Read phase-specific specifications when entering that phase instead of loading every detailed rule up front:
+
+- Backend: `docs/backend-spec.md`
+- Frontend: `docs/frontend-ui-spec.md`
+- Testing: `docs/testing-spec.md`
+- Deployment: `docs/deployment-spec.md`
 
 Also read the shared workflow map at `skills/shared/template-project-driver-workflow-map.md` when exact source-of-truth paths, stage mapping, or validation commands are needed.
 
@@ -41,9 +51,14 @@ Also read the shared workflow map at `skills/shared/template-project-driver-work
 7. Synchronize project-level context into `generated/<project-slug>/requirements/`, `docs/`, `scripts/`, and `openspec/`.
 8. Generate implementation into `generated/<project-slug>/` only. Do not scatter business code into the repository root.
 9. Treat production-grade review items as default requirements, not optional polish, especially for observability, security, frontend resilience, Nginx, Docker, tests, OpenAPI, rate limiting, and CI assets.
-10. Run template-level audit and project-level verification after generation.
-11. Fix obvious failures before stopping.
-12. Report the final output directory, what was validated, and what risks or assumptions remain.
+10. Apply quality requirements in three tiers:
+    - Non-negotiable gates: OpenSpec-first, real business loop, DB-backed persistence, real frontend API/mutation actions, auth/authz/input validation, executable tests, and template audit.
+    - Default production enhancements: rate limiting, request id, logs, metrics, tracing extension point, Nginx, Docker, CI, OpenAPI, and project-level security/observability/test docs.
+    - On-demand extensions: complex auth UX, background workers, complex caching, BI dashboards, fine-grained permission matrices, and multi-tenancy only when the requirement or risk profile needs them.
+11. Run template-level audit and project-level verification after generation.
+12. Fix obvious failures before stopping.
+13. Keep generated project documentation evidence-led and concise. Do not copy long template rules into generated docs; record project facts, evidence paths, verification commands, status, and risks.
+14. Report the final output directory, what was validated, and what risks or assumptions remain.
 
 ## Required Generated Project Shape
 
@@ -76,7 +91,11 @@ generated/<project-slug>/
 - Keep backend and frontend modular. Do not collapse the system into `main.py` or `App.tsx`.
 - Generate verification artifacts together with implementation: tests, README commands, `.env.example`, and any project-level helper scripts.
 - Generate production-grade artifacts together with implementation: rate limiting, request id logging, metrics, OpenAPI export, Docker ignore files, frontend tests, safe admin bootstrap, security notes, observability notes, and test plan.
+- Core backend routes must use real SQLAlchemy-backed persistence through services/repositories. Do not use `MemoryStore`, process-global dict/list state, JSON files, or other in-memory stores for users, core business entities, workflow states, install/review actions, or statistics in production code.
+- Core frontend actions must call real API clients, TanStack Query mutations, or typed domain hooks. Do not use `setTimeout`, static success toasts, hardcoded stats/categories, or local fake data to claim create/review/install/publish/audit workflows are complete.
+- Readiness must probe database and Redis, metrics labels must avoid raw `request.url.path`, backend runtime containers must run as non-root, and generated frontends must include a standard `index.html` plus a lockfile.
 - Generate review-oriented checklists together with implementation: `docs/key-business-actions-checklist.md`, `docs/frontend-ui-checklist.md`, `docs/production-readiness-checklist.md`, `docs/security-notes.md`, `docs/observability.md`, and `docs/test-plan.md`.
+- Keep review-oriented checklists as evidence indexes, not duplicated rulebooks. Each item should name status, code/config/test/script evidence, and remaining risk.
 - Generate project-level AI collaboration assets together with implementation: `AGENTS.md`, `CLAUDE.md`, `docs/ai-workflow.md`, `docs/review-log.md`, and `docs/fix-log.md`.
 - Prefer minimal authentication when auth is only a supporting capability rather than the business core.
 - Validate key business actions from the actual requirement, not from a fixed demo checklist.
@@ -104,6 +123,7 @@ generated/<project-slug>/
 - Include rate-limit, metrics/tracing, bootstrap/seed, and secure cookie environment keys where applicable.
 - Create `docs/architecture.md`, `docs/development.md`, `docs/key-business-actions-checklist.md`, `docs/frontend-ui-checklist.md`, `docs/production-readiness-checklist.md`, `docs/security-notes.md`, `docs/observability.md`, and `docs/test-plan.md`.
 - Create project-level AI context files `AGENTS.md`, `CLAUDE.md`, `docs/ai-workflow.md`, `docs/review-log.md`, and `docs/fix-log.md`.
+- Write generated docs as compact project-specific evidence. Avoid duplicating generic template rules; reference the generated project's own files, commands, and known risks.
 - Add project-level scripts when validation or cleanup needs a stable entrypoint.
 
 ### Stage 4: Generate Backend
@@ -114,6 +134,9 @@ generated/<project-slug>/
 - Keep configuration, auth, persistence, and route handling separated.
 - Default to versioned APIs, unified response structures, global exception handling, pagination, structured logging, dependency-aware health checks, and observability hooks.
 - Default to request id middleware, Redis-backed rate limiting, safe admin bootstrap/seed scripts, OpenAPI export, real metrics, and async-safe DTO serialization.
+- Implement real dependency-aware readiness checks. Do not return static states such as `database: configured`.
+- Use route templates or similarly low-cardinality values for metrics path labels. Do not label metrics with raw request URLs.
+- Prefer FastAPI lifespan for startup/shutdown hooks.
 - Do not implement administrator promotion through email prefixes, fixed usernames, or frontend-only controls.
 - Read settings from environment variables only.
 
@@ -124,6 +147,8 @@ generated/<project-slug>/
 - Prefer `TanStack Query`, `React Hook Form`, and `Zod`.
 - Treat `docs/frontend-ui-spec.md` as the frontend source of truth. Read it first, then follow its referenced detailed documents such as `docs/design-tokens.md`, `docs/component-patterns.md`, and `docs/frontend-anti-patterns.md` as needed.
 - Default to a unified HTTP layer, route-level lazy loading, ErrorBoundary coverage, and explicit unauthorized or blocked-action feedback.
+- Add AuthContext/auth store or equivalent session handling when login/register exists, including logout and 401/refresh behavior.
+- Ensure marketplace, detail, workspace, admin, install/review/publish, and stats views are driven by real API data or explicitly marked unavailable/open.
 - Ensure loading, empty, error, disabled, submitting, and success states exist.
 - Add frontend tests or smoke checks for at least one critical page/form/state.
 - Do not default to long-lived localStorage token storage without explicit security notes and mitigation.

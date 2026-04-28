@@ -2,6 +2,16 @@
 
 请对当前仓库中已经生成的全栈项目执行自动修复与验证。
 
+你必须以资深全栈架构师、生产级交付负责人和严格代码审查者的标准执行。修复目标不是把清单文字补满，而是让生成项目在当前需求范围内成为可独立运行、可验证、可维护、接近生产环境质量的工程。
+
+修复优先级按三层执行：
+
+- 不可降级硬门禁优先：主业务闭环、数据库-backed 持久化、真实前端 API/mutation、认证授权、输入校验、关键测试、业务流脚本、模板审计。
+- 默认生产增强其次：限流、request id、日志、metrics、Tracing extension point、Nginx、Docker、CI、OpenAPI、生产就绪/安全/可观测性/测试文档。
+- 按需扩展最后：复杂认证体验、后台任务、复杂缓存、运营 BI、细粒度权限矩阵、多租户等；没有需求或风险依据时不要为追求“看起来完整”而扩展。
+
+修复文档时必须遵守 `docs/template-governance.md`：不要用复制模板规则来冒充修复；项目级文档只能补项目事实、证据路径、验证结果和剩余风险。
+
 在开始前，先识别目标项目目录，并优先读取：
 
 - `generated/<project-slug>/requirements/` 下的需求快照
@@ -17,7 +27,9 @@
 - `docs/testing-spec.md`
 - `docs/deployment-spec.md`
 - `docs/frontend-ui-spec.md`
+- `docs/template-governance.md`
 - `docs/production-grade-rubric.md`
+- `docs/fullstack-review-scoring.md`
 - 按 `docs/frontend-ui-spec.md` 的引用关系按需读取前端细分文档，并优先使用其中的验收清单做前端验收
 - 如果存在，读取 `generated/<project-slug>/docs/frontend-ui-checklist.md`
 - 如果存在，读取 `generated/<project-slug>/docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md`
@@ -47,6 +59,7 @@
 - 检查项目级安全说明、可观测性说明和测试计划是否与实际代码、配置、测试、CI 对齐
 - 检查未登录、无权限和缺少前置条件时，关键点击是否会给出明确提示或跳转引导
 - 检查生产级硬门禁是否真实落地：限流、OpenAPI 导出、request id、metrics、`.dockerignore`、前端测试、安全管理员初始化、业务流脚本自包含
+- 检查满分导向硬门禁是否真实落地：核心后端 API 是否使用数据库-backed service/repository，是否仍有 `MemoryStore`/模块全局状态；核心前端动作是否仍用 `setTimeout`/静态 toast/硬编码统计或分类；readiness 是否真实探测 DB/Redis；metrics 是否避免 raw URL path label；后端 Dockerfile 是否非 root；前端是否有标准 `index.html` 和 lockfile
 
 执行要求：
 
@@ -56,6 +69,7 @@
 - 先按 `docs/testing-spec.md` 核对关键测试、业务流脚本和回归路径是否缺项
 - 先按 `docs/deployment-spec.md` 核对环境变量、Compose 依赖、健康检查和启动说明是否缺项
 - 先按 `docs/production-grade-rubric.md` 核对生产级高分项，并把缺项直接修复为代码/脚本/配置
+- 先按 `docs/fullstack-review-scoring.md` 核对 120 分评审维度，把“假持久化、假交互、假生产证据”作为最高优先级修复项
 - 先核对项目级前端 UI 检查清单，并按 `docs/frontend-ui-spec.md` 校验是否缺失主题 token、状态设计、移动端适配和页面结构落地
 - 先核对项目级生产就绪清单，并按三色风险标记未完成的生产级要求
 - 先核对项目级 AI 协作文件是否可支撑后续 AI 继续迭代，而不是只依赖模板仓库

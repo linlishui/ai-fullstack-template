@@ -19,6 +19,9 @@
 - 不要把所有前端代码写进 `App.tsx`
 - 按页面、组件、hooks、api、schema 或 feature 拆分
 - 页面、表单、接口调用与权限控制要符合规格
+- 核心页面和核心按钮必须调用真实 API、TanStack Query mutation 或 typed domain hook；禁止用 `setTimeout`、静态 toast、硬编码成功结果、硬编码统计值或硬编码分类伪装业务完成
+- 市场列表、详情、工作台、管理审核、安装/发布/评价等关键页面必须具备真实 fetch/mutation、加载态、错误态、空态和成功反馈；如果后端 API 尚未实现，必须显示“能力暂不可用”并在 OpenSpec/tasks 中标为 Open，不得前端假成功
+- 若需求包含注册/登录，必须提供注册入口、登录入口、AuthContext 或等价会话状态、退出登录、401/refresh 处理策略；不得只把 access token 存在模块变量中且无会话恢复说明
 - 前端视觉、交互、状态、响应式、组件模式、反模式与验收要求，以 `docs/frontend-ui-spec.md` 为准
 - 必须提供统一 HTTP 客户端与错误处理，禁止在业务页面裸写 `fetch`
 - 必须至少提供一处 ErrorBoundary，以及关键路由的 `React.lazy + Suspense` 懒加载
@@ -30,3 +33,5 @@
 - 在 `generated/<project-slug>/docs/frontend-ui-checklist.md` 输出项目级前端实现清单，至少记录主题方向、页面映射、关键状态设计与剩余风险
 - 保证构建脚本与 lint 脚本可用
 - 必须提供 `npm test -- --run` 或等价前端测试命令，至少覆盖一个关键页面 smoke、表单校验、空态/错误态或未登录引导
+- 必须生成标准 `index.html`，包含 `<!doctype html>`、`<html lang>`、`charset`、`viewport` 和业务标题
+- 必须提交前端 lockfile，例如 `package-lock.json`、`pnpm-lock.yaml` 或 `yarn.lock`

@@ -11,13 +11,19 @@
 - Refresh Token：若使用 Cookie，必须设置 `HttpOnly`、`Secure` 环境感知、`SameSite=Strict`，并在 refresh/logout 端点做 Origin/CSRF 校验；若不实现 refresh token，必须缩短 access token 有效期并记录取舍。
 - Token 存储：前端不得默认把长期 token 放进 `localStorage`；如为了内部工具使用 bearer token，必须在文档中标注 XSS 风险和替代方案。
 - Rate Limiting：登录、注册、刷新 token、写操作必须有 Redis-backed rate limiting 或明确的中间件实现，不接受“预留”。
+- 真实持久化：业务 API 必须通过数据库-backed service/repository 执行核心读写，不得使用 `MemoryStore`、模块级 `dict/list`、JSON 文件或进程内全局变量承载用户、业务实体、状态流转、安装、评价等核心数据。内存 fake 仅允许出现在测试 fixture、mock 或演示脚本中。
 - 统一异常：不得让 `IntegrityError`、SQLAlchemy async lazy loading、内部堆栈以 500 原样泄露；数据库唯一约束冲突必须映射为稳定业务错误。
 - 可观测性：必须有 request id 中间件、结构化访问日志、`/metrics` 可被 Prometheus 抓取；Tracing 可以是可开关集成，但必须有真实接入代码或清晰 extension point。
+- Metrics 标签：HTTP metrics 的 path 标签必须使用路由模板（例如 `/api/v1/skills/{skill_id}`）而不是实际 URL（例如 `/api/v1/skills/123`），避免高基数。
 - OpenAPI：FastAPI 项目必须保留 `/openapi.json`，并提供 `scripts/export_openapi.sh` 导出到 `docs/openapi.json`。
 - Nginx：必须启用 gzip、基础安全头，生产配置应包含合理缓存策略和 API proxy 超时。
-- Docker：必须提供 `.dockerignore`；生产 Dockerfile 不应依赖 editable install；镜像构建不应复制 `.venv`、`node_modules`、`dist` 等本地产物。
+- Docker：必须提供 `.dockerignore`；生产 Dockerfile 不应依赖 editable install；镜像构建不应复制 `.venv`、`node_modules`、`dist` 等本地产物；后端运行镜像默认必须使用非 root 用户。
 - 测试：后端测试不得少于 8 个关键用例，必须覆盖成功、认证失败、越权、非法输入、重复/冲突、状态非法流转、依赖异常或超时中的合理子集。
 - 前端测试：至少提供 smoke/component 测试或明确的页面级可用性验证脚本；仅有 `build`/`lint` 不视为完整前端验证。
+- 前端真实闭环：需求中的核心页面和关键按钮必须调用真实 API 或明确的 domain action hook；禁止用 `setTimeout`、静态 toast、硬编码统计数字、硬编码分类选项伪造创建、审核、安装、评价、统计等核心动作。
+- 前端认证闭环：如需求包含注册/登录，必须提供注册入口、登录入口、认证状态上下文、未登录引导、登出和 refresh/401 处理策略；access token 可保存在内存，但刷新后必须能通过 refresh cookie 恢复会话或明确短 token 取舍。
+- 前端 HTML 基线：Vite `index.html` 必须包含标准 `<!DOCTYPE html>`、`html lang`、`meta charset`、`meta viewport` 和 `title`。
+- 依赖锁定：前端必须提交 `package-lock.json`、`pnpm-lock.yaml` 或 `yarn.lock`；后端应使用 lock/constraints 或在 README/CI 中说明可复现安装策略。
 - 业务流：如果需求存在主链路，`scripts/check_business_flow.sh` 必须自包含、可重复执行、无需人工 token，且覆盖关键角色差异。
 
 ## 2. Scoring Targets
@@ -28,7 +34,7 @@
 - 安全性：默认不得存在高危项；中危项必须有修复计划和风险说明。
 - 性能：列表分页必须有最大 page size；搜索避免无索引全表扫描，必要时建立 FULLTEXT/前缀索引或说明限制。
 - API 设计：必须有版本化 API、统一响应、统一错误码、OpenAPI 导出和演进策略说明。
-- 数据层：外键、唯一约束、索引、事务边界、migration 回滚必须齐全。
+- 数据层：外键、唯一约束、索引、事务边界、migration 回滚必须齐全，且核心 API 必须真实使用这些模型和 repository；“模型/migration 存在但业务不用数据库”按原型处理，不得判定为生产就绪。
 - CI/CD 与部署：CI 必须覆盖后端 lint/test、前端 lint/build、compose config、OpenAPI 导出检查。
 - 可测试性：业务测试优先于存在性测试；测试文件数量不是目标，覆盖关键风险才是目标。
 - AI 工具链：`AGENTS.md`、`CLAUDE.md` 不得是空泛说明，必须包含本项目技术栈、验证命令、禁止事项和增量开发流程。
@@ -42,6 +48,7 @@
 - `backend/app/core/rate_limit.py` 或等价限流模块
 - `backend/app/core/request_context.py` 或等价 request id 中间件
 - `backend/app/core/metrics.py` 或等价 metrics 模块
+- `backend/app/db/session.py` 或等价数据库会话依赖，且业务 service/repository 必须被 API 调用
 - `backend/scripts/export_openapi.py` 或项目级 `scripts/export_openapi.sh`
 - `docs/openapi.json` 或 README 中要求生成该文件的命令
 - `docs/security-notes.md`

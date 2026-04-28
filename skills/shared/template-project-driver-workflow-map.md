@@ -2,6 +2,10 @@
 
 Use this file as the source-of-truth map for the current repository when running the template generation workflow.
 
+Run the workflow as a senior fullstack architect, production delivery owner, and strict reviewer. The generated project should be a standalone, runnable, verifiable, maintainable, near-production engineering package within the current requirement scope.
+
+Main business-loop correctness outranks peripheral asset volume. Nginx, CI, docs, metrics, tracing hooks, and dashboards are useful only when they support real persistence, real API wiring, real frontend actions, permissions, state transitions, and executable validation.
+
 ## Core Inputs
 
 - `requirements/requirement.md`
@@ -21,8 +25,13 @@ Use this file as the source-of-truth map for the current repository when running
   - Defines the staged generation sequence and quality gates.
 - `docs/generation-quality.md`
   - Defines main-loop priority, validation minimums, and typical high-risk failures.
+- `docs/template-governance.md`
+  - Defines rule-source priority, generated asset responsibilities, and anti-duplication boundaries.
 - `docs/production-grade-rubric.md`
   - Converts strict fullstack review scoring into hard generation and verification gates.
+- `docs/fullstack-review-scoring.md`
+  - Maps the 120-point fullstack reviewer rubric to generation priorities and one-vote-fail examples.
+  - Defines tiered quality requirements: non-negotiable gates, default production enhancements, and on-demand extensions.
 
 ## Backend, Testing, And Deployment Guidance
 
@@ -39,7 +48,11 @@ Use them as the primary rule sources for:
 - test coverage priorities, key business-action regression, and verification gates
 - compose structure, Dockerfiles, Nginx, CI assets, environment variables, startup flow, and runtime validation
 - production-grade security, rate limiting, metrics, OpenAPI export, Docker ignore files, frontend tests, and business-flow script requirements
+- real persistence requirements: core business APIs must use database-backed services/repositories, not in-memory stores or unused model/migration scaffolding
+- real observability/runtime requirements: readiness probes must check database/Redis, metrics labels must avoid raw URL paths, backend containers must run as non-root
 - project-level `security-notes.md`, `observability.md`, and `test-plan.md` content that must match code, config, tests, and CI
+
+Generated project docs should be project-specific evidence indexes. Do not copy long sections from template docs into `generated/<project-slug>/docs/`; record status, paths, commands, and risks instead.
 
 ## Frontend Guidance
 
@@ -51,6 +64,8 @@ Read these before generating non-trivial frontend work:
 - `docs/frontend-anti-patterns.md`
 
 Use `docs/frontend-ui-spec.md` as the main frontend rule source, then use the others to shape theme tokens, interaction patterns, and visual expression.
+
+Core frontend workflows must be wired to real API clients, TanStack Query mutations, or typed domain hooks. `setTimeout`, static success toasts, hardcoded stats/categories, local fake admin decisions, or module-only token state do not count as complete implementation.
 
 ## Prompt Entry Points
 
@@ -174,13 +189,17 @@ At the project level, README should also expose:
 - Omitting CI workflow, Nginx assets, or production-readiness checklist while claiming production-grade output
 - Omitting project-level AI rules and review/fix trace files, leaving the standalone project without AI collaboration context
 - Building UI without required loading, empty, error, or submitting feedback
+- Claiming a workflow is complete while the UI only uses `setTimeout`, static toast, hardcoded stats/categories, or local fake data
+- Providing login/register endpoints without a frontend session layer, logout, 401/refresh behavior, or matching security notes
 - Generating frontend code without ErrorBoundary, route lazy loading, or unified HTTP error handling
 - Generating backend code without spec-driven module boundaries, migration discipline, or resource-level authorization
+- Generating models/migrations/repositories while the production routes still use `MemoryStore`, module globals, JSON files, or other fake persistence
 - Shipping backend code without unified responses, global exception handling, pagination, or dependency-aware health checks
 - Shipping backend code without rate limiting, request id logging, metrics, OpenAPI export, or safe administrator bootstrap
+- Returning static readiness such as `database: configured` instead of probing DB/Redis, or labeling metrics with raw `request.url.path`
 - Letting SQLAlchemy async lazy loading happen during response serialization
 - Shipping frontend auth with long-lived localStorage tokens and no security notes
-- Omitting `.dockerignore`, gzip, proxy timeout, or dependency audit/reporting
+- Omitting `.dockerignore`, gzip, proxy timeout, non-root backend runtime user, frontend lockfile, or dependency audit/reporting
 - Treating tests as optional after build passes, or skipping project-level business-flow regression
 - Shipping compose files without complete env examples, health checks, or startup instructions
 - Overbuilding authentication when auth is not the requirement's main loop

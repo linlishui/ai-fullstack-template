@@ -60,6 +60,7 @@ Compose 服务至少包含：
 - 每个主要服务应有自己的 Dockerfile
 - Dockerfile 默认优先使用多阶段构建
 - 后端生产镜像不得依赖 editable install；应安装 wheel、requirements lock 或明确的非 editable package
+- 后端生产镜像必须创建并切换到非 root 用户运行；如果基础镜像已有非 root 用户，也必须在 Dockerfile 中显式 `USER`
 - 镜像构建步骤应尽量稳定、可缓存、可复现
 - 不要把本地开发垃圾文件打进镜像
 - `.dockerignore` 必须排除 `.venv`、`__pycache__`、`.pytest_cache`、`.ruff_cache`、`node_modules`、`dist`、日志与本地 `.env`
@@ -72,6 +73,7 @@ Compose 服务至少包含：
 - 对数据库、缓存、后端等关键服务应提供健康检查
 - Nginx 应负责前端静态资源与 API 反向代理，并补基础安全头
 - Nginx 必须启用 gzip，并为 API proxy 设置合理 connect/read/send timeout
+- Nginx CSP 默认不得在生产配置中硬编码 `localhost` 作为 `connect-src`；开发来源应通过单独开发配置、环境注入或相对 API 路径处理
 - `depends_on` 只解决启动顺序，不等于可用性；关键服务应结合健康检查或启动脚本处理就绪问题
 - 如前后端存在联调依赖，前端指向后端的地址必须与容器网络和本地访问方式一致
 - 如资源约束不是明显不适用，Compose 应声明合理的内存/CPU 限制或至少在文档中说明部署建议
@@ -96,7 +98,7 @@ Compose 服务至少包含：
 
 - 后端至少应提供应用级健康检查端点
 - Compose 中的健康检查应体现真实依赖是否可用，而不只是进程存在
-- Nginx、Backend、MySQL、Redis 都必须有 healthcheck；Backend readiness 必须检查数据库和 Redis
+- Nginx、Backend、MySQL、Redis 都必须有 healthcheck；Backend readiness 必须执行真实数据库和 Redis 探测，禁止只返回 `database: configured` 或配置存在
 - 日志输出应便于定位启动失败、连接失败、迁移失败和端口冲突
 - 如项目存在业务校验脚本，应支持在容器启动后执行
 

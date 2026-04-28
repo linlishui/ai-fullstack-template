@@ -4,7 +4,7 @@
 
 如果你只读一份后端规范，优先读本文件；如果需要补充上下文，再继续看以下文档：
 
-- `docs/architecture.md`：模板层分层与项目组织参考
+- `README.md` 与 `docs/ai-workflow.md`：模板层流程、分层与项目组织参考
 - `docs/testing-spec.md`：测试策略、验证边界与质量门禁
 - `docs/deployment-spec.md`：运行、容器、环境与发布约束
 - `docs/generation-quality.md`：模板级与项目级总体质量要求
@@ -31,6 +31,7 @@
 - 先建立分层与依赖边界，再填充业务逻辑
 - 先保证真实业务闭环，再补外围能力
 - 先处理输入、权限、异常和事务，再谈接口数量
+- 先让核心业务读写真实数据库，再谈“生产级”外围证据；ORM model、migration 和 repository 不能只是摆设
 
 ## 3. 默认技术基线
 
@@ -121,6 +122,7 @@ backend/
 - 对创建、更新、审核、下线、删除等写操作，必须防止越权
 - 默认应提供安全响应头、中间件或明确的代理层安全头方案
 - 输入校验、输出脱敏、密码散列、密钥隔离和最小权限原则必须落地
+- 密码哈希默认使用 Argon2id；如因依赖或平台限制选择 bcrypt/PBKDF2，必须在 `docs/security-notes.md` 说明取舍、参数强度和后续迁移计划。不得出现文档写 Argon2/bcrypt、代码实际使用弱化算法的偏差。
 
 不要出现以下问题：
 
@@ -130,6 +132,7 @@ backend/
 - 把内部异常、堆栈或 SQL 错误直接返回给前端
 - 使用 localStorage 存储长期 token 且没有风险说明或替代方案
 - 依赖 email 前缀或固定测试账号获得管理员权限
+- 通过 `MemoryStore`、全局 `dict/list`、进程内变量或 JSON 文件实现用户、业务实体、状态流转、评价、安装等核心数据
 
 ## 7. 数据模型与持久化规则
 
@@ -157,6 +160,17 @@ backend/
 - 首次启动依赖的数据结构不得靠手工建表
 - 首次启动依赖的分类、字典、管理员账号等必须提供 seed 脚本或 bootstrap 命令
 
+### 7.4 禁止“假持久化”
+
+生成项目不得以“先用内存 store 跑通测试，模型和 migration 以后再接”的方式交付。以下情况视为未完成数据层：
+
+- API route 或 service 直接导入 `store = MemoryStore()`、模块级 `dict/list` 或 JSON 文件仓储。
+- Repository 层存在但没有被核心 service 调用。
+- 测试只覆盖内存仓储，未覆盖数据库-backed service 的事务、唯一约束或状态变更。
+- readiness 只返回 `database: configured`，没有执行 `SELECT 1` 或等价数据库探针。
+
+允许的例外：测试 fixture 或 mock 可以使用内存对象，但必须位于 `tests/`、`fixtures/` 或明确的 mock 模块中，且生产 API 不得引用。
+
 ## 8. Redis 与异步基础能力
 
 - Redis 接入必须有明确用途，例如缓存、会话、限流、任务状态或短期临时数据
@@ -170,9 +184,11 @@ backend/
 - 应提供结构化日志或至少稳定日志格式
 - 必须提供 request id/correlation id 中间件，并在响应头和结构化日志中输出
 - 必须提供 `/metrics` 端点，至少暴露进程存活、请求计数、请求耗时、错误计数等基础指标
+- HTTP metrics 的 path 标签必须归一化为路由模板，禁止直接使用 `request.url.path` 作为指标标签，避免 `/resources/1`、`/resources/2` 形成高基数
 - Tracing 可以通过配置开关启用，但必须有真实接入代码或明确 extension point，不接受空字符串 placeholder
 - 启动日志应明确环境、服务端口和关键依赖状态
 - 健康检查必须能区分进程存活与依赖可用性，并至少校验数据库与 Redis 连通性
+- readiness 必须真实执行数据库和 Redis 探针；不能用“configured”“enabled”等静态字符串替代依赖检查
 - 对关键失败路径，应记录必要上下文但避免泄漏敏感信息
 
 ## 10. 性能与稳定性底线

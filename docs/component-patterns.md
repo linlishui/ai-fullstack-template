@@ -168,6 +168,8 @@ async function handleDelete(id: string) {
 
 验收标准：所有 DELETE 操作和状态不可逆变更必须有确认弹窗，弹窗需说明操作后果。
 
+确认弹窗还必须满足基础可访问性要求：优先使用 Radix AlertDialog、shadcn/ui AlertDialog 或等价组件；必须有遮罩、焦点陷阱、ESC 关闭、语义化触发按钮和键盘可操作路径。禁止用 `span onClick`、无 role 的 div 或只靠视觉样式伪装弹窗。
+
 ## 7. 按钮变体（Button Variants）
 
 至少提供以下 5 种按钮变体，保证操作层级清晰：

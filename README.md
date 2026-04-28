@@ -11,6 +11,56 @@
 
 同时，模板默认以“接近生产级高分实现”为目标，而不只是通过最基础的 build 和 lint。生成链路会显式约束安全、可观测性、前端容错、部署资产、测试覆盖、OpenAPI 导出、限流与关键业务回归路径。
 
+生成流程默认把 AI 视为资深全栈架构师、生产级交付负责人和严格代码审查者。质量目标不是堆文件，而是在需求范围内交付可独立运行、可验证、可维护、接近生产环境质量的工程。主业务闭环优先级高于外围生产资产；Nginx、CI、metrics、文档和审计都必须服务于真实业务动作、状态流转、权限边界和可执行验证。
+
+为避免过度设计和资产冗余，模板使用 `docs/template-governance.md` 约束规则源和生成资产职责：模板 `docs/` 是规则源，生成项目 `docs/` 是项目事实、证据路径、验证结果和风险索引，不复制模板长规则。
+
+## 快速开始
+
+最短路径：
+
+1. 按 `docs/requirement-template.md` 填写 `requirements/requirement.md`
+2. 在 Codex 或 Claude Code 中触发生成
+3. 生成后继续触发修复验证
+4. 进入 `generated/<project-slug>/` 启动和验证独立工程
+
+Codex 推荐提示词：
+
+```text
+Use $template-project-driver for this repository.
+Read requirements/requirement.md first.
+Generate OpenSpec first in generated/<project-slug>/openspec/.
+Then generate the standalone fullstack project in generated/<project-slug>/.
+Strictly follow docs/production-grade-rubric.md and docs/fullstack-review-scoring.md.
+Run scripts/audit_generated_project.sh and scripts/verify_project.sh, then fix failures before final handoff.
+```
+
+Claude Code 推荐提示词：
+
+```text
+请使用 template-project-driver skill 执行当前模板流程。
+先读取 requirements/requirement.md。
+先在 generated/<project-slug>/openspec/ 中生成 OpenSpec。
+再把完整独立工程输出到 generated/<project-slug>/。
+必须严格遵守 docs/production-grade-rubric.md 和 docs/fullstack-review-scoring.md。
+最后执行 scripts/audit_generated_project.sh 和 scripts/verify_project.sh；失败项必须先修复再结束。
+```
+
+生成后继续执行：
+
+```text
+读取并执行 prompts/07-fix-and-verify.md，自动检查、修复并验证项目。
+重点核对：数据库-backed 持久化、真实 API/mutation 前端动作、DB/Redis readiness、低基数 metrics label、非 root Dockerfile、标准 index.html、lockfile、前端测试、业务流脚本。
+修复后重新执行 scripts/audit_generated_project.sh generated/<project-slug> 和 scripts/verify_project.sh generated/<project-slug>。
+```
+
+本地运行：
+
+```bash
+cd generated/<project-slug>
+docker compose up --build
+```
+
 ## 默认技术栈
 
 - 后端：Python 3.12+、FastAPI、Pydantic v2、SQLAlchemy 2.x async、Alembic、MySQL 8、Redis 7、JWT、pytest、ruff
@@ -32,7 +82,7 @@
 
 ## 生产级硬门禁
 
-严格评分下，仅完成目录、构建和基础业务流仍不够。模板现在把 `docs/production-grade-rubric.md` 作为硬门禁，要求生成项目默认具备：
+严格评分下，仅完成目录、构建和基础业务流仍不够。模板现在把 `docs/production-grade-rubric.md` 作为硬门禁，并用 `docs/fullstack-review-scoring.md` 对齐 120 分 fullstack reviewer 评分口径，要求生成项目默认具备：
 
 - Redis-backed Rate Limiting，覆盖登录、注册、刷新 token 和关键写操作
 - 安全管理员 bootstrap/seed，不允许 email 前缀或固定用户名提权
@@ -41,8 +91,19 @@
 - 后端/前端 `.dockerignore`，后端非 editable 生产安装，Nginx gzip/安全头/proxy timeout
 - 后端不少于 8 个关键测试用例，前端至少一类 smoke/component/form/state 测试
 - 自包含、可重复运行、无需人工 token 的 `scripts/check_business_flow.sh`
+- 核心业务 API 真实使用数据库-backed service/repository，禁止用内存 store 冒充生产持久化
+- 核心前端动作真实调用 API/hook/mutation，禁止用 `setTimeout`、静态 toast、硬编码统计或分类伪装业务闭环
+- readiness 真实探测 DB/Redis，metrics 使用低基数路由模板标签，后端容器非 root 运行，前端包含标准 `index.html` 和 lockfile
 
 如果某项因业务选择不适用，必须在生成项目的 `docs/production-readiness-checklist.md` 和 `docs/security-notes.md` 中说明替代方案和风险。
+
+## 质量要求分层
+
+- 不可降级硬门禁：OpenSpec-first、真实业务闭环、数据库-backed 持久化、真实前端 API/mutation 动作、认证授权、输入校验、关键测试、业务流脚本和模板审计。
+- 默认生产增强：Redis-backed rate limiting、request id、结构化日志、metrics、Tracing extension point、Nginx、安全头、Docker、CI、OpenAPI、生产就绪/安全/可观测性/测试文档。
+- 按需扩展：复杂认证体验、后台任务、复杂缓存、运营 BI、细粒度权限矩阵、多租户和复杂插件生态。只有需求或风险明确需要时展开，不得挤占主业务闭环。
+
+生成项目中的 README、清单和说明文档应保持短而具体：每项写清状态、证据文件、验证命令或剩余风险，避免复制模板通用规则。
 
 ## 仓库结构
 
@@ -81,73 +142,58 @@
 │   │   └── template-project-driver-workflow-map.md
 │   └── template-project-driver/
 └── docs/
-    ├── architecture.md
-    ├── development.md
     ├── ai-workflow.md
     ├── backend-spec.md
-    ├── business-checklist-template.md
+    ├── component-patterns.md
     ├── deployment-spec.md
+    ├── design-tokens.md
     ├── frontend-ui-spec.md
     ├── frontend-anti-patterns.md
+    ├── fullstack-review-scoring.md
     ├── generation-quality.md
+    ├── production-grade-rubric.md
+    ├── project-asset-templates.md
+    ├── template-governance.md
     ├── testing-spec.md
     └── requirement-template.md
 ```
 
 ## 使用流程
 
-### 第一步：把需求写入 `requirements/requirement.md`
+### 1. 填写需求
 
-根据 `docs/requirement-template.md` 填写业务需求，不要直接开始生成代码。
+根据 `docs/requirement-template.md` 填写 `requirements/requirement.md`。需求应尽量包含角色、关键业务动作、数据实体、状态流转、权限规则、页面入口和异常场景。
 
-### 第二步：让 AI CLI 执行 `prompts/00-generate-from-requirement.md`
+### 2. 触发生成
 
-在 Codex 或 Claude Code 中明确要求其读取并执行 `prompts/00-generate-from-requirement.md`，让其基于 `requirements/requirement.md` 自动完成规格和实现生成。
+优先使用“快速开始”中的 Codex 或 Claude Code 推荐提示词。它们会显式调用 `template-project-driver`，并要求先生成 OpenSpec，再输出 `generated/<project-slug>/` 独立工程。
 
-### 第三步：让 AI CLI 执行 `prompts/07-fix-and-verify.md`
+如果不使用 skill，也可以直接要求 AI 执行：
 
-生成完成后，再让同一端 AI 继续读取并执行 `prompts/07-fix-and-verify.md`，自动检查、修复并验证项目。
+```text
+读取并执行 prompts/00-generate-from-requirement.md。
+必须基于 requirements/requirement.md 先生成 OpenSpec，再生成 generated/<project-slug>/ 独立工程。
+生成后执行 scripts/audit_generated_project.sh 和 scripts/verify_project.sh，失败项先修复再结束。
+```
 
-### 第四步：进入生成项目目录并运行 `docker compose up --build`
+### 3. 修复验证
 
-生成完成后，AI 应将实现统一输出到 `generated/<project-slug>/`。确认该目录中的 `.env` 已配置后，在该项目目录执行：
+生成完成后继续要求 AI 执行：
+
+```text
+读取并执行 prompts/07-fix-and-verify.md，自动检查、修复并验证项目。
+```
+
+重点确认真实持久化、真实前端 API/mutation、DB/Redis readiness、低基数 metrics label、非 root Dockerfile、标准 `index.html`、lockfile、前端测试和业务流脚本。
+
+### 4. 启动独立工程
+
+生成完成后，AI 应将实现统一输出到 `generated/<project-slug>/`。确认该目录中的 `.env` 已配置后执行：
 
 ```bash
 cd generated/<project-slug>
 docker compose up --build
 ```
-
-## 显式调用 Skill
-
-当前模板工程同时兼容 Codex 与 Claude Code。两端都使用同名 skill `template-project-driver`，但仓库内的挂载位置不同：
-
-- Codex skill：`skills/template-project-driver/`
-- Claude Code skill：`.claude/skills/template-project-driver/`
-- 统一目标：读取 `requirements/requirement.md`，先生成 `generated/<project-slug>/openspec/`，再生成 `generated/<project-slug>/` 下的独立工程，并执行审计与验证
-
-推荐把“要调用 skill”直接写进提示词，避免 AI 只按自然语言自由发挥。
-
-Codex 推荐写法：
-
-```text
-Use $template-project-driver for this repository. Read requirements/requirement.md, generate OpenSpec first in generated/<project-slug>/openspec/, then generate the standalone project in generated/<project-slug>/ and run audit plus verification.
-```
-
-Claude Code 推荐写法：
-
-```text
-请使用 template-project-driver skill 执行当前模板流程：先读取 requirements/requirement.md，在 generated/<project-slug>/openspec/ 中生成 OpenSpec，再把完整项目输出到 generated/<project-slug>/，最后执行模板级审计与项目级验证。
-```
-
-如果不显式点名 skill，至少也应明确要求 AI 遵守“先 OpenSpec、后实现、最后验证”的顺序。
-
-## 推荐工作方式
-
-1. 先执行 `scripts/check_prerequisites.sh` 检查本地工具链
-2. 编写或更新 `requirements/requirement.md`
-3. 在 Codex 中显式使用 `$template-project-driver`，或在 Claude Code 中显式要求使用 `template-project-driver` skill；也可手动执行 `prompts/00-generate-from-requirement.md`
-4. 进入 `generated/<project-slug>/` 执行 `docker compose up --build`
-5. 执行 `scripts/audit_generated_project.sh generated/<project-slug>` 做模板级结构审计
 
 ## 模板层与生成层
 
@@ -204,6 +250,8 @@ Claude Code 推荐写法：
 - 后端生成应以 `docs/backend-spec.md` 为总入口
 - 测试与验证应以 `docs/testing-spec.md` 为总入口
 - 部署与运行应以 `docs/deployment-spec.md` 为总入口
+- 满分导向评审应以 `docs/fullstack-review-scoring.md` 和 `docs/production-grade-rubric.md` 共同作为门禁来源
+- 规则源与去冗余应以 `docs/template-governance.md` 为准
 
 ## 质量门禁
 
@@ -212,24 +260,18 @@ Claude Code 推荐写法：
 - 模板级审计：检查目录、OpenSpec、README、环境变量模板、核心入口文件、前端 UI 清单、生产就绪清单、安全说明、可观测性说明、测试计划、CI 工作流与 Nginx 配置是否齐全
 - 项目级验证：检查 compose、pytest/coverage、ruff、npm build、npm lint、npm test、OpenAPI 导出是否真正可执行；如果项目提供业务校验脚本，则在服务启动后自动执行关键业务动作检查
 
-此外，还应保留一份需求驱动的关键业务动作回归清单：
+此外，生成项目应保留需求驱动的关键业务动作回归清单和项目级 AI/安全/可观测性/测试资产。模板参考统一收敛到 `docs/project-asset-templates.md`：
 
-- 模板参考：`docs/business-checklist-template.md`
-- 前端清单模板：`docs/frontend-ui-checklist-template.md`
-- 生产就绪模板：`docs/production-readiness-template.md`
-- 安全说明模板：`docs/security-notes-template.md`
-- 可观测性模板：`docs/observability-template.md`
-- 测试计划模板：`docs/test-plan-template.md`
-- 项目级 AI 规则模板：`docs/project-agents-template.md`、`docs/project-claude-template.md`
-- 项目级 AI 协作模板：`docs/ai-collaboration-template.md`
-- 项目输出：`generated/<project-slug>/docs/key-business-actions-checklist.md`
-- 作用：避免 AI 只完成静态结构和构建通过，却遗漏真正的主链路动作与状态流转
+- 项目输出：`generated/<project-slug>/AGENTS.md`、`CLAUDE.md`、`docs/key-business-actions-checklist.md`、`docs/frontend-ui-checklist.md`、`docs/production-readiness-checklist.md`、`docs/security-notes.md`、`docs/observability.md`、`docs/test-plan.md`、`docs/review-log.md`、`docs/fix-log.md`
+- 作用：避免 AI 只完成静态结构和构建通过，却遗漏真正的主链路动作、状态流转、证据索引和风险记录
 
 详细策略见：
 
 - [docs/ai-workflow.md](docs/ai-workflow.md)
 - [docs/generation-quality.md](docs/generation-quality.md)
 - [docs/production-grade-rubric.md](docs/production-grade-rubric.md)
+- [docs/fullstack-review-scoring.md](docs/fullstack-review-scoring.md)
+- [docs/template-governance.md](docs/template-governance.md)
 - [docs/backend-spec.md](docs/backend-spec.md)
 - [docs/testing-spec.md](docs/testing-spec.md)
 - [docs/deployment-spec.md](docs/deployment-spec.md)

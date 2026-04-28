@@ -1,5 +1,11 @@
 # 总控提示词：根据需求文档生成完整全栈实现
 
+## 角色与交付目标
+
+你是资深全栈架构师、生产级交付负责人和严格代码审查者。你的目标不是生成 demo、页面壳或接口壳，而是在当前需求范围内交付一个可独立运行、可验证、可维护、接近生产环境质量的全栈工程。
+
+你必须像真实项目负责人一样取舍：优先保证主业务闭环在真实数据层、真实 API 和真实前端交互之间跑通，再补齐生产级工程资产。不得为了堆外围资产牺牲核心业务动作、状态流转、权限边界和可执行验证。
+
 你的任务是在当前仓库中，基于 `requirements/requirement.md` 自动生成一个完整的全栈项目实现。
 
 你必须严格遵守以下总原则：
@@ -12,6 +18,7 @@
 - 所有业务实现必须统一输出到 `generated/<project-slug>/`
 - 生成完成后必须自动检查并修复明显问题
 - 必须读取并落实 `docs/production-grade-rubric.md`；其中的硬门禁必须落到代码、配置、测试或脚本中，不能只写入文档
+- 必须遵守 `docs/template-governance.md` 的规则源与去冗余原则：模板文档是规则源，生成项目文档只记录项目事实、证据路径、验证结果和风险，不得复制模板长规则
 
 ## 六项硬性质量原则
 
@@ -26,17 +33,48 @@
 
 ## 生产级评分硬门禁
 
-默认生成目标是生产级高分独立工程，而不是 demo。除非需求明确排除，否则必须真实落地：
+默认生成目标是生产级高分独立工程，而不是 demo。硬门禁以 `docs/production-grade-rubric.md` 和 `docs/fullstack-review-scoring.md` 为准，不能在总控 prompt 中另起一套规则副本。
 
-- Redis-backed Rate Limiting，至少覆盖登录、注册、刷新 token 和关键写操作。
-- 安全管理员初始化，不允许 email 前缀、用户名约定或前端开关提权；必须提供 seed/bootstrap 脚本。
-- JWT/Refresh Token 策略：Refresh Cookie 必须 HttpOnly、SameSite=Strict、Secure 环境感知，并具备 CSRF/Origin 校验；若不实现 Refresh Token，必须说明短 access token 方案和风险。
-- Request ID 中间件、结构化访问日志、真实 `/metrics` 端点和 Tracing extension point。
-- OpenAPI 导出脚本，输出到 `docs/openapi.json` 或提供可执行导出命令。
-- 后端 `.dockerignore`、前端 `.dockerignore`、Nginx gzip、安全头和 proxy timeout。
-- 后端测试不少于 8 个关键用例，覆盖成功、认证失败、越权、非法输入、冲突、非法状态流转、限流/依赖异常中的合理子集。
-- 前端测试或页面 smoke 验证，不能只依赖 build/lint。
-- 项目级 `scripts/check_business_flow.sh` 必须自包含、可重复运行、无需人工 token。
+总控阶段只保留以下一票否决摘要，生成和修复时必须回到规则源逐项落实：
+
+- 不得跳过 OpenSpec 或让代码无法回溯到需求、规格、设计和任务。
+- 不得用 `MemoryStore`、模块级变量、JSON 文件或未接入的 repository 冒充核心业务持久化。
+- 不得用 `setTimeout`、静态 toast、硬编码统计/分类/审核结果冒充前端业务闭环。
+- 不得只写文档声明生产级能力；限流、request id、metrics、OpenAPI、健康检查、Docker、CI、测试和业务流脚本必须有代码、配置、脚本或 CI 证据。
+- 不得牺牲主业务闭环去堆外围资产；按需扩展必须有需求或风险依据。
+
+## 质量要求分层
+
+为避免过度设计，所有要求按三层执行：
+
+### A. 不可降级硬门禁
+
+这些能力缺失会直接导致独立工程不可判定为高分，必须优先实现：
+
+- OpenSpec-first，且代码可回溯到需求、规格、架构、接口、数据模型和任务拆分。
+- 主业务闭环真实可执行，关键角色、关键动作和关键状态流转不能停留在页面、接口或文档占位。
+- 后端核心业务 API 必须使用数据库-backed service/repository，禁止假持久化。
+- 前端核心操作必须调用真实 API、mutation 或 typed domain hook，禁止假交互。
+- 认证、授权、输入校验、统一错误处理、资源级权限和安全管理员初始化必须与需求匹配。
+- 测试、lint、build、OpenAPI 导出、业务流脚本和模板审计必须有可执行路径。
+
+### B. 默认生产增强
+
+这些能力默认生成，除非需求明确不适用；不适用时必须在项目级清单中说明替代方案和风险：
+
+- Redis-backed rate limiting、request id、结构化日志、metrics、Tracing extension point。
+- Nginx、安全头、gzip、proxy timeout、后端非 root Dockerfile、前后端 `.dockerignore`。
+- CI workflow、compose config、依赖审计或审计报告。
+- `docs/security-notes.md`、`docs/observability.md`、`docs/test-plan.md`、生产就绪清单和前端 UI 清单。
+
+### C. 按需扩展
+
+这些能力只有在需求、风险或架构复杂度需要时才展开；不得先于主业务闭环消耗主要实现预算：
+
+- 复杂认证体验，例如找回密码、多因素认证、复杂注册审核。
+- 复杂后台任务、消息队列、外部系统 client、复杂缓存策略。
+- 复杂运营统计、BI 面板、审计检索、细粒度权限矩阵。
+- 超出当前需求的多租户、插件市场高级能力、复杂设计系统扩展。
 
 ## 输出目录硬约束
 
@@ -104,6 +142,7 @@ generated/<project-slug>/
 - 将当前业务需求快照同步输出到 `generated/<project-slug>/requirements/`
 - 生成项目级 `docs/`，至少包含开发说明与架构说明
 - 生成项目级 `AGENTS.md` 与 `CLAUDE.md`，让独立工程保留 AI 协作规则
+- 项目级文档必须短而具体：写当前项目事实、文件路径、验证命令、证据状态和剩余风险；禁止大段复制模板仓库中的通用规则
 - 在 `generated/<project-slug>/docs/ai-workflow.md` 中生成项目级 AI 工作流说明
 - 在 `generated/<project-slug>/docs/review-log.md` 与 `generated/<project-slug>/docs/fix-log.md` 中生成审查/修复记录模板
 - 在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中生成一份基于当前需求提炼的关键业务动作回归清单
@@ -114,6 +153,7 @@ generated/<project-slug>/
 - 在 `generated/<project-slug>/docs/test-plan.md` 中生成测试计划，必须映射后端关键测试、前端测试、业务流脚本、覆盖率目标和未自动化风险
 - 生成项目级 `scripts/`，至少包含验证或清理脚本
 - 确保生成结果可作为独立工程包脱离模板仓库继续开发
+- 不要新增需求无关的文档、服务、目录或脚本；新增资产必须能服务于业务闭环、生产级硬门禁、验证或交接
 
 ### 阶段 4：生成后端
 
@@ -123,10 +163,15 @@ generated/<project-slug>/
 - 后端必须生成到 `generated/<project-slug>/backend/`
 - 后端必须拆分为可维护目录结构，不得将所有逻辑写入单文件
 - 生成配置管理、数据库连接、路由、schema、service、repository、认证与错误处理
+- 核心业务路由必须经由 service/repository 操作真实数据库，禁止 `MemoryStore`、模块级 dict/list、JSON 文件或进程内全局变量承载核心业务状态
+- route 不得直接写 ORM 或内存对象；service 负责事务与业务规则，repository 负责数据访问
 - 默认补齐 API 版本化、统一响应结构、全局异常处理、分页、资源级授权、结构化日志、依赖可用性健康检查，以及 Metrics/Tracing 接入位或说明
 - 默认补齐 request id、Redis-backed rate limiting、OpenAPI 导出、真实 metrics endpoint、审计日志、管理员 bootstrap/seed 脚本
+- Readiness 必须执行真实数据库与 Redis 探测，禁止只返回配置存在；Metrics 不得直接使用 `request.url.path` 作为标签
 - 禁止通过 email 前缀、固定用户名、前端隐藏入口等方式获得管理员权限
 - 禁止让 SQLAlchemy async lazy loading 在响应序列化阶段触发隐式 IO；返回前必须 eager load 或转换为 DTO
+- FastAPI 启停逻辑优先使用 lifespan，不新增废弃 `@app.on_event`
+- 密码哈希算法与文档必须一致，默认 Argon2id；若使用 bcrypt/PBKDF2，必须在安全说明中写明原因、风险与迁移策略
 - 后端必须提供可执行的测试、lint 和启动命令
 
 ### 阶段 5：生成数据库模型和 Alembic migration
@@ -162,6 +207,9 @@ generated/<project-slug>/
 - 页面、表单、数据请求与状态处理要与需求一致
 - 必须有统一 HTTP 请求封装与错误处理，禁止业务页面裸写 `fetch`
 - 认证态处理必须安全说明清晰；不得默认把长期 token 存入 localStorage
+- 若需求包含注册/登录，必须提供注册入口、登录入口、AuthContext 或等价会话状态、退出登录、401/refresh 处理策略；不得只依赖模块级 token 变量
+- 关键页面和核心操作必须连接真实 API 或 typed domain hook；禁止用 `setTimeout`、静态 toast、硬编码成功结果、硬编码统计值或硬编码分类伪装业务完成
+- 市场列表、详情、工作台、管理审核、安装/发布/评价等关键页面必须覆盖真实 fetch/mutation、加载态、错误态、空态、禁用态、提交中态和成功反馈；如果 API 缺失，必须显示能力暂不可用并在 OpenSpec/tasks 中保留 Open 项
 - 页面必须有清晰的信息层级和主次操作层级，不允许只生成默认白底表单或表格堆叠
 - 必须补齐加载态、空态、错误态、禁用态、提交中态和成功反馈
 - 必须至少提供一处 ErrorBoundary，以及关键路由的 `React.lazy + Suspense` 懒加载
@@ -175,6 +223,7 @@ generated/<project-slug>/
 - 在 `generated/<project-slug>/docs/` 中至少输出一份项目级前端实现说明或前端 UI 审计清单，记录页面结构、主题方向和状态设计
 - 前端必须提供可执行的构建、lint 和开发命令
 - 前端必须提供最小测试命令或页面 smoke 验证，覆盖至少一个关键页面状态或表单校验
+- 前端必须生成标准 `index.html` 和 lockfile
 
 ### 阶段 8：生成 Docker Compose
 
@@ -186,7 +235,8 @@ generated/<project-slug>/
 - 生成 Nginx 反向代理配置与基础安全头
 - Nginx 必须启用 gzip、基础安全头、API proxy timeout 和前端静态资源缓存策略
 - 为前后端 Dockerfile 优先采用多阶段构建
-- 必须生成后端和前端 `.dockerignore`；后端生产 Dockerfile 不应依赖 editable install
+- 必须生成后端和前端 `.dockerignore`；后端生产 Dockerfile 不应依赖 editable install，且必须使用非 root 用户运行
+- Nginx CSP 不得硬编码 `localhost` 作为生产默认 connect-src；应通过环境、相对路径或明确开发配置处理
 - 生成 `.github/workflows/ci.yml`，至少覆盖 lint -> test -> build
 - CI 还应覆盖 compose config、后端 coverage、OpenAPI 导出检查、前端测试、依赖安全审计或审计报告
 - 如需容器构建文件，也必须放在 `generated/<project-slug>/` 下的相应服务目录内
@@ -196,9 +246,10 @@ generated/<project-slug>/
 - 先读取 `docs/testing-spec.md`
 - 为后端生成 `pytest` 测试
 - 为关键逻辑和关键接口补基础测试
+- 后端测试必须验证核心业务接口通过数据库持久化产生可查询状态，不能只测试内存 store 或 mock service
 - 后端测试不得少于 8 个关键用例；必须覆盖认证失败、越权、非法输入、重复/冲突、非法状态流转、限流/依赖异常中的合理子集
 - 至少补一类数据库/Redis/超时等异常路径测试
-- 为前端补必要的最小测试；构建与 lint 不能替代前端测试
+- 为前端补必要的最小测试；构建与 lint 不能替代前端测试；前端测试至少应覆盖一个真实 API hook/mutation 驱动的页面状态或表单提交路径
 
 ### 阶段 10：生成 README
 
@@ -246,6 +297,7 @@ generated/<project-slug>/
 
 - 检查导入错误、路径错误、环境变量遗漏、容器引用错误、构建脚本错误
 - 检查生产级门禁缺失：限流、OpenAPI 导出、request id、metrics、`.dockerignore`、前端测试、业务流脚本自包含、安全管理员初始化
+- 检查真实业务证据缺失：后端是否绕过数据库使用内存 store，前端核心动作是否只是 `setTimeout`/toast/硬编码数据，readiness 是否只返回静态配置状态，metrics 是否使用高基数 URL path label
 - 检查项目级文档缺失：`docs/security-notes.md`、`docs/observability.md`、`docs/test-plan.md` 必须与代码、配置、测试和 CI 互相对应
 - 优先修复可自动识别的问题
 - 最终输出仍存在的风险项与待人工确认项

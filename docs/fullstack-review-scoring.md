@@ -1,0 +1,45 @@
+# Fullstack Review Scoring
+
+本文件把 fullstack reviewer 的评分口径转成模板生成时的目标模型。它不是替代 `docs/production-grade-rubric.md`，而是用于提醒生成过程：高分来自真实业务闭环与可验证证据，不来自目录、样板和声明。
+
+## 120 分评分维度
+
+- 功能完整性与交互设计：20 分。关键角色、关键动作、关键状态流转必须能真实执行。
+- 安全：8 分。认证、授权、输入校验、管理员初始化、token/cookie/CSRF 策略必须匹配实现。
+- 性能：10 分。分页、查询边界、缓存/限流、异步 IO 与前端加载策略必须合理。
+- API 设计：10 分。接口契约、统一响应、错误语义、OpenAPI 与版本化必须一致。
+- 数据层：10 分。模型、migration、repository、事务、约束和核心 API 使用路径必须真实存在。
+- 架构质量：7 分。前后端分层清晰，主入口不堆业务逻辑。
+- CI/CD：5 分。CI 不只 build，还覆盖 lint、test、compose、OpenAPI、前端测试与审计。
+- 测试：15 分。后端关键用例、前端关键状态、业务流脚本和回归清单必须可执行。
+- 文档与 Spec Driven：15 分。需求、OpenSpec、架构、接口、数据模型和任务拆分可回溯。
+- AI 工具链使用：15 分。必须按 prompts、docs、scripts、skill、审计和验证闭环执行。
+- 可维护性：5 分。目录、命名、依赖、README、migration、测试和环境模板支持后续迭代。
+
+## 高分生成规则
+
+- 先确认主业务闭环，再扩展认证体验、统计面板、运营视图和装饰性页面。
+- 后端模型和 migration 只有被核心 API 实际使用时才计入数据层质量。
+- 前端页面只有通过真实 API/hook/mutation 驱动时才计入功能完整性。
+- 文档只有与代码、配置、测试、CI 和脚本互相印证时才计入生产级证据。
+- 生成完成后必须执行模板审计和项目验证；未执行项要在 review/fix 记录中说明原因与风险。
+
+## 分层取舍规则
+
+120 分目标不等于无差别堆功能。生成时必须按以下优先级取舍：
+
+- 不可降级硬门禁：OpenSpec-first、主业务闭环真实可执行、数据库-backed 持久化、真实前端 API/mutation 动作、认证授权与输入校验、关键测试、业务流脚本、模板审计。
+- 默认生产增强：Redis-backed rate limiting、request id、结构化日志、metrics、Tracing extension point、Nginx、安全头、Docker、CI、OpenAPI、生产就绪/安全/可观测性/测试文档。
+- 按需扩展：复杂认证体验、后台任务、复杂缓存、运营 BI、细粒度权限矩阵、多租户、复杂插件生态。只有需求明确或风险评估需要时才展开。
+
+如果生成预算、上下文或时间不足，优先完成不可降级硬门禁；默认生产增强可以采用清晰、可运行、可验证的最小实现；按需扩展不得挤占主业务闭环。
+
+## 一票否决样例
+
+- 主业务数据依赖 `MemoryStore`、模块级 dict/list、JSON 文件或进程内状态。
+- 核心按钮只 `setTimeout`、toast 或修改本地假数据。
+- 管理审核、安装、发布、评价、统计等页面使用硬编码结果。
+- readiness 只返回配置存在，未探测数据库和 Redis。
+- metrics 使用 raw URL path 作为 label。
+- Dockerfile 生产运行用户为 root。
+- 缺 OpenSpec、关键测试、前端 lockfile、标准 `index.html`、业务流验证脚本或生产级审计证据。

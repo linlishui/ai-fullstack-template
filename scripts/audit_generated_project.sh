@@ -53,6 +53,17 @@ assert_grep() {
   fi
 }
 
+assert_not_grep() {
+  local description="$1"
+  local pattern="$2"
+  local path="$3"
+
+  if [[ -e "$path" ]] && grep -R -E -q "$pattern" "$path"; then
+    echo "Forbidden content for ${description}: pattern '${pattern}' in $path" >&2
+    exit 1
+  fi
+}
+
 assert_any_path() {
   local description="$1"
   shift
@@ -80,6 +91,34 @@ assert_any_grep() {
 
   echo "Missing required content for ${description}: pattern '${pattern}' in $*" >&2
   exit 1
+}
+
+assert_any_egrep() {
+  local description="$1"
+  local pattern="$2"
+  shift 2
+
+  for path in "$@"; do
+    if [[ -e "$path" ]] && grep -R -E -q "$pattern" "$path"; then
+      return
+    fi
+  done
+
+  echo "Missing required content for ${description}: pattern '${pattern}' in $*" >&2
+  exit 1
+}
+
+assert_no_fake_frontend_async_action() {
+  local path="$1"
+  [[ -d "$path" ]] || return
+
+  while IFS= read -r file; do
+    if grep -E -q "toast\\.(success|info)|成功|已(通过|拒绝|发布|安装|创建|提交)|approved|rejected|published|installed|created" "$file" \
+      && ! grep -E -q "useMutation|mutate\\(|mutateAsync\\(|api\\.|http\\.|client\\.|fetch\\(" "$file"; then
+      echo "Possible fake frontend async business action in $file: setTimeout with success-like feedback but no API/mutation evidence" >&2
+      exit 1
+    fi
+  done < <(grep -R -l -E "setTimeout[[:space:]]*\\(" "$path" || true)
 }
 
 assert_glob_exists() {
@@ -163,10 +202,16 @@ for path in \
   "$PROJECT_DIR/frontend/package.json" \
   "$PROJECT_DIR/frontend/Dockerfile" \
   "$PROJECT_DIR/frontend/.dockerignore" \
+  "$PROJECT_DIR/frontend/index.html" \
   "$PROJECT_DIR/frontend/vite.config.ts" \
   "$PROJECT_DIR/frontend/src/main.tsx"; do
   assert_path "$path"
 done
+
+assert_any_path "frontend lockfile" \
+  "$PROJECT_DIR/frontend/package-lock.json" \
+  "$PROJECT_DIR/frontend/pnpm-lock.yaml" \
+  "$PROJECT_DIR/frontend/yarn.lock"
 
 assert_any_path "frontend app assembly" \
   "$PROJECT_DIR/frontend/src/App.tsx" \
@@ -241,8 +286,11 @@ assert_grep "check_business_flow" "$PROJECT_DIR/README.md"
 
 assert_any_grep "request id usage" "request_id\|correlation_id\|X-Request-ID" "$PROJECT_DIR/backend/app"
 assert_any_grep "metrics endpoint" "prometheus\|Counter\|Histogram\|/metrics" "$PROJECT_DIR/backend/app"
+assert_any_egrep "metrics route template labels" "scope.*route|route\\.path|path_format|APIRoute" "$PROJECT_DIR/backend/app"
 assert_any_grep "rate limit usage" "rate_limit\|RateLimit\|Too Many Requests\|429" "$PROJECT_DIR/backend/app"
 assert_any_grep "safe admin bootstrap" "bootstrap\|seed_admin\|INITIAL_ADMIN\|ADMIN_BOOTSTRAP" "$PROJECT_DIR/backend" "$PROJECT_DIR/scripts"
+assert_any_egrep "database readiness probe" "SELECT[[:space:]]+1|select\\([[:space:]]*1[[:space:]]*\\)|execute\\([^)]*SELECT[[:space:]]+1" "$PROJECT_DIR/backend/app"
+assert_any_egrep "redis readiness probe" "redis.*\\.ping\\(|redis.*ping\\(" "$PROJECT_DIR/backend/app"
 assert_any_grep "Nginx gzip" "gzip[[:space:]]\+on" "$PROJECT_DIR/infra/nginx"
 assert_any_grep "Nginx security headers" "X-Content-Type-Options\|Content-Security-Policy\|X-Frame-Options" "$PROJECT_DIR/infra/nginx"
 assert_any_grep "CI compose config" "docker compose.*config" "$PROJECT_DIR/.github/workflows"
@@ -259,6 +307,26 @@ assert_any_grep "observability request id" "Request ID\|Correlation ID\|request_
 assert_any_grep "observability metrics" "metrics\|Prometheus\|/metrics" "$PROJECT_DIR/docs/observability.md"
 assert_any_grep "test plan backend cases" "Auth failure\|认证失败\|Authorization failure\|越权" "$PROJECT_DIR/docs/test-plan.md"
 assert_any_grep "test plan frontend tests" "Frontend Tests\|前端测试\|Component\|Smoke" "$PROJECT_DIR/docs/test-plan.md"
+
+assert_grep "<!doctype html\|<!DOCTYPE html" "$PROJECT_DIR/frontend/index.html"
+assert_grep "<html[^>]*lang=" "$PROJECT_DIR/frontend/index.html"
+assert_grep "charset" "$PROJECT_DIR/frontend/index.html"
+assert_grep "viewport" "$PROJECT_DIR/frontend/index.html"
+assert_grep "<title>" "$PROJECT_DIR/frontend/index.html"
+
+assert_any_grep "backend Dockerfile non-root runtime user" "^USER[[:space:]][[:space:]]*" "$PROJECT_DIR/backend/Dockerfile"
+
+assert_not_grep "production MemoryStore or in-memory business store" "MemoryStore|from app\\.services\\.store import store|services\\.store import store|store[[:space:]]*=[[:space:]]*MemoryStore" "$PROJECT_DIR/backend/app"
+assert_not_grep "deprecated FastAPI startup/shutdown hooks" "@app\\.on_event" "$PROJECT_DIR/backend/app"
+assert_not_grep "static database readiness" "database['\"]?[[:space:]]*:[[:space:]]*['\"]configured|database.*configured" "$PROJECT_DIR/backend/app"
+assert_not_grep "raw URL metrics label" "request\\.url\\.path" "$PROJECT_DIR/backend/app"
+assert_no_fake_frontend_async_action "$PROJECT_DIR/frontend/src/pages"
+assert_no_fake_frontend_async_action "$PROJECT_DIR/frontend/src/features"
+assert_not_grep "production CSP hardcoded localhost connect-src" "connect-src[^;]*localhost" "$PROJECT_DIR/infra/nginx"
+
+if grep -R -E -q "register|signup|/auth/register" "$PROJECT_DIR/backend/app" "$PROJECT_DIR/frontend/src"; then
+  assert_any_grep "frontend auth session layer" "AuthContext\|createContext\|useAuth\|authStore\|SessionProvider" "$PROJECT_DIR/frontend/src"
+fi
 
 if grep -R -E -q "endswith\\([^)]*admin|startswith\\([^)]*admin|@admin\\.local|admin-.*example" "$PROJECT_DIR/backend/app"; then
   echo "Unsafe implicit admin promotion detected in backend code" >&2
