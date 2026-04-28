@@ -10,6 +10,8 @@
 6. 先读取 `docs/frontend-ui-spec.md`，再对照其中的验收清单检查生成页面是否满足结构、状态、响应式和视觉一致性要求
 7. 生成后端、测试、部署时，分别以 `docs/backend-spec.md`、`docs/testing-spec.md`、`docs/deployment-spec.md` 作为对应阶段的规则入口
 
+`scripts/verify_project.sh` 会在开始时自动调用 `scripts/check_prerequisites.sh`。如果缺少 `docker`、`docker compose`、`python3`、`node` 或 `npm`，验证会直接中止并输出缺失项。
+
 ## 开发原则
 
 - 不直接从空白开始写业务代码

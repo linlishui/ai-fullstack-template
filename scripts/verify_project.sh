@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -60,6 +62,9 @@ if [[ ! -f "$PROJECT_DIR/compose.yaml" ]]; then
   echo "Missing compose.yaml in $PROJECT_DIR" >&2
   exit 1
 fi
+
+echo "Running prerequisite checks"
+"$SCRIPT_DIR/check_prerequisites.sh"
 
 run_backend_check() {
   local backend_dir="$1"

@@ -53,6 +53,7 @@
 - 执行 `./scripts/verify_project.sh generated/<project-slug>`
 - 如需验证容器启动，再执行 `./scripts/verify_project.sh generated/<project-slug> --with-compose-up`
 - 如果生成项目存在 `generated/<project-slug>/scripts/check_business_flow.sh`，验证脚本会在 `--with-compose-up` 场景下自动执行它
+- `verify_project.sh` 会先自动执行 `scripts/check_prerequisites.sh`，预检 `docker`、`docker compose`、`python3`、`node`、`npm` 是否存在；缺失时直接失败
 
 ## 推荐入口
 

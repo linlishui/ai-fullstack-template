@@ -154,6 +154,7 @@ Claude Code 推荐写法：
 2. `./scripts/verify_project.sh generated/<project-slug>`
 
 如果生成项目提供了 `generated/<project-slug>/scripts/check_business_flow.sh`，模板验证脚本会在 `--with-compose-up` 场景下自动执行它，把关键业务动作检查纳入正式验证流程。
+另外，`verify_project.sh` 会在开始时自动调用 `scripts/check_prerequisites.sh`；如果缺少 `docker`、`docker compose`、`python3`、`node` 或 `npm`，验证会直接中止并输出缺失项。`codex` 和 `claude` 仅作为可选 CLI 提示，不会阻断验证。
 
 ## 注意事项
 

@@ -31,6 +31,7 @@
 
 执行要求：
 
+- 先执行 `scripts/check_prerequisites.sh`，确认 `docker`、`docker compose`、`python3`、`node`、`npm` 可用；如果缺失，先记录阻塞原因并停止后续验证
 - 先根据当前需求确认 3-5 个关键业务动作，并对照项目级回归清单核对它们的验证状态
 - 先按 `docs/backend-spec.md` 核对后端分层、配置、安全、迁移和健康检查是否缺项
 - 先按 `docs/testing-spec.md` 核对关键测试、业务流脚本和回归路径是否缺项
