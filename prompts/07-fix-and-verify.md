@@ -23,6 +23,7 @@
 - `generated/<project-slug>/docs/security-notes.md`
 - `generated/<project-slug>/docs/observability.md`
 - `generated/<project-slug>/docs/test-plan.md`
+- `generated/<project-slug>/docs/parallel-execution-plan.md`
 - `docs/backend-spec.md`
 - `docs/testing-spec.md`
 - `docs/deployment-spec.md`
@@ -32,7 +33,7 @@
 - `docs/fullstack-review-scoring.md`
 - 按 `docs/frontend-ui-spec.md` 的引用关系按需读取前端细分文档，并优先使用其中的验收清单做前端验收
 - 如果存在，读取 `generated/<project-slug>/docs/frontend-ui-checklist.md`
-- 如果存在，读取 `generated/<project-slug>/docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md`
+- 如果存在，读取 `generated/<project-slug>/docs/ai-workflow.md`、`docs/parallel-execution-plan.md`、`docs/review-log.md`、`docs/fix-log.md`
 - 如果存在，读取 `generated/<project-slug>/.github/workflows/ci.yml` 与 `generated/<project-slug>/infra/nginx/`
 
 如果 `generated/<project-slug>/docs/key-business-actions-checklist.md` 不存在，必须先基于当前需求补生成一份，再继续修复与验证。
@@ -40,6 +41,7 @@
 如果 `generated/<project-slug>/docs/production-readiness-checklist.md` 不存在，必须先补生成一份生产就绪清单，再继续修复与验证。
 如果 `generated/<project-slug>/docs/security-notes.md`、`docs/observability.md` 或 `docs/test-plan.md` 不存在，必须先补齐，并确保内容能回溯到代码、配置、测试和 CI。
 如果项目级 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md` 缺失，必须先补齐，再继续修复与验证。
+如果项目级 `docs/parallel-execution-plan.md` 缺失，必须先补齐本轮是否启用并发、文件所有权、共享契约、集成顺序和验证状态，再继续修复与验证。
 
 必须至少检查以下内容：
 
@@ -74,6 +76,7 @@
 - 先核对项目级前端 UI 检查清单，并按 `docs/frontend-ui-spec.md` 校验是否缺失主题 token、状态设计、移动端适配和页面结构落地
 - 先核对项目级生产就绪清单，并按三色风险标记未完成的生产级要求
 - 先核对项目级 AI 协作文件是否可支撑后续 AI 继续迭代，而不是只依赖模板仓库
+- 如果项目曾启用并发，先核对并发计划中的所有分片是否已经完成主控集成，且不存在未解决的 API、环境变量、脚本或文档证据冲突
 - 逐项运行并记录结果
 - 如果发现明显错误，优先直接修复
 - 修复后重新执行相关检查
@@ -88,6 +91,7 @@
 - 列出前端 UI 检查清单中的主要项与最新状态
 - 列出生产就绪清单中的主要项与最新状态
 - 列出项目级 AI 工具链文件与记录模板的状态
+- 列出并发计划、文件所有权和集成状态
 - 列出已执行的检查项
 - 列出已修复的问题
 - 列出仍未解决的问题

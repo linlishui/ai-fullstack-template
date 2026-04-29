@@ -9,10 +9,12 @@
 - `docs/frontend-ui-spec.md`
 - `docs/deployment-spec.md`
 - `docs/production-grade-rubric.md`
+- `docs/concurrent-generation.md`（当本阶段作为并发分片执行时）
 
 要求：
 
 - 后端补充 `pytest` 测试
+- 如果作为并发分片执行，默认只写测试、业务流脚本、OpenAPI 验证脚本和测试/生产就绪清单中分配给验证的证据项；发现接口或数据模型不一致时记录冲突并交回主控集成
 - 后端测试默认位于 `generated/<project-slug>/backend/`
 - 覆盖关键接口、关键业务规则和关键异常场景
 - 必须至少覆盖一条核心业务接口通过数据库-backed service/repository 写入后，再被查询或后续状态流转读取的路径；只测 `MemoryStore`、mock service 或路由存在性不算通过

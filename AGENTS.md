@@ -8,6 +8,7 @@
 - 目标是在当前需求范围内交付可独立运行、可验证、可维护、接近生产环境质量的全栈工程，而不是 demo、页面壳或接口壳
 - 主业务闭环优先级高于外围生产资产；不得为了堆 Nginx、CI、文档、metrics 或 Tracing 占位而牺牲真实业务动作、状态流转、权限和测试
 - 必须遵守 `docs/template-governance.md` 的规则源优先级与去冗余原则；生成项目文档只写项目事实、证据路径、验证结果和风险，不复制模板长规则
+- 如启用并发生成，必须遵守 `docs/concurrent-generation.md`；并发只能发生在 OpenSpec 和共享契约稳定之后，且必须记录文件所有权、集成顺序和验证结果
 - 不要直接跳过 OpenSpec，必须先从需求生成规格，再从规格生成实现
 - 不要在需求尚未澄清时直接开始堆代码
 - 先保证结构可维护，再追求生成速度
@@ -83,6 +84,7 @@ generated/<project-slug>/
   requirements/
   docs/
     ai-workflow.md
+    parallel-execution-plan.md
     review-log.md
     fix-log.md
     security-notes.md
@@ -215,7 +217,7 @@ generated/<project-slug>/frontend/
 - 项目级 `requirements/` 必须跟随生成项目一起输出，至少包含当前业务需求快照
 - 项目级 `docs/` 必须跟随生成项目一起输出，至少包含开发与架构说明
 - 项目级 `docs/` 还应包含 `key-business-actions-checklist.md`、`frontend-ui-checklist.md`、`production-readiness-checklist.md`、`security-notes.md`、`observability.md`、`test-plan.md`
-- 项目级 AI 协作文件应跟随生成项目一起输出，至少包含 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md`
+- 项目级 AI 协作文件应跟随生成项目一起输出，至少包含 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/parallel-execution-plan.md`、`docs/review-log.md`、`docs/fix-log.md`
 - OpenSpec 仅保留在项目级 `generated/<project-slug>/openspec/` 中，不再在模板根目录维护业务级 OpenSpec 副本
 - 项目级 `openspec/` 必须跟随生成项目一起输出，至少包含 `project.md`、`specs/<capability>/spec.md` 形式的当前业务规格，以及 `changes/<change-id>/proposal.md`、`design.md`、`tasks.md` 等完整变更文档
 - 项目级 `scripts/` 必须跟随生成项目一起输出，至少包含验证或清理等项目级辅助脚本

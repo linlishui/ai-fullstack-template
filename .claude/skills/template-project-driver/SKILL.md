@@ -1,6 +1,6 @@
 ---
 name: template-project-driver
-description: 驱动本仓库从业务需求到全栈项目生成的端到端工作流。当用户需要基于 requirements/requirement.md 生成项目、询问如何运行生成流程、需要修复或验证已生成项目、或要求执行 OpenSpec 优先的全量生成时触发。负责协调需求分析、OpenSpec 生成、后端/前端/部署/测试输出，并在 generated/<project-slug>/ 下产出独立可迁移的工程包。
+description: 驱动本仓库从业务需求到全栈项目生成的端到端工作流。当用户需要基于 requirements/requirement.md 生成项目、询问如何运行生成流程、需要修复或验证已生成项目、或要求执行 OpenSpec 优先的全量生成时触发。负责协调需求分析、OpenSpec 生成、OpenSpec 后的可选并发分片、后端/前端/部署/测试输出，并在 generated/<project-slug>/ 下产出独立可迁移的工程包。
 ---
 
 # Template Project Driver — 全栈项目生成驱动（Claude Code 版）

@@ -8,10 +8,12 @@
 - `docs/testing-spec.md`
 - `docs/deployment-spec.md`
 - `docs/production-grade-rubric.md`
+- `docs/concurrent-generation.md`（当本阶段作为并发分片执行时）
 
 要求：
 
 - 输出到 `generated/<project-slug>/backend/`
+- 如果作为并发分片执行，默认只写 `generated/<project-slug>/backend/` 和已声明归属本分片的脚本文件；修改 README、`.env.example`、compose、CI 或项目级 docs 前必须确认 `docs/parallel-execution-plan.md` 已把对应章节或文件分配给本分片
 - 使用 Python 3.12+、FastAPI、Pydantic v2、SQLAlchemy 2.x async、Alembic
 - 不要把所有后端代码写进 `main.py`
 - 按模块拆分目录

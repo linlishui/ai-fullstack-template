@@ -37,6 +37,7 @@ Read phase-specific specifications when entering that phase instead of loading e
 - Frontend: `docs/frontend-ui-spec.md`
 - Testing: `docs/testing-spec.md`
 - Deployment: `docs/deployment-spec.md`
+- Concurrent generation: `docs/concurrent-generation.md`
 
 Also read the shared workflow map at `skills/shared/template-project-driver-workflow-map.md` when exact source-of-truth paths, stage mapping, or validation commands are needed.
 
@@ -51,16 +52,17 @@ Also read the shared workflow map at `skills/shared/template-project-driver-work
 7. Synchronize project-level context into `generated/<project-slug>/requirements/`, `docs/`, `scripts/`, and `openspec/`.
 8. Generate implementation into `generated/<project-slug>/` only. Do not scatter business code into the repository root.
 9. Treat production-grade review items as default requirements, not optional polish, especially for observability, security, frontend resilience, Nginx, Docker, tests, OpenAPI, rate limiting, and CI assets.
-10. Apply quality requirements in three tiers:
+10. After OpenSpec and shared contracts are stable, use `docs/concurrent-generation.md` to decide whether backend, frontend, runtime delivery, verification, or review work can run concurrently. Concurrency must be recorded in `generated/<project-slug>/docs/parallel-execution-plan.md` and must not weaken any gate.
+11. Apply quality requirements in three tiers:
     - Non-negotiable gates: OpenSpec-first, real business loop, DB-backed persistence, real frontend API/mutation actions, auth/authz/input validation, executable tests, and template audit.
     - Default production enhancements: rate limiting, request id, logs, metrics, tracing extension point, Nginx, Docker, CI, OpenAPI, and project-level security/observability/test docs.
     - On-demand extensions: complex auth UX, background workers, complex caching, BI dashboards, fine-grained permission matrices, and multi-tenancy only when the requirement or risk profile needs them.
-11. Run `prompts/08-security-review.md` after generation and before final verification when the project includes auth, authorization, tokens, cookies, CSRF, admin bootstrap, rate limiting, CORS, logging, or other production security gates.
-12. Run `prompts/07-fix-and-verify.md` to repair findings from security review, build, tests, lint, OpenAPI export, Compose, business-flow checks, and template audit.
-13. Run template-level audit and project-level verification after generation and repair.
-14. Fix obvious failures before stopping.
-15. Keep generated project documentation evidence-led and concise. Do not copy long template rules into generated docs; record project facts, evidence paths, verification commands, status, and risks.
-16. Report the final output directory, what was validated, and what risks or assumptions remain.
+12. Run `prompts/08-security-review.md` after generation and before final verification when the project includes auth, authorization, tokens, cookies, CSRF, admin bootstrap, rate limiting, CORS, logging, or other production security gates.
+13. Run `prompts/07-fix-and-verify.md` to repair findings from security review, build, tests, lint, OpenAPI export, Compose, business-flow checks, and template audit.
+14. Run template-level audit and project-level verification after generation and repair.
+15. Fix obvious failures before stopping.
+16. Keep generated project documentation evidence-led and concise. Do not copy long template rules into generated docs; record project facts, evidence paths, verification commands, status, and risks.
+17. Report the final output directory, what was validated, and what risks or assumptions remain.
 
 ## Required Generated Project Shape
 
@@ -76,6 +78,7 @@ generated/<project-slug>/
   compose.yaml
   requirements/
   docs/
+    parallel-execution-plan.md
   scripts/
   openspec/
   backend/
@@ -99,6 +102,7 @@ generated/<project-slug>/
 - Generate review-oriented checklists together with implementation: `docs/key-business-actions-checklist.md`, `docs/frontend-ui-checklist.md`, `docs/production-readiness-checklist.md`, `docs/security-notes.md`, `docs/observability.md`, and `docs/test-plan.md`.
 - Keep review-oriented checklists as evidence indexes, not duplicated rulebooks. Each item should name status, code/config/test/script evidence, and remaining risk.
 - Generate project-level AI collaboration assets together with implementation: `AGENTS.md`, `CLAUDE.md`, `docs/ai-workflow.md`, `docs/review-log.md`, and `docs/fix-log.md`.
+- Generate `docs/parallel-execution-plan.md` together with implementation. It must record whether concurrency was used, task ownership, write scopes, shared contracts, integration order, conflicts, and validation results.
 - Prefer minimal authentication when auth is only a supporting capability rather than the business core.
 - Validate key business actions from the actual requirement, not from a fixed demo checklist.
 
@@ -125,8 +129,17 @@ generated/<project-slug>/
 - Include rate-limit, metrics/tracing, bootstrap/seed, and secure cookie environment keys where applicable.
 - Create `docs/architecture.md`, `docs/development.md`, `docs/key-business-actions-checklist.md`, `docs/frontend-ui-checklist.md`, `docs/production-readiness-checklist.md`, `docs/security-notes.md`, `docs/observability.md`, and `docs/test-plan.md`.
 - Create project-level AI context files `AGENTS.md`, `CLAUDE.md`, `docs/ai-workflow.md`, `docs/review-log.md`, and `docs/fix-log.md`.
+- Create `docs/parallel-execution-plan.md` before concurrent implementation starts; if concurrency is not used, record the reason and keep the file as handoff evidence.
 - Write generated docs as compact project-specific evidence. Avoid duplicating generic template rules; reference the generated project's own files, commands, and known risks.
 - Add project-level scripts when validation or cleanup needs a stable entrypoint.
+
+### Stage 3.5: Plan Concurrent Work
+
+- Read `docs/concurrent-generation.md`.
+- Split post-OpenSpec work only when API contracts, data models, permissions, environment variables, ports, script names, and key business actions are stable.
+- Assign disjoint write scopes for backend, frontend, runtime delivery, verification, and review tasks.
+- Keep shared files under main-driver integration ownership unless a section-level owner is explicitly recorded.
+- Return to a serial integration pass before security review, template audit, and project verification.
 
 ### Stage 4: Generate Backend
 
@@ -184,6 +197,7 @@ generated/<project-slug>/
 - `prompts/07-fix-and-verify.md` is the repair and verification prompt.
 - `scripts/audit_generated_project.sh` checks structure, spec, README, env completeness, security/observability/test-plan docs, CI gates, and production-grade code/config evidence.
 - `scripts/verify_project.sh` checks template audit, compose, backend tests/lint, frontend build/lint/tests, OpenAPI export, and optional business-flow execution.
+- `docs/concurrent-generation.md` defines safe post-OpenSpec parallelization and required integration barriers.
 
 ## Final Reporting
 
@@ -193,6 +207,7 @@ When finishing work with this skill, always state:
 - the final generated directory
 - whether OpenSpec was produced before code generation
 - which audit and verification commands were run
+- whether concurrency was used and where `docs/parallel-execution-plan.md` records ownership and integration status
 - which key business actions were captured in `docs/key-business-actions-checklist.md`
 - which frontend and production-readiness checklist items remain open
 - any remaining assumption, risk, or manual follow-up

@@ -27,6 +27,8 @@ Main business-loop correctness outranks peripheral asset volume. Nginx, CI, docs
   - Defines main-loop priority, validation minimums, and typical high-risk failures.
 - `docs/template-governance.md`
   - Defines rule-source priority, generated asset responsibilities, and anti-duplication boundaries.
+- `docs/concurrent-generation.md`
+  - Defines safe post-OpenSpec parallel generation, file ownership, shared contracts, and integration barriers.
 - `docs/production-grade-rubric.md`
   - Converts strict fullstack review scoring into hard generation and verification gates.
 - `docs/fullstack-review-scoring.md`
@@ -76,6 +78,8 @@ Core frontend workflows must be wired to real API clients, TanStack Query mutati
   - Requirement analysis stage.
 - `prompts/02-generate-openspec.md`
   - OpenSpec generation stage.
+- `docs/concurrent-generation.md`
+  - Read after OpenSpec and before parallel backend/frontend/runtime/test work.
 - `prompts/03-generate-backend.md`
   - Backend generation stage.
   - Read together with `docs/backend-spec.md`, `docs/testing-spec.md`, `docs/deployment-spec.md`, and `docs/production-grade-rubric.md`.
@@ -147,6 +151,7 @@ Minimum synchronized project context:
 - `docs/observability.md`
 - `docs/test-plan.md`
 - `docs/ai-workflow.md`
+- `docs/parallel-execution-plan.md`
 - `docs/review-log.md`
 - `docs/fix-log.md`
 - `openspec/project.md`
@@ -207,3 +212,4 @@ At the project level, README should also expose:
 - Shipping compose files without complete env examples, health checks, or startup instructions
 - Overbuilding authentication when auth is not the requirement's main loop
 - Passing static build checks while main business actions still cannot be executed
+- Running parallel work before OpenSpec is stable, or letting parallel tasks modify shared files without a documented owner and integration pass

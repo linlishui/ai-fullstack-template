@@ -13,6 +13,7 @@
 - 生产级高分项以 `docs/production-grade-rubric.md` 为硬门禁，不得只在文档中声明已覆盖
 - 120 分 fullstack reviewer 评分口径以 `docs/fullstack-review-scoring.md` 为参考，重点防止假持久化、假前端交互和假生产证据
 - 规则源、生成资产边界和去冗余原则以 `docs/template-governance.md` 为准；生成项目文档只记录项目事实、证据路径、验证结果和风险，不复制模板长规则
+- 并发生成编排以 `docs/concurrent-generation.md` 为准；并发只允许发生在 OpenSpec 和共享契约确定之后，不能降低任何质量门禁
 
 这里的“业务闭环”应由当前需求决定，而不是固定等同于认证流程。
 如果需求包含认证，则认证属于关键动作之一；如果需求重点不在认证，则不应默认把大量时间消耗在注册/登录环节。
@@ -37,6 +38,13 @@
 
 - 使用 `prompts/02-generate-openspec.md` 生成规格、设计和任务
 
+### 阶段 3.5：并发计划
+
+- 读取 `docs/concurrent-generation.md`
+- 在 `generated/<project-slug>/docs/parallel-execution-plan.md` 中记录本轮是否启用并发、任务分片、文件所有权、共享契约、依赖关系、集成顺序和风险
+- 如果启用并发，必须以 OpenSpec 中的 API、数据模型、权限和关键业务动作为唯一共享契约
+- 不允许多个并发任务同时改同一文件；README、`.env.example`、`compose.yaml`、生产就绪清单、安全说明和可观测性说明由主控最终统一合并
+
 ### 阶段 4：生成实现
 
 - 在 `generated/<project-slug>/` 下创建当前需求对应的实现目录
@@ -59,6 +67,8 @@
 - 在 `generated/<project-slug>/docs/production-readiness-checklist.md` 中输出生产就绪清单，至少覆盖 Logging、Metrics、Tracing、安全、Nginx、CI、健康检查、资源限制、限流、OpenAPI、前端测试和 `.dockerignore`
 - 在 `generated/<project-slug>/docs/security-notes.md`、`docs/observability.md` 与 `docs/test-plan.md` 中记录安全取舍、token 存储策略、审计日志、rate limiting、metrics/tracing、测试覆盖和生产部署注意事项
 - 项目级文档必须按 `docs/template-governance.md` 输出为证据索引和项目事实，不得复制模板规范全文；每个清单项都应有状态、证据路径、验证命令或风险说明
+- OpenSpec 和并发计划完成后，可以并发推进后端、前端、部署、测试或审查分片；并发任务必须遵守 `docs/parallel-execution-plan.md` 的写入范围
+- 并发任务完成后必须回到主控串行集成，统一核对 API、环境变量、文档证据、测试和部署资产
 
 ### 阶段 5：修复与验证
 
@@ -94,6 +104,7 @@
 - `verify_project.sh` 解决”项目是否真的可执行”的工程级质量门禁
 - `verify_project.sh` 也作为业务校验入口，自动调用项目级 `scripts/check_business_flow.sh`
 - `docs/project-asset-templates.md` 提供项目级 AI 协作、关键业务动作、前端 UI、生产就绪、安全、可观测性和测试计划资产模板
+- `docs/concurrent-generation.md` 提供 OpenSpec 后的并发分片、文件所有权和集成顺序规则
 - `docs/backend-spec.md`、`docs/testing-spec.md`、`docs/deployment-spec.md` 共同补齐后端、验证和交付阶段的规则入口
 - `docs/fullstack-review-scoring.md` 用于把 fullstack reviewer 评分维度转成生成优先级和一票否决项
 - `docs/template-governance.md` 用于控制规则源优先级、生成资产职责和去冗余策略

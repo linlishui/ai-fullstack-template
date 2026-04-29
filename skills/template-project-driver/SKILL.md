@@ -1,6 +1,6 @@
 ---
 name: template-project-driver
-description: Drive this repository's AI template workflow from business requirement to generated fullstack project. Use when Codex needs to manage or execute the current template's end-to-end generation process, including reading requirements/requirement.md, producing OpenSpec before implementation, creating generated/<project-slug>/ as a standalone project package, coordinating backend/frontend/docker/tests output, and enforcing template-level audit plus project-level verification.
+description: Drive this repository's AI template workflow from business requirement to generated fullstack project. Use when Codex needs to manage or execute the current template's end-to-end generation process, including reading requirements/requirement.md, producing OpenSpec before implementation, creating generated/<project-slug>/ as a standalone project package, coordinating backend/frontend/docker/tests output with optional post-OpenSpec concurrency, and enforcing template-level audit plus project-level verification.
 ---
 
 # Template Project Driver

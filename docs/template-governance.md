@@ -11,8 +11,9 @@
 3. `docs/fullstack-review-scoring.md`：120 分评分口径、取舍优先级和一票否决项。
 4. `docs/production-grade-rubric.md`：生产级硬门禁。
 5. 领域规范：`docs/backend-spec.md`、`docs/frontend-ui-spec.md`、`docs/testing-spec.md`、`docs/deployment-spec.md`。
-6. prompts：阶段执行入口，只应引用和落实规则源，不应成为另一套长期维护的规则副本。
-7. 生成项目文档：记录当前项目事实、证据位置、验证结果和剩余风险，不应复制模板规则全文。
+6. `docs/concurrent-generation.md`：并发生成编排、文件所有权和集成关口；只改变执行方式，不改变质量门禁。
+7. prompts：阶段执行入口，只应引用和落实规则源，不应成为另一套长期维护的规则副本。
+8. 生成项目文档：记录当前项目事实、证据位置、验证结果和剩余风险，不应复制模板规则全文。
 
 ## 2. 生成资产职责
 
@@ -28,6 +29,7 @@
 - `docs/security-notes.md`：当前项目安全实现、取舍和剩余风险。
 - `docs/observability.md`：当前项目日志、metrics、health、tracing 和验证方式。
 - `docs/test-plan.md`：当前项目测试矩阵、命令、覆盖范围和未自动化风险。
+- `docs/parallel-execution-plan.md`：并发生成计划、文件所有权、共享契约、集成顺序和验证结果；未启用并发时记录原因。
 - `docs/review-log.md` / `docs/fix-log.md`：审查与修复记录，只记录本轮事实，不复制规范。
 
 ## 3. 去冗余原则
@@ -46,4 +48,4 @@
 - 中型需求：补齐主要设计说明、测试矩阵和生产就绪证据。
 - 复杂需求：再展开细粒度权限、后台任务、审计检索、复杂缓存、扩展部署等按需资产。
 
-无论规模如何，不得降低不可降级硬门禁：OpenSpec-first、真实业务闭环、真实持久化、真实前端 API/mutation、关键测试、业务流脚本和模板审计。
+无论规模如何，不得降低不可降级硬门禁：OpenSpec-first、真实业务闭环、真实持久化、真实前端 API/mutation、关键测试、业务流脚本和模板审计。启用并发时，还必须先写清文件责任边界和集成顺序，避免多个任务各自发明接口、状态或环境变量。

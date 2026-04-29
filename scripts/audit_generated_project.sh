@@ -11,11 +11,12 @@ This script performs a lightweight template-level audit for a generated project:
 1. Required top-level files and directories exist
 2. OpenSpec project/spec/change files exist
 3. Requirement/doc/script snapshots and the review-oriented checklists exist
-4. Backend/frontend core entry files and production support assets exist
-5. .env.example contains required environment keys
-6. README contains required verification command references
-7. Production-grade gates from docs/production-grade-rubric.md have code/config evidence
-8. CI includes production verification gates instead of only build smoke checks
+4. Parallel execution plan exists and records task ownership/integration evidence
+5. Backend/frontend core entry files and production support assets exist
+6. .env.example contains required environment keys
+7. README contains required verification command references
+8. Production-grade gates from docs/production-grade-rubric.md have code/config evidence
+9. CI includes production verification gates instead of only build smoke checks
 EOF
 }
 
@@ -269,6 +270,7 @@ for path in \
   "$PROJECT_DIR/docs/architecture.md" \
   "$PROJECT_DIR/docs/development.md" \
   "$PROJECT_DIR/docs/ai-workflow.md" \
+  "$PROJECT_DIR/docs/parallel-execution-plan.md" \
   "$PROJECT_DIR/docs/review-log.md" \
   "$PROJECT_DIR/docs/fix-log.md" \
   "$PROJECT_DIR/docs/key-business-actions-checklist.md" \
@@ -399,6 +401,8 @@ assert_any_grep "observability request id" "Request ID\|Correlation ID\|request_
 assert_any_grep "observability metrics" "metrics\|Prometheus\|/metrics" "$PROJECT_DIR/docs/observability.md"
 assert_any_grep "test plan backend cases" "Auth failure\|认证失败\|Authorization failure\|越权" "$PROJECT_DIR/docs/test-plan.md"
 assert_any_grep "test plan frontend tests" "Frontend Tests\|前端测试\|Component\|Smoke" "$PROJECT_DIR/docs/test-plan.md"
+assert_any_grep "parallel plan task ownership" "owner\|Owner\|文件所有权\|写入范围" "$PROJECT_DIR/docs/parallel-execution-plan.md"
+assert_any_grep "parallel plan integration" "集成\|integration\|并发\|parallel" "$PROJECT_DIR/docs/parallel-execution-plan.md"
 
 assert_grep "<!doctype html\|<!DOCTYPE html" "$PROJECT_DIR/frontend/index.html"
 assert_grep "<html[^>]*lang=" "$PROJECT_DIR/frontend/index.html"

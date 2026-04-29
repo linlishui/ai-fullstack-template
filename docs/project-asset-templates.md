@@ -9,6 +9,7 @@
 - `generated/<project-slug>/AGENTS.md`
 - `generated/<project-slug>/CLAUDE.md`
 - `generated/<project-slug>/docs/ai-workflow.md`
+- `generated/<project-slug>/docs/parallel-execution-plan.md`
 - `generated/<project-slug>/docs/review-log.md`
 - `generated/<project-slug>/docs/fix-log.md`
 
@@ -17,6 +18,7 @@
 - 项目目标、技术栈、目录结构和主业务闭环。
 - OpenSpec-first、真实持久化、真实前端 API/mutation、配置环境变量化、测试和验证规则。
 - 本项目验证命令：compose、backend pytest/coverage/ruff、frontend build/lint/test、OpenAPI 导出、业务流脚本。
+- 并发生成计划：是否启用并发、任务 owner、写入范围、共享契约、冲突处理、集成顺序和验证结果。
 - review/fix 记录字段：日期、触发原因、范围、发现问题、修复动作、影响范围、回归验证。
 
 ## 2. Architecture And Development Docs
@@ -139,3 +141,18 @@
 - Manual checks：未自动化原因和风险。
 
 最低要求：后端不少于 8 个关键用例，前端至少覆盖一个真实 API hook/mutation 驱动路径，业务流脚本自包含、可重复执行、无需人工 token。
+
+## 9. Parallel Execution Plan
+
+输出位置：
+
+- `generated/<project-slug>/docs/parallel-execution-plan.md`
+
+必须记录：
+
+- 并发状态：`enabled` / `disabled`，以及启用或未启用原因。
+- 共享契约：OpenSpec 路径、关键业务动作、API、数据模型、权限、环境变量、端口和脚本名。
+- 分片表：任务名、owner、目标、输入、写入范围、禁止触碰范围、依赖、状态。
+- 共享文件策略：README、`.env.example`、compose、CI、生产就绪/安全/可观测性文档由谁最终集成。
+- 冲突记录：冲突项、影响、解决人、解决结果。
+- 集成与验证：安全审查、模板审计、项目验证、业务流脚本和剩余风险。

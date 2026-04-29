@@ -5,6 +5,7 @@
 在动手前，先读取并遵循以下模板文档：
 
 - `docs/frontend-ui-spec.md`
+- `docs/concurrent-generation.md`（当本阶段作为并发分片执行时）
 
 其中：
 
@@ -14,6 +15,7 @@
 要求：
 
 - 输出到 `generated/<project-slug>/frontend/`
+- 如果作为并发分片执行，默认只写 `generated/<project-slug>/frontend/` 和 `docs/frontend-ui-checklist.md` 中分配给前端的证据项；不得改后端、compose、CI 或共享文档，除非 `docs/parallel-execution-plan.md` 已明确授权
 - 使用 React、TypeScript、Vite、Tailwind CSS、shadcn/ui、TanStack Query、React Hook Form、Zod
 - 默认接入 Vitest + Testing Library 或等价测试方案
 - 不要把所有前端代码写进 `App.tsx`

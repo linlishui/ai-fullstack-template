@@ -19,6 +19,7 @@
 - 生成完成后必须自动检查并修复明显问题
 - 必须读取并落实 `docs/production-grade-rubric.md`；其中的硬门禁必须落到代码、配置、测试或脚本中，不能只写入文档
 - 必须遵守 `docs/template-governance.md` 的规则源与去冗余原则：模板文档是规则源，生成项目文档只记录项目事实、证据路径、验证结果和风险，不得复制模板长规则
+- 可以在 OpenSpec 和共享契约完成后使用并发提高生成效率，但必须遵守 `docs/concurrent-generation.md`；并发不得跳过规格、不得降低高分门禁、不得让多个任务同时改同一文件
 
 ## 六项硬性质量原则
 
@@ -94,6 +95,8 @@ generated/<project-slug>/
   openspec/
   backend/
   frontend/
+  infra/nginx/
+  .github/workflows/
 ```
 
 如果需求需要附加目录，也必须创建在 `generated/<project-slug>/` 下，例如：
@@ -144,6 +147,7 @@ generated/<project-slug>/
 - 生成项目级 `AGENTS.md` 与 `CLAUDE.md`，让独立工程保留 AI 协作规则
 - 项目级文档必须短而具体：写当前项目事实、文件路径、验证命令、证据状态和剩余风险；禁止大段复制模板仓库中的通用规则
 - 在 `generated/<project-slug>/docs/ai-workflow.md` 中生成项目级 AI 工作流说明
+- 在 `generated/<project-slug>/docs/parallel-execution-plan.md` 中生成项目级并发计划，必须记录是否启用并发、任务分片、文件所有权、共享契约、集成顺序、冲突处理和验证结果
 - 在 `generated/<project-slug>/docs/review-log.md` 与 `generated/<project-slug>/docs/fix-log.md` 中生成审查/修复记录模板
 - 在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中生成一份基于当前需求提炼的关键业务动作回归清单
 - 在 `generated/<project-slug>/docs/frontend-ui-checklist.md` 中生成前端 UI 自查清单
@@ -154,6 +158,17 @@ generated/<project-slug>/
 - 生成项目级 `scripts/`，至少包含验证或清理脚本
 - 确保生成结果可作为独立工程包脱离模板仓库继续开发
 - 不要新增需求无关的文档、服务、目录或脚本；新增资产必须能服务于业务闭环、生产级硬门禁、验证或交接
+
+### 阶段 3.6：规划并发生成
+
+- 先读取 `docs/concurrent-generation.md`
+- 基于 OpenSpec 生成并维护 `generated/<project-slug>/docs/parallel-execution-plan.md`
+- 只有在以下共享契约已经明确后，才允许并发进入实现：API 路径与响应结构、数据模型、权限规则、关键业务动作、环境变量、端口、脚本名
+- 推荐并发分片：Backend Core、Frontend App、Runtime Delivery、Verification、Review Sidecar
+- 每个分片必须声明写入范围和禁止触碰范围；同一文件只能由一个分片负责
+- 共享文件由主控最终串行集成，包括 `README.md`、`.env.example`、`compose.yaml`、`docs/production-readiness-checklist.md`、`docs/security-notes.md`、`docs/observability.md`
+- 如需求小、接口未稳定或文件冲突风险高，可以不启用并发，但必须在并发计划中说明原因
+- 并发完成后必须回到主控串行核对并修复，不能让各分片直接各自声明完成
 
 ### 阶段 4：生成后端
 
@@ -330,6 +345,7 @@ generated/<project-slug>/
 - 生成后主动执行基础检查
 - 生成后主动说明已完成哪些质量自查
 - 生成后必须单独说明六项硬性质量原则分别由哪些目录、文件、测试、脚本或检查动作承载
+- 明确说明 `generated/<project-slug>/docs/parallel-execution-plan.md` 中记录的并发分片、文件所有权、集成顺序和验证状态；如果未启用并发，说明原因
 - 明确说明 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中记录了哪些关键业务动作及其验证状态
 - 明确说明 `generated/<project-slug>/docs/frontend-ui-checklist.md`、`generated/<project-slug>/docs/production-readiness-checklist.md`、`generated/<project-slug>/docs/security-notes.md`、`generated/<project-slug>/docs/observability.md` 与 `generated/<project-slug>/docs/test-plan.md` 中记录了哪些高风险检查项及其状态
 - 如果已生成 `generated/<project-slug>/scripts/check_business_flow.sh`，明确说明它覆盖了哪些关键业务动作
