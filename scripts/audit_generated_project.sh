@@ -518,13 +518,60 @@ fi
 # --- M. compose.yaml env_file 不应指向 .env.example ---
 if [[ -f "$PROJECT_DIR/compose.yaml" ]] \
   && grep -qE 'env_file.*\.env\.example' "$PROJECT_DIR/compose.yaml"; then
-  echo "WARNING: compose.yaml uses .env.example as env_file; production should use .env" >&2
+  echo "FAIL: compose.yaml uses .env.example as env_file; production must use .env (copy from .env.example and customize)" >&2
+  echo "  Fix: change env_file to .env, or use 'docker compose --env-file .env.example config' for validation only" >&2
+  exit 1
 fi
 
 # --- N. .gitignore 应忽略 .claude/ 目录 ---
 if [[ -f "$PROJECT_DIR/.gitignore" ]] \
   && ! grep -q '\.claude' "$PROJECT_DIR/.gitignore"; then
   echo "WARNING: .gitignore does not ignore .claude/ directory (may leak sensitive settings)" >&2
+fi
+
+# --- S2. 前端测试文件数量 ≥3 ---
+if [[ -d "$PROJECT_DIR/frontend/src" ]]; then
+  fe_test_count=$(find "$PROJECT_DIR/frontend/src" \( -name '*.test.*' -o -name '*.spec.*' \) \
+    -not -path '*node_modules*' 2>/dev/null | wc -l | tr -d ' ')
+  if [[ "$fe_test_count" -lt 3 ]]; then
+    echo "FAIL: Frontend has only $fe_test_count test file(s) in frontend/src; minimum is 3 covering 3 different categories" >&2
+    echo "  Required categories (pick ≥3): API client, AuthProvider, page form validation, empty/error states, mutation success/failure" >&2
+    exit 1
+  fi
+fi
+
+# --- S3. Refresh Token 轮换证据 ---
+if [[ -d "$PROJECT_DIR/backend/app" ]]; then
+  has_refresh=$(grep -R -l -E "refresh_token|create_refresh_token|refresh_secret" "$PROJECT_DIR/backend/app" 2>/dev/null | head -1 || true)
+  if [[ -n "$has_refresh" ]]; then
+    has_rotation=$(grep -R -E -l "delete.*refresh|redis.*delete.*jti|remove.*jti|revoke.*refresh" "$PROJECT_DIR/backend/app" 2>/dev/null | head -1 || true)
+    if [[ -z "$has_rotation" ]]; then
+      echo "WARNING: Backend implements refresh token but no rotation evidence found (delete old jti on refresh)" >&2
+      echo "  Expected: refresh endpoint should delete old jti and issue new refresh token" >&2
+    fi
+  fi
+fi
+
+# --- S4. 分页控件证据 ---
+if [[ -d "$PROJECT_DIR/frontend/src" ]] && [[ -d "$PROJECT_DIR/backend/app" ]]; then
+  has_backend_pagination=$(grep -R -E -l "page_size|Page\[|PageResponse|PaginatedResponse" "$PROJECT_DIR/backend/app" 2>/dev/null | head -1 || true)
+  if [[ -n "$has_backend_pagination" ]]; then
+    has_frontend_pagination=$(grep -R -E -l "setPage|pagination|Pagination|onPageChange|nextPage|prevPage|currentPage" "$PROJECT_DIR/frontend/src" 2>/dev/null | head -1 || true)
+    if [[ -z "$has_frontend_pagination" ]]; then
+      echo "WARNING: Backend implements pagination but frontend has no pagination controls (setPage, Pagination component, onPageChange)" >&2
+    fi
+  fi
+fi
+
+# --- S5. 路由守卫证据 ---
+if [[ -d "$PROJECT_DIR/frontend/src" ]]; then
+  has_auth_page=$(grep -R -E -l "AuthPage|LoginPage|SignInPage|/login|/signin" "$PROJECT_DIR/frontend/src" 2>/dev/null | head -1 || true)
+  if [[ -n "$has_auth_page" ]]; then
+    has_route_guard=$(grep -R -E -l "ProtectedRoute|RequireAuth|AuthGuard|PrivateRoute|Navigate.*login|redirect.*login" "$PROJECT_DIR/frontend/src" 2>/dev/null | head -1 || true)
+    if [[ -z "$has_route_guard" ]]; then
+      echo "WARNING: Frontend has auth pages but no route guard evidence (ProtectedRoute, RequireAuth, Navigate to /login)" >&2
+    fi
+  fi
 fi
 
 # --- O. Migration 必须包含 downgrade 回滚路径 ---

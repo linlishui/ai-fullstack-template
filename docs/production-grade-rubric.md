@@ -8,7 +8,7 @@
 
 - 认证与授权：不得使用 email 前缀、用户名约定、前端隐藏按钮等方式获得管理员权限；管理员初始化必须通过 seed 脚本、一次性 bootstrap token 或显式环境变量控制。
 - 密钥安全：`.env.example` 必须包含 32 字节以上示例 JWT secret，并明确生产必须替换；不得在代码中硬编码真实密钥。
-- Refresh Token：若使用 Cookie，必须设置 `HttpOnly`、`Secure` 环境感知、`SameSite=Strict`，并在 refresh/logout 端点做 Origin/CSRF 校验；若不实现 refresh token，必须缩短 access token 有效期并记录取舍。
+- Refresh Token：若使用 Cookie，必须设置 `HttpOnly`、`Secure` 环境感知、`SameSite=Strict`，并在 refresh/logout 端点做 Origin/CSRF 校验；refresh 端点必须在每次成功验证后**轮换 refresh token**（删除旧 jti、签发新 token、更新 cookie），旧 refresh token 不得继续有效；若检测到已失效 jti 被重放，应吊销该用户全部 refresh token。若不实现 refresh token，必须缩短 access token 有效期并记录取舍。
 - Token 存储：前端不得默认把长期 token 放进 `localStorage`；如为了内部工具使用 bearer token，必须在文档中标注 XSS 风险和替代方案。
 - Rate Limiting：登录、注册、刷新 token、写操作必须有 Redis-backed rate limiting 或明确的中间件实现，不接受“预留”。
 - 真实持久化：业务 API 必须通过数据库-backed service/repository 执行核心读写，不得使用 `MemoryStore`、模块级 `dict/list`、JSON 文件或进程内全局变量承载用户、业务实体、状态流转、安装、评价等核心数据。内存 fake 仅允许出现在测试 fixture、mock 或演示脚本中。
@@ -19,9 +19,9 @@
 - Nginx：必须启用 gzip、基础安全头，生产配置应包含合理缓存策略和 API proxy 超时。
 - Docker：必须提供 `.dockerignore`；生产 Dockerfile 不应依赖 editable install；镜像构建不应复制 `.venv`、`node_modules`、`dist` 等本地产物；后端运行镜像默认必须使用非 root 用户。
 - 测试：后端测试不得少于 8 个关键用例，必须覆盖成功、认证失败、越权、非法输入、重复/冲突、状态非法流转、依赖异常或超时中的合理子集。
-- 前端测试：至少提供 smoke/component 测试或明确的页面级可用性验证脚本；仅有 `build`/`lint` 不视为完整前端验证。
+- 前端测试：至少提供 3 个测试文件，覆盖 API client、认证流程、页面交互中至少 3 个不同类别；仅有 `build`/`lint` 或仅 1 个冒烟测试不视为完整前端验证。
 - 前端真实闭环：需求中的核心页面和关键按钮必须调用真实 API 或明确的 domain action hook；禁止用 `setTimeout`、静态 toast、硬编码统计数字、硬编码分类选项伪造创建、审核、安装、评价、统计等核心动作。
-- 前端认证闭环：如需求包含注册/登录，必须提供注册入口、登录入口、认证状态上下文、未登录引导、登出和 refresh/401 处理策略；access token 可保存在内存，但刷新后必须能通过 refresh cookie 恢复会话或明确短 token 取舍。
+- 前端认证闭环：如需求包含注册/登录，必须提供注册入口、登录入口、认证状态上下文、未登录引导、登出和 refresh/401 处理策略；access token 可保存在内存，但刷新后必须能通过 refresh cookie 恢复会话或明确短 token 取舍。统一 HTTP client 必须实现 401 → refresh → retry 自动刷新机制；App 初始化必须尝试 session 恢复；需要认证的路由必须有路由级守卫（ProtectedRoute），未登录时重定向到登录页。
 - 前端 HTML 基线：Vite `index.html` 必须包含标准 `<!DOCTYPE html>`、`html lang`、`meta charset`、`meta viewport` 和 `title`。
 - 依赖锁定：前端必须提交 `package-lock.json`、`pnpm-lock.yaml` 或 `yarn.lock`；后端应使用 lock/constraints 或在 README/CI 中说明可复现安装策略。
 - 业务流：如果需求存在主链路，`scripts/check_business_flow.sh` 必须自包含、可重复执行、无需人工 token，且覆盖关键角色差异。

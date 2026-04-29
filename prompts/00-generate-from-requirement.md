@@ -187,6 +187,7 @@ generated/<project-slug>/
 - 禁止让 SQLAlchemy async lazy loading 在响应序列化阶段触发隐式 IO；返回前必须 eager load 或转换为 DTO
 - FastAPI 启停逻辑优先使用 lifespan，不新增废弃 `@app.on_event`
 - 密码哈希算法与文档必须一致，默认 Argon2id；若使用 bcrypt/PBKDF2，必须在安全说明中写明原因、风险与迁移策略
+- Refresh Token 端点必须在每次成功验证后轮换 refresh token（删除旧 jti、签发新 token、更新 cookie）并使旧 jti 失效；检测到已失效 jti 重放时吊销该用户全部 refresh token
 - 后端必须提供可执行的测试、lint 和启动命令
 
 ### 阶段 5：生成数据库模型和 Alembic migration
@@ -223,8 +224,10 @@ generated/<project-slug>/
 - 必须有统一 HTTP 请求封装与错误处理，禁止业务页面裸写 `fetch`
 - 认证态处理必须安全说明清晰；不得默认把长期 token 存入 localStorage
 - 若需求包含注册/登录，必须提供注册入口、登录入口、AuthContext 或等价会话状态、退出登录、401/refresh 处理策略；不得只依赖模块级 token 变量
+- 统一 HTTP client 必须实现 401 → refresh → retry 自动刷新机制；App 初始化必须尝试 refresh 恢复 session；需要认证的路由必须有 ProtectedRoute 守卫；全局导航必须根据认证状态动态渲染（已登录显示用户名+登出，未登录显示登录/注册）
 - 关键页面和核心操作必须连接真实 API 或 typed domain hook；禁止用 `setTimeout`、静态 toast、硬编码成功结果、硬编码统计值或硬编码分类伪装业务完成
 - 市场列表、详情、工作台、管理审核、安装/发布/评价等关键页面必须覆盖真实 fetch/mutation、加载态、错误态、空态、禁用态、提交中态和成功反馈；如果 API 缺失，必须显示能力暂不可用并在 OpenSpec/tasks 中保留 Open 项
+- 后端返回分页元数据时，前端必须渲染分页控件并绑定 page 状态；禁止始终只请求第 1 页
 - 页面必须有清晰的信息层级和主次操作层级，不允许只生成默认白底表单或表格堆叠
 - 必须补齐加载态、空态、错误态、禁用态、提交中态和成功反馈
 - 必须至少提供一处 ErrorBoundary，以及关键路由的 `React.lazy + Suspense` 懒加载
@@ -264,7 +267,7 @@ generated/<project-slug>/
 - 后端测试必须验证核心业务接口通过数据库持久化产生可查询状态，不能只测试内存 store 或 mock service
 - 后端测试不得少于 8 个关键用例；必须覆盖认证失败、越权、非法输入、重复/冲突、非法状态流转、限流/依赖异常中的合理子集
 - 至少补一类数据库/Redis/超时等异常路径测试
-- 为前端补必要的最小测试；构建与 lint 不能替代前端测试；前端测试至少应覆盖一个真实 API hook/mutation 驱动的页面状态或表单提交路径
+- 为前端补必要的最小测试；构建与 lint 不能替代前端测试；前端测试至少 3 个测试文件，分别覆盖 API client / 认证流程 / 页面交互中不同类别；仅 1 个冒烟测试不满足模板要求
 
 ### 阶段 10：生成 README
 

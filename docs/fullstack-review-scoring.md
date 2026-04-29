@@ -11,7 +11,7 @@
 - 数据层：10 分。模型、migration、repository、事务、约束和核心 API 使用路径必须真实存在。
 - 架构质量：7 分。前后端分层清晰，主入口不堆业务逻辑。
 - CI/CD：5 分。CI 不只 build，还覆盖 lint、test、compose、OpenAPI、前端测试与审计。
-- 测试：15 分。后端关键用例、前端关键状态、业务流脚本和回归清单必须可执行。
+- 测试：15 分。后端关键用例、前端关键状态、业务流脚本和回归清单必须可执行。前端测试至少 3 个文件覆盖 3 个不同类别；仅 1 个冒烟测试不计为完整前端验证。
 - 文档与 Spec Driven：15 分。需求、OpenSpec、架构、接口、数据模型和任务拆分可回溯。
 - AI 工具链使用：15 分。必须按 prompts、docs、scripts、skill、审计和验证闭环执行。
 - 可维护性：5 分。目录、命名、依赖、README、migration、测试和环境模板支持后续迭代。
@@ -43,3 +43,6 @@
 - metrics 使用 raw URL path 作为 label。
 - Dockerfile 生产运行用户为 root。
 - 缺 OpenSpec、关键测试、前端 lockfile、标准 `index.html`、业务流验证脚本或生产级审计证据。
+- Refresh Token 端点未轮换，旧 token 在有效期内可反复使用。
+- 后端返回分页元数据但前端无分页控件，始终只展示第 1 页。
+- 受保护路由无路由级守卫，未登录可直接通过 URL 访问需要认证的页面。

@@ -217,3 +217,45 @@ const { data } = useQuery({
 - 保持 `no-explicit-any` 为 `"warn"` 或 `"error"`
 - 使用 Zod schema infer 类型代替 `any`/`unknown`
 - 对确需跳过的少数场景使用行级 `// eslint-disable-next-line` 注释并说明原因
+
+## 14. 列表分页永远只请求第一页
+
+禁止：
+
+- 后端返回分页数据（total/page/page_size）但前端硬编码 `page: 1` 或 `page: '1'`，不提供翻页控件
+- 数据超过单页容量时用户无法查看后续内容
+- 分页参数作为常量写死在 API 调用中
+
+正确做法：
+
+- page 绑定受控 state（`useState` 或 URL search params）
+- 渲染分页组件（翻页按钮/页码条），消费后端返回的 total/page/page_size
+- page 变化驱动 API 重新请求
+
+## 15. 受保护路由无守卫
+
+禁止：
+
+- 需要认证的页面（工作台、管理后台、个人中心）只在页面组件内通过条件渲染显示"请登录"提示，而不在路由层阻拦
+- 未登录用户通过 URL 直接访问受保护页面时短暂闪烁页面内容后才显示提示
+- 每个页面各自重复编写认证检查逻辑
+
+正确做法：
+
+- 使用 `ProtectedRoute` 或等价路由守卫组件包装需要认证的路由
+- 未登录时 `<Navigate to="/login" />` 重定向
+- 守卫逻辑基于 `AuthContext` / `useAuth()` 统一判断
+
+## 16. 导航栏不响应认证状态
+
+禁止：
+
+- 导航栏始终显示固定 Login/Register 链接，登录后不切换为用户信息和登出按钮
+- 用户无法从导航栏判断自己是否已登录
+- 登出入口藏在非导航区域或完全缺失
+
+正确做法：
+
+- 根据 `useAuth()` 或等价 auth state 动态渲染导航项
+- 已登录：显示用户名/邮箱 + Logout 按钮
+- 未登录：显示 Login / Register 入口

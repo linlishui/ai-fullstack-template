@@ -117,6 +117,7 @@ backend/
 - 管理员初始化必须通过 seed 脚本、一次性 bootstrap token 或显式环境变量控制，禁止使用 email 前缀、用户名约定等隐式提权规则
 - 如果实现 Refresh Token，默认要求单独的刷新密钥或明确的刷新令牌策略，并对刷新端点做 Origin/CSRF 防护
 - Refresh token 端点在签发新 access token 前，必须从数据库重新加载用户并校验其是否存在且未被禁用；不得仅凭 token 解码有效就直接签发
+- Refresh Token 端点**必须在验证通过后轮换 refresh token**——删除旧 jti、签发新 refresh token、设置新 cookie；旧 refresh token 不得继续有效。如检测到已失效 jti 被重放（即 jti 不存在于存储中但 token 签名有效），应立即吊销该用户所有 refresh token（replay detection），强制重新登录
 - 如果 Refresh Token 使用 Cookie，必须设置 `HttpOnly`、`SameSite=Strict`、`Secure` 环境感知，并保证 logout/delete cookie 属性一致
 - 登录、注册、刷新 token、关键写操作必须接入 Redis-backed rate limiting；不能只在文档中“预留”
 - 鉴权必须同时覆盖接口入口和关键业务动作，不允许只在前端控制
@@ -209,6 +210,7 @@ backend/
 - 计数器字段（如 install_count、view_count）必须使用原子 SQL update（`SET count = count + 1`），禁止先读后写的内存级 `+= 1` 操作
 - SQLAlchemy async engine 推荐惰性创建（在 lifespan 或首次请求时），避免模块导入时执行 `create_async_engine` 导致测试必须预设 `DATABASE_URL`
 - 连接池应配置 `pool_recycle`（建议 ≤ 3600 秒）以适配 MySQL `wait_timeout`，`pool_size` 和 `max_overflow` 应可通过环境变量调整
+- 数据库 engine 和 session factory 不得作为模块级可变全局变量通过 `global` 关键字管理；推荐封装为 `app.state` 属性或 lifespan 内的局部变量，确保测试隔离和多实例安全。直接 `import SessionLocal` 绕过 `dependency_overrides` 是常见的测试泄漏来源
 
 ## 11. 必须覆盖的测试与验证点
 

@@ -52,6 +52,7 @@ Compose 服务至少包含：
 - `.env.example` 必须覆盖启动所需完整键名，并提供合理示例值
 - 不允许把密码、密钥、主机地址或跨域来源写死在源码或 Compose 中
 - 区分前端构建期变量和后端运行期变量，命名应清晰
+- `compose.yaml` 的 `env_file` 不应直接指向 `.env.example`；应引用 `.env`（由开发者从 `.env.example` 复制并定制），或使用 `--env-file` 命令行参数。直接引用 `.env.example` 意味着公开的占位密码（如 `replace-this-...`、`ChangeMe12345!`）会成为运行时凭据。若为了验证脚本（`docker compose config`）便利而使用 `.env.example`，必须在 README 和 compose 注释中明确说明生产部署必须替换为 `.env`
 
 ## 5. 容器化规则
 

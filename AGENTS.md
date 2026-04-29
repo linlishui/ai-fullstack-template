@@ -136,6 +136,7 @@ generated/<project-slug>/backend/
 - `tests/` 必须独立存在，不要把测试混入业务目录
 - 后端至少应提供：依赖声明、应用入口、配置管理、迁移目录、测试目录
 - 如实现 Refresh Token，应补 Cookie 安全属性与 CSRF 防护
+- Refresh Token 端点必须实现 token 轮换——验证旧 token 后签发新 refresh token 并使旧 jti 失效；检测到已失效 jti 重放时应吊销该用户全部 refresh token
 - 管理员初始化必须通过 seed/bootstrap 脚本或显式环境变量控制，禁止 email 前缀、固定用户名或前端开关提权
 - 必须实现 Redis-backed rate limiting，至少保护登录、注册、刷新 token 和关键写操作
 - 必须提供 request id 中间件、结构化日志、真实 metrics endpoint 与 OpenAPI 导出脚本
@@ -195,6 +196,8 @@ generated/<project-slug>/frontend/
 - 生成前端时必须参考模板中的页面蓝图、设计规范、交互模式和审计清单；生成项目时也应同步输出项目级前端实现说明或检查清单
 - 前端至少应提供：依赖声明、Vite 配置、应用入口、页面目录、API 封装目录
 - 前端必须提供最小测试命令，默认 `npm test -- --run`，覆盖关键页面、表单、空态/错误态或未登录引导中的合理子集
+- 前端测试至少提供 3 个测试文件，分别覆盖 API client、认证流程、页面交互中不同类别的验证路径；仅有 1 个冒烟测试不满足模板要求
+- 需要认证的页面必须有路由级守卫（ProtectedRoute），未登录时重定向到登录页；全局导航必须根据认证状态动态显示登录/登出入口；统一 HTTP client 必须实现 401 → refresh → retry 自动刷新机制；App 初始化必须尝试 session 恢复
 - 不得默认把长期 token 存入 localStorage；如采用 bearer token，应在 `docs/security-notes.md` 中说明 XSS 风险与替代方案
 
 ## 配置与安全规则
