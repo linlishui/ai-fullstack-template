@@ -110,12 +110,14 @@ generated/<project-slug>/
 
 ### Stage 1: Analyze Requirement
 
+- Read `prompts/01-analyze-requirement.md` for structured analysis guidance.
 - Extract project goal, user roles, modules, pages, entities, permissions, workflows, exception cases, and non-functional requirements.
 - Identify the main business loop and the 3-5 highest-value business actions.
 - Distinguish core workflow from support capabilities such as login or admin scaffolding.
 
 ### Stage 2: Produce OpenSpec
 
+- Read `prompts/02-generate-openspec.md` for OpenSpec generation guidance.
 - Create `openspec/project.md`.
 - Create at least one capability spec at `openspec/specs/<capability>/spec.md`.
 - Create a change set under `openspec/changes/<change-id>/` with `proposal.md`, `design.md`, and `tasks.md`.
@@ -143,8 +145,11 @@ generated/<project-slug>/
 
 ### Stage 4: Generate Backend
 
+- Read `prompts/03-generate-backend.md` for backend generation guidance.
 - Use `FastAPI + Pydantic v2 + SQLAlchemy 2.x async + Alembic`.
 - Treat `docs/backend-spec.md` as the backend source of truth for layering, contracts, security, migrations, health checks, and verification expectations.
+- Generate SQLAlchemy models, Alembic configuration, and initial migrations as part of backend work. MySQL 8 is the default database.
+- Integrate Redis 7 with real usage such as rate limiting, refresh-token storage, or caching. Do not accept Redis integration that only pings for readiness. Redis configuration must come from environment variables.
 - Organize backend into clear modules such as `api/`, `core/`, `db/`, `models/`, `repositories/`, `schemas/`, `services/`, and `tests/`.
 - Keep configuration, auth, persistence, and route handling separated.
 - Default to versioned APIs, unified response structures, global exception handling, pagination, structured logging, dependency-aware health checks, and observability hooks.
@@ -157,6 +162,7 @@ generated/<project-slug>/
 
 ### Stage 5: Generate Frontend
 
+- Read `prompts/04-generate-frontend.md` for frontend generation guidance.
 - Use `React + TypeScript + Vite`.
 - Organize code into `app/`, `api/`, `components/`, `features/`, `hooks/`, `pages/`, `schemas/`, or equivalent modular structure.
 - Prefer `TanStack Query`, `React Hook Form`, and `Zod`.
@@ -164,13 +170,17 @@ generated/<project-slug>/
 - Default to a unified HTTP layer, route-level lazy loading, ErrorBoundary coverage, and explicit unauthorized or blocked-action feedback.
 - Add AuthContext/auth store or equivalent session handling when login/register exists, including logout and 401/refresh behavior.
 - Ensure marketplace, detail, workspace, admin, install/review/publish, and stats views are driven by real API data or explicitly marked unavailable/open.
-- Ensure loading, empty, error, disabled, submitting, and success states exist.
+- Ensure loading, empty, error, disabled, submitting, and success states exist. Specifically: use skeleton screens for list/detail loading (not plain "Loading..."); empty states must include icon, description, and guided action; CRUD operations must show Toast feedback; destructive operations must require a confirmation dialog; buttons must cover at least primary, secondary, outline, destructive, and ghost variants.
+- When the backend returns paginated data, the frontend must render pagination controls bound to page state. Do not silently request only the first page.
+- Implement a unified HTTP client with 401 → refresh → retry automatic renewal. App initialization must attempt session recovery via refresh. Auth-required routes must use a ProtectedRoute guard. Global navigation must render dynamically based on auth state.
+- Ensure desktop and mobile responsive behavior.
 - Add frontend tests or smoke checks for at least one critical page/form/state.
 - Do not default to long-lived localStorage token storage without explicit security notes and mitigation.
 - Keep responsive behavior and visual hierarchy intentional; avoid placeholder-grade UI.
 
 ### Stage 6: Generate Deployment And Tests
 
+- Read `prompts/05-generate-docker.md` for deployment generation guidance and `prompts/06-generate-tests.md` for test generation guidance.
 - Treat `docs/deployment-spec.md` as the deployment and runtime source of truth.
 - Treat `docs/testing-spec.md` as the testing and regression source of truth.
 - Create `compose.yaml` for at least `nginx`, `frontend`, `backend`, `mysql`, and `redis`.
@@ -180,6 +190,30 @@ generated/<project-slug>/
 - Generate backend/frontend `.dockerignore`; Nginx must include gzip, security headers, and proxy timeout.
 - Add `scripts/check_business_flow.sh` when the requirement defines business actions that can be asserted after startup.
 - Business-flow scripts must be self-contained, repeatable, and not require manually supplied admin tokens.
+
+### Stage 6.5: Business-Loop Self-Check
+
+Before entering security review and verification, validate that the generated project delivers real business value rather than just passing static checks:
+
+- Identify 3-5 key business actions from the current requirement and record them in `docs/key-business-actions-checklist.md`. Verify each action is actually executable end-to-end, not just a page or API stub.
+- Confirm unified response structure, global exception handling, pagination, ErrorBoundary, unified HTTP error handling, Nginx, CI, and production-readiness checklist items are landed in code or config, not only mentioned in docs.
+- If authentication is only a support capability, verify auth implementation stays minimal and does not block or overshadow the main business loop.
+- Verify key state transitions have explicit entry points derived from the current requirement, not hardcoded demo examples.
+- Verify key views (list, detail, workspace, approval, admin, stats) reflect real backend state and are not populated with fake or hardcoded data.
+- Verify form validation failures and API errors produce visible user feedback instead of silent failures.
+- Verify bootstrap data, seed dictionaries, categories, or initial configuration required for first startup are provided so that key pages are not blank on launch.
+- Confirm each of the six quality principles (functional completeness, technical quality, testability, spec-driven design, AI toolchain usage, maintainability) maps to a concrete artifact, verification command, or project-level document.
+- Fix any identified issue before proceeding to Stage 6.75.
+
+### Stage 6.75: Finalize Project Assets
+
+After implementation and self-check, reconcile project-level assets against the actual generated content:
+
+- Update `README.md` to reflect the final directory structure, verification commands, environment variables, startup instructions, and any business-flow scripts actually produced.
+- Update `.env.example` to include every environment variable referenced by backend, frontend, Docker, Nginx, and CI configurations.
+- Update `.gitignore` to cover all runtime and build artifacts produced during implementation.
+- Update `docs/production-readiness-checklist.md`, `docs/security-notes.md`, `docs/observability.md`, and `docs/test-plan.md` to reflect the actual implementation state with evidence paths, not pre-implementation placeholders.
+- Ensure verification commands listed in README are executable against the final generated project.
 
 ### Stage 7: Security Review, Repair, And Verify
 

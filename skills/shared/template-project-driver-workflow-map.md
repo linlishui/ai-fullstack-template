@@ -75,21 +75,21 @@ Core frontend workflows must be wired to real API clients, TanStack Query mutati
   - Main orchestration prompt.
   - Enforces: read requirement, analyze, initialize `generated/<project-slug>/`, produce OpenSpec, generate backend, frontend, deployment, and tests, then self-check.
 - `prompts/01-analyze-requirement.md`
-  - Requirement analysis stage.
+  - Requirement analysis stage. Required by: core.md Stage 1.
 - `prompts/02-generate-openspec.md`
-  - OpenSpec generation stage.
+  - OpenSpec generation stage. Required by: core.md Stage 2.
 - `docs/concurrent-generation.md`
   - Read after OpenSpec and before parallel backend/frontend/runtime/test work.
 - `prompts/03-generate-backend.md`
-  - Backend generation stage.
+  - Backend generation stage. Required by: core.md Stage 4.
   - Read together with `docs/backend-spec.md`, `docs/testing-spec.md`, `docs/deployment-spec.md`, and `docs/production-grade-rubric.md`.
 - `prompts/04-generate-frontend.md`
-  - Frontend generation stage.
+  - Frontend generation stage. Required by: core.md Stage 5.
 - `prompts/05-generate-docker.md`
-  - Compose and deployment stage.
+  - Compose and deployment stage. Required by: core.md Stage 6.
   - Read together with `docs/deployment-spec.md`, `docs/backend-spec.md`, `docs/testing-spec.md`, and `docs/production-grade-rubric.md`.
 - `prompts/06-generate-tests.md`
-  - Test generation stage.
+  - Test generation stage. Required by: core.md Stage 6.
   - Read together with `docs/testing-spec.md`, `docs/backend-spec.md`, `docs/frontend-ui-spec.md`, `docs/deployment-spec.md`, and `docs/production-grade-rubric.md`.
 - `prompts/07-fix-and-verify.md`
   - Repair and verification stage.
@@ -213,3 +213,5 @@ At the project level, README should also expose:
 - Overbuilding authentication when auth is not the requirement's main loop
 - Passing static build checks while main business actions still cannot be executed
 - Running parallel work before OpenSpec is stable, or letting parallel tasks modify shared files without a documented owner and integration pass
+- Shipping README, .env.example, or verification commands that were written before implementation and never reconciled with the final generated content
+- Skipping business-loop self-check and declaring the project complete based only on build and lint passing
