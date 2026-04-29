@@ -59,6 +59,57 @@
 - 必须覆盖未登录、无权限、非法输入、资源不存在、重复提交或冲突中的合理子集
 - 测试应尽量围绕用户动作和业务规则组织，而不是只围绕函数存在与否
 
+### 5.5 假测试禁止
+
+以下模式视为假测试，审计与验证脚本会自动检测并拒绝：
+
+- 测试文件中无任何 `from app.*` 或 `import app.*` 导入 — 说明测试未接触生产代码
+- 测试只断言 Python 内置数据结构（列表、字典、集合），不调用任何 service/repository/API
+- 测试断言硬编码预期值等于自身（如 `assert [1,2,3] == [1,2,3]`）
+
+正确做法：
+
+- 每个测试文件必须导入并调用至少一个 `app.*` 模块的函数或类
+- 推荐使用 `httpx.AsyncClient` + `ASGITransport` 对 FastAPI 进行真实 HTTP 测试
+- 推荐在 `tests/conftest.py` 中提供：async DB session fixture（SQLite 内存库）、测试用户工厂、已认证 client fixture
+
+参考 conftest.py 最小模板：
+
+```python
+import pytest
+from httpx import AsyncClient, ASGITransport
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from app.main import app
+from app.db.session import get_session
+from app.db.base import Base
+
+TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
+
+@pytest.fixture
+async def db_engine():
+    engine = create_async_engine(TEST_DB_URL)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield engine
+    await engine.dispose()
+
+@pytest.fixture
+async def db_session(db_engine):
+    session_factory = async_sessionmaker(db_engine, expire_on_commit=False)
+    async with session_factory() as session:
+        yield session
+
+@pytest.fixture
+async def client(db_session):
+    async def override():
+        yield db_session
+    app.dependency_overrides[get_session] = override
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
+    app.dependency_overrides.clear()
+```
+
 推荐覆盖重点：
 
 - 创建 / 编辑 / 提交 / 审核 / 发布等核心写操作

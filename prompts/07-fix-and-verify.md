@@ -69,7 +69,8 @@
 - 先按 `docs/testing-spec.md` 核对关键测试、业务流脚本和回归路径是否缺项
 - 先按 `docs/deployment-spec.md` 核对环境变量、Compose 依赖、健康检查和启动说明是否缺项
 - 先按 `docs/production-grade-rubric.md` 核对生产级高分项，并把缺项直接修复为代码/脚本/配置
-- 先按 `docs/fullstack-review-scoring.md` 核对 120 分评审维度，把“假持久化、假交互、假生产证据”作为最高优先级修复项
+- 先按 `docs/fullstack-review-scoring.md` 核对 120 分评审维度，把”假持久化、假交互、假生产证据”作为最高优先级修复项
+- 先按 `prompts/08-security-review.md` 的检查清单核对安全高风险项，确认无硬编码密钥、隐式提权、MemoryStore 持久化或 Cookie/CSRF 缺陷
 - 先核对项目级前端 UI 检查清单，并按 `docs/frontend-ui-spec.md` 校验是否缺失主题 token、状态设计、移动端适配和页面结构落地
 - 先核对项目级生产就绪清单，并按三色风险标记未完成的生产级要求
 - 先核对项目级 AI 协作文件是否可支撑后续 AI 继续迭代，而不是只依赖模板仓库

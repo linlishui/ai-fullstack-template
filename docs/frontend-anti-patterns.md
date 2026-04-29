@@ -168,3 +168,52 @@
 - 是否存在核心按钮只用 `setTimeout`、toast 或本地假数据完成
 - 是否存在硬编码统计、分类、审核结果或工作台数据冒充后端结果
 - 是否存在认证态只有模块变量、没有会话层或 401 处理
+
+## 12. 列表页搜索/筛选/排序/分页控件未接通
+
+禁止：
+
+- 搜索输入框渲染了但没有 `onChange` 和对应 state，查询参数硬编码
+- 分类下拉渲染了但选项静态写死、没有动态加载、没有绑定到 API 查询
+- 排序下拉渲染了但切换后 API 请求参数不变
+- 后端已实现分页但前端没有分页控件，永远只展示第一页
+- 列表 API 参数中 `page`、`keyword`、`category`、`sort` 是硬编码常量
+
+正确做法：
+
+- 每个筛选控件必须绑定受控 state（`useState` 或 URL search params）
+- state 变化必须触发 API 重新请求（注入 `useQuery` 的 queryKey 或 queryFn 参数）
+- 分页控件必须消费 `Page<T>` 响应的 `total`/`page`/`page_size` 字段
+- 若后端未实现某筛选能力，前端不应渲染对应控件
+
+```tsx
+// ❌ 错误：input 无 onChange、query 硬编码
+<input placeholder="搜索..." />
+const { data } = useQuery({
+  queryKey: ["skills"],
+  queryFn: () => listSkills({ page: 1, sort: "popular" }),
+})
+
+// ✅ 正确：input 绑定 state，state 注入 query
+const [keyword, setKeyword] = useState("")
+const [page, setPage] = useState(1)
+<input value={keyword} onChange={e => setKeyword(e.target.value)} />
+const { data } = useQuery({
+  queryKey: ["skills", { keyword, page }],
+  queryFn: () => listSkills({ keyword, page }),
+})
+```
+
+## 13. ESLint 类型安全护栏被关闭
+
+禁止：
+
+- 在 ESLint 配置中把 `@typescript-eslint/no-explicit-any` 设为 `"off"`
+- 关闭其他关键类型安全规则（如 `no-unsafe-assignment`、`no-unsafe-call`）
+- 用 `as any` 或 `unknown` 绕过接口调用和表单数据的类型约束
+
+正确做法：
+
+- 保持 `no-explicit-any` 为 `"warn"` 或 `"error"`
+- 使用 Zod schema infer 类型代替 `any`/`unknown`
+- 对确需跳过的少数场景使用行级 `// eslint-disable-next-line` 注释并说明原因

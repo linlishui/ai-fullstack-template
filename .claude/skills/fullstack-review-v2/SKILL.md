@@ -121,18 +121,19 @@ echo "=== Git 状态 ===" && git log --oneline -5
 ```bash
 cd "$PROJECT_ROOT"
 
-# 自动检测健康检查接口
-if grep -q "mysql\|redis" backend/app/routes/health.py 2>/dev/null; then
-    echo "PASS: Health check includes dependency verification"
+# 自动检测健康检查接口（兼容多种路径结构）
+HEALTH_FILE=$(find backend/app -name 'health.py' -path '*/routes/*' -o -name 'health.py' -path '*/api/*' 2>/dev/null | head -1)
+if [[ -n "$HEALTH_FILE" ]] && grep -q "mysql\|redis\|SELECT.*1\|\.ping" "$HEALTH_FILE" 2>/dev/null; then
+    echo "PASS: Health check includes dependency verification ($HEALTH_FILE)"
 else
-    echo "FAIL: Health check only returns static status - backend/app/routes/health.py:需要添加 MySQL/Redis 连通性检查"
+    echo "FAIL: Health check missing real dependency probes - 需要在健康检查中添加 MySQL SELECT 1 / Redis ping"
 fi
 
-# 自动检测 N+1 查询问题
-if grep -rq "selectinload\|joinedload" backend/app/services/ 2>/dev/null; then
+# 自动检测 N+1 查询问题（搜索 services 和 repositories）
+if grep -rq "selectinload\|joinedload\|subqueryload" backend/app/services/ backend/app/repositories/ 2>/dev/null; then
     echo "PASS: Query optimization implemented"
 else
-    echo "WARN: Potential N+1 queries - backend/app/services/ 使用 lazy loading 可能导致性能问题"
+    echo "WARN: Potential N+1 queries - backend/app/services/ 或 repositories/ 未见 eager loading"
 fi
 
 # 检测 CI/CD 配置
@@ -142,11 +143,11 @@ else
     echo "FAIL: No CI/CD pipeline - 需要创建 .github/workflows/ci.yml"
 fi
 
-# 检测分页实现
-if grep -rq "page\|limit\|offset\|paginate" backend/app/routes/ 2>/dev/null; then
+# 检测分页实现（兼容 routes 和 api 目录结构）
+if grep -rq "page\|limit\|offset\|paginate" backend/app/routes/ backend/app/api/ 2>/dev/null; then
     echo "PASS: Pagination implemented"
 else
-    echo "FAIL: No pagination found - backend/app/routes/ 列表接口需要分页参数"
+    echo "FAIL: No pagination found - 列表接口需要分页参数"
 fi
 
 # 检测 updated_at 字段
@@ -229,32 +230,39 @@ fi
 ```bash
 cd "$PROJECT_ROOT"
 
+# 查找 auth 路由文件（兼容多种路径结构）
+AUTH_FILE=$(find backend/app -name 'auth.py' -path '*/routes/*' -o -name 'auth.py' -path '*/api/*' 2>/dev/null | head -1)
+if [[ -z "$AUTH_FILE" ]]; then
+    echo "WARN: No auth route file found"
+    AUTH_FILE="backend/app/api/v1/routes/auth.py"  # fallback for grep
+fi
+
 # 检测 Cookie secure 属性（应为环境感知配置，非硬编码 False）
-if grep -n "secure=False\|secure = False" backend/app/routes/auth.py 2>/dev/null; then
-    echo "FAIL: Cookie secure=False - backend/app/routes/auth.py: 必须使用环境变量控制或 secure=True"
-elif grep -n "settings.ENVIRONMENT\|ENVIRONMENT == " backend/app/routes/auth.py 2>/dev/null | grep -q "secure"; then
+if grep -n "secure=False\|secure = False" "$AUTH_FILE" 2>/dev/null; then
+    echo "FAIL: Cookie secure=False - $AUTH_FILE: 必须使用环境变量控制或 secure=True"
+elif grep -n "settings.ENVIRONMENT\|ENVIRONMENT == \|settings.COOKIE_SECURE\|cookie_secure" "$AUTH_FILE" 2>/dev/null | grep -q "secure"; then
     echo "PASS: Cookie secure is environment-aware"
 else
     echo "PASS: Cookie secure=True"
 fi
 
 # 检测 sameSite 配置
-if grep -n 'samesite="lax"\|samesite="none"' backend/app/routes/auth.py 2>/dev/null; then
+if grep -n 'samesite="lax"\|samesite="none"' "$AUTH_FILE" 2>/dev/null; then
     echo "FAIL: Cookie sameSite too permissive - 应使用 sameSite='strict'"
 else
     echo "PASS: Cookie sameSite is strict"
 fi
 
 # 检测 delete_cookie 与 set_cookie 的 secure 配置一致性
-if grep -A2 "delete_cookie" backend/app/routes/auth.py 2>/dev/null | grep -q "secure=settings"; then
+if grep -A2 "delete_cookie" "$AUTH_FILE" 2>/dev/null | grep -q "secure=settings\|secure=True"; then
     echo "PASS: delete_cookie has consistent secure setting"
 else
     echo "WARN: delete_cookie may not match set_cookie secure setting"
 fi
 
 # 检测 refresh 端点是否有 CSRF 保护
-if grep -A5 "/refresh" backend/app/routes/auth.py 2>/dev/null | grep -q "Origin\|origin"; then
-    echo "PASS: Refresh endpoint has Origin check"
+if grep -A5 "/refresh\|refresh_token" "$AUTH_FILE" 2>/dev/null | grep -q "Origin\|origin\|csrf\|CSRF"; then
+    echo "PASS: Refresh endpoint has Origin/CSRF check"
 else
     echo "FAIL: Refresh endpoint missing CSRF protection - 需要检查 Origin header"
 fi
@@ -327,11 +335,22 @@ fi
 cd "$PROJECT_ROOT"
 
 # 检测异常场景测试覆盖
-if grep -rq "timeout\|redis\|AsyncSession" backend/tests/ 2>/dev/null; then
+if grep -rq "timeout\|redis\|AsyncSession\|IntegrityError\|HTTPException\|status_code.*4[0-9][0-9]" backend/tests/ 2>/dev/null; then
     echo "PASS: Exception scenario tests found"
 else
     echo "FAIL: No exception scenario tests - backend/tests/ 需要补充 Redis/DB 异常测试"
 fi
+
+# 检测 migration downgrade 完整性
+MISSING_DOWNGRADE=0
+for mfile in backend/migrations/versions/*.py; do
+    [[ -f "$mfile" ]] || continue
+    if ! grep -q "def downgrade" "$mfile"; then
+        echo "FAIL: Migration missing downgrade: $mfile"
+        MISSING_DOWNGRADE=1
+    fi
+done
+[[ "$MISSING_DOWNGRADE" -eq 0 ]] && echo "PASS: All migrations have downgrade()"
 ```
 
 **输出格式要求**：同 Agent 1。

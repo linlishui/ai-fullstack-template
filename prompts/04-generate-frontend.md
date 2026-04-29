@@ -35,3 +35,6 @@
 - 必须提供 `npm test -- --run` 或等价前端测试命令，至少覆盖一个关键页面 smoke、表单校验、空态/错误态或未登录引导
 - 必须生成标准 `index.html`，包含 `<!doctype html>`、`<html lang>`、`charset`、`viewport` 和业务标题
 - 必须提交前端 lockfile，例如 `package-lock.json`、`pnpm-lock.yaml` 或 `yarn.lock`
+- 列表页搜索、分类筛选、排序和分页控件必须绑定受控 state 并注入 `useQuery` 参数；不得渲染无 `onChange` 的装饰性 `<input>` 或 `<select>`
+- 前端测试依赖必须安装到 `devDependencies`：至少包含 `vitest`、`@testing-library/react`、`@testing-library/jest-dom`、`jsdom`；禁止只声明测试脚本但不安装测试库
+- 破坏性操作（删除、下架、拒绝等）必须通过 AlertDialog 或等价确认弹窗拦截；如安装了 `@radix-ui/react-alert-dialog`，至少要在一处业务页面中使用

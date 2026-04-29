@@ -92,6 +92,7 @@ backend/
 - 默认应提供统一响应结构，至少对成功响应、分页响应和错误响应有稳定封装
 - 列表接口必须明确分页、筛选、排序策略
 - 状态流转接口必须体现触发条件、权限要求和失败分支
+- 路由函数应显式声明 `response_model`，禁止多数端点返回 raw `dict`。缺少 `response_model` 会导致 OpenAPI 文档不完整、前端类型推断缺失。审计脚本会验证路由目录中存在 `response_model=` 使用证据。
 
 ### 5.2 输入校验
 
@@ -115,6 +116,7 @@ backend/
 - JWT 示例密钥必须达到 32 字节以上；测试可使用固定弱密钥但不得作为生产默认值
 - 管理员初始化必须通过 seed 脚本、一次性 bootstrap token 或显式环境变量控制，禁止使用 email 前缀、用户名约定等隐式提权规则
 - 如果实现 Refresh Token，默认要求单独的刷新密钥或明确的刷新令牌策略，并对刷新端点做 Origin/CSRF 防护
+- Refresh token 端点在签发新 access token 前，必须从数据库重新加载用户并校验其是否存在且未被禁用；不得仅凭 token 解码有效就直接签发
 - 如果 Refresh Token 使用 Cookie，必须设置 `HttpOnly`、`SameSite=Strict`、`Secure` 环境感知，并保证 logout/delete cookie 属性一致
 - 登录、注册、刷新 token、关键写操作必须接入 Redis-backed rate limiting；不能只在文档中“预留”
 - 鉴权必须同时覆盖接口入口和关键业务动作，不允许只在前端控制
@@ -143,6 +145,7 @@ backend/
 - 唯一约束、索引、外键和级联策略必须与业务规则一致
 - 审计字段至少包含创建时间、更新时间；如有操作者语义，应补充创建人 / 更新人
 - 如果需求存在归档、回收站、恢复或可追溯删除语义，优先提供软删除字段或可扩展位
+- SQLAlchemy relationship 的 `lazy` 策略不应全局设为 `selectin` 或 `joined`；应默认使用 `lazy="raise"` 或 `lazy="select"`，在需要关联数据的查询中显式 `.options(selectinload(...))`
 
 ### 7.2 事务与一致性
 
@@ -178,12 +181,14 @@ backend/
 - Redis 封装必须集中管理连接和序列化约束
 - 不要为了“用了 Redis”而增加无价值缓存
 - 如引入后台任务、事件或异步副作用，必须明确失败重试和可观测性边界
+- Rate limiting 等需要 INCR + EXPIRE 的操作必须使用 Redis pipeline 或 Lua 脚本原子执行；禁止分两步独立操作，避免进程崩溃导致 key 永久无 TTL
 
 ## 9. 可观测性与运维基础
 
 - 应提供结构化日志或至少稳定日志格式
 - 必须提供 request id/correlation id 中间件，并在响应头和结构化日志中输出
 - 必须提供 `/metrics` 端点，至少暴露进程存活、请求计数、请求耗时、错误计数等基础指标
+- `/metrics` 端点不应对外网完全开放；应通过 Nginx 限制为内网访问、独立端口或 Bearer token 保护
 - HTTP metrics 的 path 标签必须归一化为路由模板，禁止直接使用 `request.url.path` 作为指标标签，避免 `/resources/1`、`/resources/2` 形成高基数
 - Tracing 可以通过配置开关启用，但必须有真实接入代码或明确 extension point，不接受空字符串 placeholder
 - 启动日志应明确环境、服务端口和关键依赖状态
@@ -200,7 +205,10 @@ backend/
 - 写操作不得依赖前端传入的派生字段作为唯一真实来源
 - 对可能增长较快的查询条件、排序字段和关联字段，应考虑索引
 - 文本搜索不得默认使用无索引 `LIKE '%keyword%'` 作为唯一方案；应使用 FULLTEXT/前缀索引/受控搜索字段或在文档中说明规模限制
-- 不要为了“看起来简单”而把所有业务逻辑堆成一条超长函数
+- 不要为了”看起来简单”而把所有业务逻辑堆成一条超长函数
+- 计数器字段（如 install_count、view_count）必须使用原子 SQL update（`SET count = count + 1`），禁止先读后写的内存级 `+= 1` 操作
+- SQLAlchemy async engine 推荐惰性创建（在 lifespan 或首次请求时），避免模块导入时执行 `create_async_engine` 导致测试必须预设 `DATABASE_URL`
+- 连接池应配置 `pool_recycle`（建议 ≤ 3600 秒）以适配 MySQL `wait_timeout`，`pool_size` 和 `max_overflow` 应可通过环境变量调整
 
 ## 11. 必须覆盖的测试与验证点
 

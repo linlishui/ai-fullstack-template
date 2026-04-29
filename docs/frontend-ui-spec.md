@@ -250,7 +250,18 @@
 - 管理页：待审核列表、通过、拒绝、下架、运营统计必须调用真实 admin API；不得使用硬编码数字和 toast-only 动作。
 - 认证页：需求包含注册时必须提供注册入口；登录成功后必须有 AuthContext 或等价全局认证状态，刷新/401/登出策略必须明确。
 
-如果某个 API 尚未实现，前端不得伪造成可用功能；必须显示“暂不可用”状态并在 `docs/frontend-ui-checklist.md` 标为 Open。
+如果某个 API 尚未实现，前端不得伪造成可用功能；必须显示”暂不可用”状态并在 `docs/frontend-ui-checklist.md` 标为 Open。
+
+### 9.2 列表页筛选与分页接线
+
+列表页的搜索、分类筛选、排序和分页控件必须与 API 查询参数真实联动：
+
+- 每个筛选控件必须绑定受控 state 或 URL search params
+- state 变化必须驱动 `useQuery` 重新请求
+- 后端返回分页元数据（total/page/page_size）时，前端必须渲染分页控件
+- 查询参数不得硬编码为固定值
+
+审计脚本会检测列表页（文件名含 Market/List/Browse 等）中的 `<input>` 和 `<select>` 是否有对应的 state 绑定。无状态绑定的控件视为装饰性控件，会触发审计失败。详见 `docs/frontend-anti-patterns.md` §12。
 
 ## 10. 明确禁止的反模式
 

@@ -34,3 +34,7 @@
 - 同步生成 migration、健康检查和启动所需的最小基础设施
 - 后端生产 Dockerfile 必须使用非 root 用户运行，且不得依赖 editable install
 - 补充不少于 8 个后端关键测试：成功、认证失败、越权、非法输入、冲突、非法状态流转、限流或依赖异常
+- 管理页面需要的专用数据视图（如 pending 审核列表、按状态筛选等）必须有独立 API 端点，不得让前端复用公共列表接口后在客户端过滤
+- Rate limiting 的 INCR + EXPIRE 必须使用 Redis pipeline 原子执行，禁止分两步独立操作（TOCTOU 竞态可导致 key 永久无 TTL）
+- Refresh token 端点必须从数据库重新加载用户并校验其是否存在且未被禁用，不得仅凭 token 有效就直接签发
+- OpenAPI 导出脚本必须从 FastAPI app 实例调用 `app.openapi()` 导出真实 spec；禁止用 `printf`/`echo`/`cat` 手写静态 JSON

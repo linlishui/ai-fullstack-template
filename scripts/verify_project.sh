@@ -99,18 +99,69 @@ run_backend_check() {
       fi
       ./.venv/bin/ruff check .
     )
-    return
+  else
+    (
+      cd "$backend_dir"
+      if python -c "import pytest_cov" >/dev/null 2>&1; then
+        pytest --cov=app --cov-report=term-missing
+      else
+        pytest
+      fi
+      ruff check .
+    )
   fi
 
-  (
-    cd "$backend_dir"
-    if python -c "import pytest_cov" >/dev/null 2>&1; then
-      pytest --cov=app --cov-report=term-missing
-    else
-      pytest
+  validate_backend_test_quality "$backend_dir"
+}
+
+validate_backend_test_quality() {
+  local backend_dir="$1"
+
+  # --- B.1 最少 8 个测试函数 ---
+  local test_count
+  test_count=$(grep -R -c -E '^def test_|^async def test_' "$backend_dir/tests/" 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
+  if [[ "$test_count" -lt 8 ]]; then
+    echo "FAIL: Backend has only $test_count test functions (minimum 8 required)" >&2
+    exit 1
+  fi
+
+  # --- B.2 假测试检测：每个测试文件必须导入 app.* 模块 ---
+  local has_fake=false
+  while IFS= read -r test_file; do
+    local fname
+    fname="$(basename "$test_file")"
+    [[ "$fname" == "__init__.py" || "$fname" == "conftest.py" ]] && continue
+    if ! grep -qE '^from app\.|^import app\.|^from app ' "$test_file"; then
+      echo "WARNING: Suspected fake test — $test_file does not import any app.* module" >&2
+      has_fake=true
     fi
-    ruff check .
-  )
+  done < <(find "$backend_dir/tests" -name 'test_*.py' -o -name '*_test.py' 2>/dev/null)
+  if [[ "$has_fake" == true ]]; then
+    echo "FAIL: One or more test files do not import production code (see warnings above)" >&2
+    exit 1
+  fi
+
+  # --- B.3 前端测试脚本调用真实运行器 ---
+  local frontend_dir
+  frontend_dir="$(dirname "$backend_dir")/frontend"
+  if [[ -f "$frontend_dir/package.json" ]]; then
+    local test_cmd
+    test_cmd="$(node -e "console.log(require('$frontend_dir/package.json').scripts?.test || '')" 2>/dev/null || true)"
+    if [[ -n "$test_cmd" ]] && ! echo "$test_cmd" | grep -qE 'vitest|jest|mocha|cypress|playwright'; then
+      echo "FAIL: Frontend test script does not invoke a known test runner: $test_cmd" >&2
+      exit 1
+    fi
+  fi
+
+  # --- B.4 前端测试文件必须 render 真实组件 ---
+  if [[ -d "$frontend_dir/src" ]]; then
+    if grep -R -l -E '\.test\.|\.spec\.' "$frontend_dir/src" --include='*.tsx' --include='*.jsx' 2>/dev/null | head -1 | grep -q .; then
+      if ! grep -R -qE 'render\(|screen\.' "$frontend_dir/src" --include='*.test.*' --include='*.spec.*' 2>/dev/null; then
+        echo "FAIL: Frontend test files exist but none render a component (missing render()/screen.)" >&2
+        exit 1
+      fi
+    fi
+  fi
 }
 
 run_frontend_checks() {
@@ -119,6 +170,21 @@ run_frontend_checks() {
   (
     cd "$frontend_dir"
     npm run build
+
+    # --- A. 构建产物验证 ---
+    # 验证 build 脚本调用了真实构建工具
+    local build_cmd
+    build_cmd="$(node -e "console.log(require('./package.json').scripts?.build || '')" 2>/dev/null || true)"
+    if [[ -n "$build_cmd" ]] && ! echo "$build_cmd" | grep -qE 'vite|tsc|next|webpack|rollup|esbuild|parcel'; then
+      echo "FAIL: package.json build script does not invoke a known build tool: $build_cmd" >&2
+      exit 1
+    fi
+    # 验证 dist/ 产物存在且含 JS bundle
+    if [[ ! -d dist ]] || ! find dist -name '*.js' -o -name '*.mjs' 2>/dev/null | grep -q .; then
+      echo "FAIL: npm run build did not produce dist/ with JS bundles" >&2
+      exit 1
+    fi
+
     npm run lint
     local npm_scripts
     npm_scripts="$(npm run)"

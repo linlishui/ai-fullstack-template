@@ -83,6 +83,7 @@ Compose 服务至少包含：
 - 首次启动所需 migration 必须有明确执行路径
 - 如果关键页面依赖种子数据、分类或管理员账号，必须说明初始化方式
 - 不允许要求使用者手工建表、手工改容器配置或临时修改源码才能启动
+- FastAPI lifespan context manager 的 `yield` 之后必须执行清理：至少 `await engine.dispose()` 关闭数据库连接池、`await redis.close()` 关闭 Redis 连接；容器停止时不得泄漏连接
 - README 中必须写明最小启动步骤、验证命令和常见故障入口
 
 ## 7. 安全与发布底线
