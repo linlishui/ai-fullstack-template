@@ -173,7 +173,9 @@ docker compose up --build
 ```text
 读取并执行 prompts/00-generate-from-requirement.md。
 必须基于 requirements/requirement.md 先生成 OpenSpec，再生成 generated/<project-slug>/ 独立工程。
-生成后执行 scripts/audit_generated_project.sh 和 scripts/verify_project.sh，失败项先修复再结束。
+生成后必须继续读取并执行 prompts/08-security-review.md，完成认证、鉴权、JWT/Refresh Token、Cookie/CSRF、管理员初始化、限流、CORS、日志脱敏和生产安全门禁审查。
+随后读取并执行 prompts/07-fix-and-verify.md，修复安全审查、构建、测试、lint、OpenAPI、Compose、业务流和模板审计发现的问题。
+最后执行 scripts/audit_generated_project.sh generated/<project-slug> 和 scripts/verify_project.sh generated/<project-slug>，失败项必须先修复并重新验证，不能跳过后结束。
 ```
 
 ### 3. 修复验证

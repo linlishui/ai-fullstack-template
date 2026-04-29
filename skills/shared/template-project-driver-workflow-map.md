@@ -92,6 +92,7 @@ Core frontend workflows must be wired to real API clients, TanStack Query mutati
   - Cross-check against backend, testing, deployment, and frontend spec entrypoints before final handoff.
 - `prompts/08-security-review.md`
   - Security review stage.
+  - Run after initial generation and before final repair/verification for projects with auth, authorization, token, cookie, CSRF, rate-limit, CORS, admin bootstrap, logging, or other production security gates.
 
 ## Script Entry Points
 
@@ -159,6 +160,8 @@ Minimum synchronized project context:
 Do not call the generated project complete unless the flow targets these checks:
 
 ```bash
+读取并执行 prompts/08-security-review.md
+读取并执行 prompts/07-fix-and-verify.md
 ./scripts/audit_generated_project.sh generated/<project-slug>
 ./scripts/verify_project.sh generated/<project-slug>
 ```

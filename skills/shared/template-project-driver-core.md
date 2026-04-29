@@ -55,10 +55,12 @@ Also read the shared workflow map at `skills/shared/template-project-driver-work
     - Non-negotiable gates: OpenSpec-first, real business loop, DB-backed persistence, real frontend API/mutation actions, auth/authz/input validation, executable tests, and template audit.
     - Default production enhancements: rate limiting, request id, logs, metrics, tracing extension point, Nginx, Docker, CI, OpenAPI, and project-level security/observability/test docs.
     - On-demand extensions: complex auth UX, background workers, complex caching, BI dashboards, fine-grained permission matrices, and multi-tenancy only when the requirement or risk profile needs them.
-11. Run template-level audit and project-level verification after generation.
-12. Fix obvious failures before stopping.
-13. Keep generated project documentation evidence-led and concise. Do not copy long template rules into generated docs; record project facts, evidence paths, verification commands, status, and risks.
-14. Report the final output directory, what was validated, and what risks or assumptions remain.
+11. Run `prompts/08-security-review.md` after generation and before final verification when the project includes auth, authorization, tokens, cookies, CSRF, admin bootstrap, rate limiting, CORS, logging, or other production security gates.
+12. Run `prompts/07-fix-and-verify.md` to repair findings from security review, build, tests, lint, OpenAPI export, Compose, business-flow checks, and template audit.
+13. Run template-level audit and project-level verification after generation and repair.
+14. Fix obvious failures before stopping.
+15. Keep generated project documentation evidence-led and concise. Do not copy long template rules into generated docs; record project facts, evidence paths, verification commands, status, and risks.
+16. Report the final output directory, what was validated, and what risks or assumptions remain.
 
 ## Required Generated Project Shape
 
@@ -166,8 +168,10 @@ generated/<project-slug>/
 - Add `scripts/check_business_flow.sh` when the requirement defines business actions that can be asserted after startup.
 - Business-flow scripts must be self-contained, repeatable, and not require manually supplied admin tokens.
 
-### Stage 7: Audit And Verify
+### Stage 7: Security Review, Repair, And Verify
 
+- Read and apply `prompts/08-security-review.md` before final handoff for production security review.
+- Read and apply `prompts/07-fix-and-verify.md` after generation or after any security/review/test failure.
 - Run `./scripts/audit_generated_project.sh generated/<project-slug>` for template-level completeness.
 - Run `./scripts/verify_project.sh generated/<project-slug>` for executable validation, including frontend tests and OpenAPI export.
 - Use `./scripts/verify_project.sh generated/<project-slug> --with-compose-up` when container startup and project business-flow checks should be exercised.
@@ -176,6 +180,7 @@ generated/<project-slug>/
 ## Repository Entry Points
 
 - `prompts/00-generate-from-requirement.md` is the orchestration prompt for full-flow generation.
+- `prompts/08-security-review.md` is the security review prompt and should run before final verification for production-grade generated projects.
 - `prompts/07-fix-and-verify.md` is the repair and verification prompt.
 - `scripts/audit_generated_project.sh` checks structure, spec, README, env completeness, security/observability/test-plan docs, CI gates, and production-grade code/config evidence.
 - `scripts/verify_project.sh` checks template audit, compose, backend tests/lint, frontend build/lint/tests, OpenAPI export, and optional business-flow execution.
