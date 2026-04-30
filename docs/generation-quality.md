@@ -36,7 +36,7 @@
 ### 1.6 并发只优化执行编排
 
 - 并发生成只能发生在 OpenSpec、共享 API 合约、数据模型、权限规则和关键业务动作确定之后。
-- 并发任务必须记录在 `generated/<project-slug>/docs/parallel-execution-plan.md`，包括 owner、写入范围、共享契约、冲突和集成顺序。
+- 并发任务必须记录在 `generated/<project-slug>/doc/parallel-execution-plan.md`，包括 owner、写入范围、共享契约、冲突和集成顺序。
 - 并发不得绕开高分门禁；所有分片完成后仍必须由主控统一集成、安全审查、模板审计和项目级验证。
 - 并发规则入口为 `docs/concurrent-generation.md`。
 
@@ -117,11 +117,12 @@
 - 前端是否同步输出页面质量相关说明或检查清单
 - 是否同步输出生产就绪清单
 - 是否包含 `.github/workflows/` 与 `infra/nginx/`
-- 是否包含项目级 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/parallel-execution-plan.md`、`docs/review-log.md`、`docs/fix-log.md`
+- 是否包含项目级 `AGENTS.md`、`CLAUDE.md`、`doc/ai-workflow.md`、`doc/parallel-execution-plan.md`、`doc/review-log.md`、`doc/fix-log.md`
 - 前后端核心入口是否存在
 - 后端安全、错误处理、统一响应、健康检查等基础模块是否存在
 - `.env.example` 是否覆盖关键配置
 - README 是否包含验证命令
+- `doc/screenshots/` 是否包含主要前端页面运行截图（至少 3 张），README 是否包含「运行截图」章节
 
 ## 项目级验证清单
 
@@ -141,11 +142,11 @@
 - 测试是否对照 `docs/testing-spec.md` 覆盖关键业务动作、异常与回归路径
 - 部署是否对照 `docs/deployment-spec.md` 补齐环境变量、健康检查、启动说明和容器依赖
 - 如果项目存在 `generated/<project-slug>/scripts/check_business_flow.sh`，是否已在服务启动后执行关键业务动作检查
-- 如有需要，再加 `--with-compose-up` 验证容器启动
+- 如有需要，再加 `--with-compose-up` 验证容器启动并自动截取前端页面截图（`scripts/capture_screenshots.sh` 在服务启动后通过 Playwright 自动执行）
 
 除此之外，还应检查项目级回归清单：
 
-- `generated/<project-slug>/docs/key-business-actions-checklist.md` 是否存在
+- `generated/<project-slug>/doc/key-business-actions-checklist.md` 是否存在
 - 清单中的关键业务动作是否来自当前需求，而不是套用固定样例
 - 修复后是否重新标注了动作验证状态
 
@@ -154,7 +155,7 @@
 在结束前，AI 应至少自查这些问题：
 
 - 是否已经从当前需求中提炼出 3-5 个最关键的业务动作，并逐一验证
-- 是否已经把这些动作写入 `generated/<project-slug>/docs/key-business-actions-checklist.md`
+- 是否已经把这些动作写入 `generated/<project-slug>/doc/key-business-actions-checklist.md`
 - 需求中的核心角色是否都能完成自己的关键动作
 - 关键状态是否有明确入口触发，而不是只存在后端接口或数据库状态
 - 关键接口是否有权限校验和输入校验
@@ -163,7 +164,7 @@
 - 是否已覆盖 Logging、Metrics、Tracing、安全头、Refresh Token 和 CSRF 等生产级要求
 - 是否已把 `docs/production-grade-rubric.md` 中的安全、测试、OpenAPI、限流、Docker 与可观测性要求落到代码和脚本，而不是只写在文档中
 - 是否已把 AI 工具链规则和审查/修复记录下沉到生成项目本身，而不是只保留在模板仓库
-- 如果启用并发，是否已按 `docs/parallel-execution-plan.md` 完成主控集成，且不存在未解决的接口、环境变量、脚本或文档证据冲突
+- 如果启用并发，是否已按 `doc/parallel-execution-plan.md` 完成主控集成，且不存在未解决的接口、环境变量、脚本或文档证据冲突
 - 关键列表、详情、工作台、审批或运营视图是否与真实状态一致
 - 空数据、重复数据、越权访问、失败提交是否有反馈
 - 初始化项目后，系统是否能以最小步骤跑起来

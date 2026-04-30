@@ -13,7 +13,7 @@
 要求：
 
 - 输出到 `generated/<project-slug>/backend/`
-- 如果作为并发分片执行，默认只写 `generated/<project-slug>/backend/` 和已声明归属本分片的脚本文件；修改 README、`.env.example`、compose、CI 或项目级 docs 前必须确认 `docs/parallel-execution-plan.md` 已把对应章节或文件分配给本分片
+- 如果作为并发分片执行，默认只写 `generated/<project-slug>/backend/` 和已声明归属本分片的脚本文件；修改 README、`.env.example`、compose、CI 或项目级 docs 前必须确认 `doc/parallel-execution-plan.md` 已把对应章节或文件分配给本分片
 - 使用 Python 3.12+、FastAPI、Pydantic v2、SQLAlchemy 2.x async、Alembic
 - 不要把所有后端代码写进 `main.py`
 - 按模块拆分目录
@@ -30,7 +30,7 @@
 - 必须提供 OpenAPI 导出脚本或项目级 `scripts/export_openapi.sh`
 - 管理员初始化必须通过 seed/bootstrap 脚本或环境变量控制，禁止 email 前缀提权
 - JWT/Refresh Token/Cookie/CSRF 策略必须符合 `docs/production-grade-rubric.md`
-- 密码哈希默认使用 Argon2id；如因依赖或平台原因使用 bcrypt/PBKDF2，必须在 `docs/security-notes.md` 中说明取舍，并保证文档与代码算法一致
+- 密码哈希默认使用 Argon2id；如因依赖或平台原因使用 bcrypt/PBKDF2，必须在 `doc/security-notes.md` 中说明取舍，并保证文档与代码算法一致
 - SQLAlchemy async 返回 DTO 前必须 eager load 关联，避免响应序列化触发 lazy loading
 - FastAPI 启停逻辑优先使用 lifespan，避免新增已废弃的 `@app.on_event`
 - 同步生成 migration、健康检查和启动所需的最小基础设施

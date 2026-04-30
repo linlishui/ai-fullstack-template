@@ -1,6 +1,6 @@
 # Frontend Anti-Patterns
 
-本文件列出 AI 生成前端时最常见、最容易导致“能跑但不好用”的反模式。以下内容不是建议，而是默认禁止项；若确有例外，必须在项目级 `docs/frontend-ui-checklist.md` 中说明理由。
+本文件列出 AI 生成前端时最常见、最容易导致”能跑但不好用”的反模式。以下内容不是建议，而是默认禁止项；若确有例外，必须在项目级 `doc/frontend-ui-checklist.md` 中说明理由。
 
 ## 1. 裸写原生业务控件
 
@@ -68,7 +68,7 @@
 
 - 所有核心控件使用统一 token
 - Select、Input、Textarea、Button 高度、边框和阴影统一
-- 在项目级 `docs/frontend-ui-checklist.md` 里记录控件复用情况
+- 在项目级 `doc/frontend-ui-checklist.md` 里记录控件复用情况
 
 ## 6. 没有为极端内容做保护
 
@@ -152,7 +152,7 @@
 正确做法：
 
 - 提供 AuthContext、auth store 或等价会话层，统一处理登录、登出、当前用户、401 与 refresh 策略
-- 若不做 refresh token，必须使用短 access token，并在 `docs/security-notes.md` 说明风险与取舍
+- 若不做 refresh token，必须使用短 access token，并在 `doc/security-notes.md` 说明风险与取舍
 - 注册、登录、退出和受限动作提示必须能被测试或 smoke 验证覆盖
 
 ## 快速自查问题

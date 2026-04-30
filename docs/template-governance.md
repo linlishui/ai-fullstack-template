@@ -21,16 +21,16 @@
 
 - `README.md`：运行、验证、目录、环境变量、业务入口和故障排查。
 - `AGENTS.md` / `CLAUDE.md`：项目级 AI 协作入口，只写本项目技术栈、验证命令、禁止事项和增量开发规则。
-- `docs/architecture.md`：当前项目架构事实、模块边界和关键设计决策。
-- `docs/development.md`：本地开发、依赖安装、迁移、种子数据和常见任务。
-- `docs/key-business-actions-checklist.md`：当前需求提炼出的 3-5 个关键业务动作和验证状态。
-- `docs/frontend-ui-checklist.md`：当前页面的状态、布局、真实 API 对接和已知 UI 风险。
-- `docs/production-readiness-checklist.md`：生产级证据索引，按项链接到代码、配置、CI、脚本或测试。
-- `docs/security-notes.md`：当前项目安全实现、取舍和剩余风险。
-- `docs/observability.md`：当前项目日志、metrics、health、tracing 和验证方式。
-- `docs/test-plan.md`：当前项目测试矩阵、命令、覆盖范围和未自动化风险。
-- `docs/parallel-execution-plan.md`：并发生成计划、文件所有权、共享契约、集成顺序和验证结果；未启用并发时记录原因。
-- `docs/review-log.md` / `docs/fix-log.md`：审查与修复记录，只记录本轮事实，不复制规范。
+- `doc/architecture.md`：当前项目架构事实、模块边界和关键设计决策。
+- `doc/development.md`：本地开发、依赖安装、迁移、种子数据和常见任务。
+- `doc/key-business-actions-checklist.md`：当前需求提炼出的 3-5 个关键业务动作和验证状态。
+- `doc/frontend-ui-checklist.md`：当前页面的状态、布局、真实 API 对接和已知 UI 风险。
+- `doc/production-readiness-checklist.md`：生产级证据索引，按项链接到代码、配置、CI、脚本或测试。
+- `doc/security-notes.md`：当前项目安全实现、取舍和剩余风险。
+- `doc/observability.md`：当前项目日志、metrics、health、tracing 和验证方式。
+- `doc/test-plan.md`：当前项目测试矩阵、命令、覆盖范围和未自动化风险。
+- `doc/parallel-execution-plan.md`：并发生成计划、文件所有权、共享契约、集成顺序和验证结果；未启用并发时记录原因。
+- `doc/review-log.md` / `doc/fix-log.md`：审查与修复记录，只记录本轮事实，不复制规范。
 
 ## 3. 去冗余原则
 

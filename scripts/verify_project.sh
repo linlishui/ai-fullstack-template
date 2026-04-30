@@ -20,9 +20,10 @@ This script runs:
 7. frontend npm test if a test script exists
 8. OpenAPI export script if present
 9. project business flow checks if generated/<project-slug>/scripts/check_business_flow.sh exists and services are started
+10. frontend screenshot capture via Playwright if services are started and screenshots are missing
 
 Optional:
-10. docker compose up --build -d
+11. docker compose up --build -d
 EOF
 }
 
@@ -285,5 +286,31 @@ echo "Running OpenAPI export check in $PROJECT_DIR"
 run_openapi_export "$PROJECT_DIR"
 
 run_business_flow_check "$PROJECT_DIR" "$WITH_COMPOSE_UP"
+
+run_screenshot_capture() {
+  local project_dir="$1"
+  local with_compose_up="$2"
+
+  if [[ "$with_compose_up" != true ]]; then
+    return
+  fi
+
+  # Skip if enough screenshots already exist
+  local existing=0
+  if [[ -d "$project_dir/doc/screenshots" ]]; then
+    existing=$(find "$project_dir/doc/screenshots" -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) 2>/dev/null | wc -l | tr -d ' ')
+  fi
+  if [[ "$existing" -ge 3 ]]; then
+    echo "Screenshots already present ($existing files), skipping capture."
+    return
+  fi
+
+  if [[ -x "$SCRIPT_DIR/capture_screenshots.sh" ]]; then
+    echo "Capturing frontend screenshots for $project_dir"
+    "$SCRIPT_DIR/capture_screenshots.sh" "$project_dir" || echo "WARNING: Screenshot capture failed (non-blocking)"
+  fi
+}
+
+run_screenshot_capture "$PROJECT_DIR" "$WITH_COMPOSE_UP"
 
 echo "Verification completed for $PROJECT_DIR"

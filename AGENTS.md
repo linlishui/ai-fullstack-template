@@ -41,7 +41,7 @@
 ### 4. 设计文档与 Spec Driven
 
 - 需求、OpenSpec、架构、接口、数据模型、任务拆分必须先于完整实现产出
-- 代码实现必须能回溯到项目级 `requirements/`、`openspec/` 与 `docs/`
+- 代码实现必须能回溯到项目级 `requirements/`、`openspec/` 与 `doc/`
 - 任何新增能力都应优先补规格与设计，而不是直接改业务代码
 
 ### 5. AI 工具链使用
@@ -65,7 +65,7 @@
 - 没有规格，不得直接生成完整业务代码
 - 生成实现时，必须统一输出到 `generated/<project-slug>/`
 - 必须先初始化项目级目录，再开始写业务代码
-- 项目级目录至少包含 `README.md`、`.gitignore`、`.env.example`、`compose.yaml`、`requirements/`、`docs/`、`scripts/`、`backend/`、`frontend/`、`openspec/`
+- 项目级目录至少包含 `README.md`、`.gitignore`、`.env.example`、`compose.yaml`、`requirements/`、`doc/`、`scripts/`、`backend/`、`frontend/`、`openspec/`
 - 如按生产级基线生成，应同时包含 `infra/nginx/`、`.github/workflows/`、`.gitlab-ci.yml` 与 `.claude/skills/find-skills/`
 - 独立工程默认还应包含项目级 `AGENTS.md`、`CLAUDE.md`、AI 协作记录文档、安全说明、可观测性说明与测试计划
 
@@ -83,7 +83,7 @@ generated/<project-slug>/
   compose.yaml
   .gitlab-ci.yml
   requirements/
-  docs/
+  doc/
     ai-workflow.md
     parallel-execution-plan.md
     review-log.md
@@ -91,6 +91,7 @@ generated/<project-slug>/
     security-notes.md
     observability.md
     test-plan.md
+    screenshots/
   scripts/
   openspec/
   backend/
@@ -207,7 +208,7 @@ generated/<project-slug>/frontend/
 - 前端必须提供最小测试命令，默认 `npm test -- --run`，覆盖关键页面、表单、空态/错误态或未登录引导中的合理子集
 - 前端测试至少提供 3 个测试文件，分别覆盖 API client、认证流程、页面交互中不同类别的验证路径；仅有 1 个冒烟测试不满足模板要求
 - 需要认证的页面必须有路由级守卫（ProtectedRoute），未登录时重定向到登录页；全局导航必须根据认证状态动态显示登录/登出入口；统一 HTTP client 必须实现 401 → refresh → retry 自动刷新机制；App 初始化必须尝试 session 恢复
-- 不得默认把长期 token 存入 localStorage；如采用 bearer token，应在 `docs/security-notes.md` 中说明 XSS 风险与替代方案
+- 不得默认把长期 token 存入 localStorage；如采用 bearer token，应在 `doc/security-notes.md` 中说明 XSS 风险与替代方案
 
 ## 配置与安全规则
 
@@ -230,14 +231,16 @@ generated/<project-slug>/frontend/
 - 接口层、服务层、数据访问层职责必须清晰
 - 前后端目录结构必须支持后续 AI 增量迭代
 - 项目级 `requirements/` 必须跟随生成项目一起输出，至少包含当前业务需求快照
-- 项目级 `docs/` 必须跟随生成项目一起输出，至少包含开发与架构说明
-- 项目级 `docs/` 还应包含 `key-business-actions-checklist.md`、`frontend-ui-checklist.md`、`production-readiness-checklist.md`、`security-notes.md`、`observability.md`、`test-plan.md`
-- 项目级 AI 协作文件应跟随生成项目一起输出，至少包含 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/parallel-execution-plan.md`、`docs/review-log.md`、`docs/fix-log.md`
+- 项目级 `doc/` 必须跟随生成项目一起输出，至少包含开发与架构说明
+- 项目级 `doc/` 还应包含 `key-business-actions-checklist.md`、`frontend-ui-checklist.md`、`production-readiness-checklist.md`、`security-notes.md`、`observability.md`、`test-plan.md`
+- 项目级 AI 协作文件应跟随生成项目一起输出，至少包含 `AGENTS.md`、`CLAUDE.md`、`doc/ai-workflow.md`、`doc/parallel-execution-plan.md`、`doc/review-log.md`、`doc/fix-log.md`
 - OpenSpec 仅保留在项目级 `generated/<project-slug>/openspec/` 中，不再在模板根目录维护业务级 OpenSpec 副本
 - 项目级 `openspec/` 必须跟随生成项目一起输出，至少包含 `project.md`、`specs/<capability>/spec.md` 形式的当前业务规格，以及 `changes/<change-id>/proposal.md`、`design.md`、`tasks.md` 等完整变更文档
 - 项目级 `scripts/` 必须跟随生成项目一起输出，至少包含验证或清理等项目级辅助脚本
 - migration、测试、文档必须与实现同步更新
 - 项目级 `README.md` 必须与生成后的真实目录结构保持一致
+- 项目级 `README.md` 必须包含「运行截图」章节，引用 `doc/screenshots/` 下的前端页面截图展示核心流程效果
+- 项目级 `doc/screenshots/` 必须包含主要前端页面运行截图，至少覆盖 3-5 个核心流程页面；若未提供截图将影响「功能完整性」维度评估
 - 验证命令必须写入项目级 `README.md`
 
 ## 质量保障规则
@@ -248,6 +251,7 @@ generated/<project-slug>/frontend/
 - 前端至少验证 `npm run build`、`npm run lint` 与 `npm test -- --run`
 - 必须验证 OpenAPI 导出脚本和项目级业务流脚本
 - 必须执行模板级审计 `scripts/audit_generated_project.sh generated/<project-slug>`，确保安全、可观测性、测试计划、CI、Nginx、限流、metrics、OpenAPI 等生产级证据齐全
+- 服务启动后（`--with-compose-up`），`scripts/capture_screenshots.sh` 会自动通过 Playwright 截取前端页面截图到 `doc/screenshots/`；若服务未启动或截图不足 3 张，需手动补充
 - 前端除 `build` 和 `lint` 外，还必须对照 `docs/frontend-ui-spec.md` 中的验收清单做一轮视觉与可用性自查，重点检查按钮换行、控件变形、长文本溢出和移动端筛选区布局
 - 生成项目还应补齐 `infra/nginx/`、`.github/workflows/ci.yml`、`.gitlab-ci.yml`、`.claude/skills/find-skills/`、生产就绪清单与必要时的业务流验证脚本
 - 发现明显错误后应先修复再结束任务

@@ -15,7 +15,7 @@
 要求：
 
 - 输出到 `generated/<project-slug>/frontend/`
-- 如果作为并发分片执行，默认只写 `generated/<project-slug>/frontend/` 和 `docs/frontend-ui-checklist.md` 中分配给前端的证据项；不得改后端、compose、CI 或共享文档，除非 `docs/parallel-execution-plan.md` 已明确授权
+- 如果作为并发分片执行，默认只写 `generated/<project-slug>/frontend/` 和 `doc/frontend-ui-checklist.md` 中分配给前端的证据项；不得改后端、compose、CI 或共享文档，除非 `doc/parallel-execution-plan.md` 已明确授权
 - 使用 React、TypeScript、Vite、Tailwind CSS、shadcn/ui、TanStack Query、React Hook Form、Zod
 - 默认接入 Vitest + Testing Library 或等价测试方案
 - 不要把所有前端代码写进 `App.tsx`
@@ -28,11 +28,11 @@
 - 必须提供统一 HTTP 客户端与错误处理，禁止在业务页面裸写 `fetch`
 - 必须至少提供一处 ErrorBoundary，以及关键路由的 `React.lazy + Suspense` 懒加载
 - 未登录、无权限或缺少前置条件的交互不得静默失败；点击后必须提示原因，并给出登录、跳转或下一步引导
-- 不得默认把长期 token 存入 localStorage；如使用 bearer token，应限制有效期并在 `docs/security-notes.md` 中说明 XSS 风险和替代方案
+- 不得默认把长期 token 存入 localStorage；如使用 bearer token，应限制有效期并在 `doc/security-notes.md` 中说明 XSS 风险和替代方案
 - 主题 token 或 CSS 变量必须先定义再使用，默认参考 `docs/design-tokens.md`
 - 推荐使用成熟组件库（如 shadcn/ui）初始化基础组件，避免手写 Button、Input、Dialog 等基础 UI 组件
 - 推荐安装图标库（如 Lucide React），页面操作按钮和状态标识应带语义图标
-- 在 `generated/<project-slug>/docs/frontend-ui-checklist.md` 输出项目级前端实现清单，至少记录主题方向、页面映射、关键状态设计与剩余风险
+- 在 `generated/<project-slug>/doc/frontend-ui-checklist.md` 输出项目级前端实现清单，至少记录主题方向、页面映射、关键状态设计与剩余风险
 - 保证构建脚本与 lint 脚本可用
 - 必须提供 `npm test -- --run` 或等价前端测试命令，至少覆盖一个关键页面 smoke、表单校验、空态/错误态或未登录引导
 - 必须生成标准 `index.html`，包含 `<!doctype html>`、`<html lang>`、`charset`、`viewport` 和业务标题

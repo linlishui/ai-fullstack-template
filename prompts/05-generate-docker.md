@@ -13,7 +13,7 @@
 要求：
 
 - 输出到 `generated/<project-slug>/`
-- 如果作为并发分片执行，主要负责 `compose.yaml`、Dockerfile、`.dockerignore`、`infra/nginx/`、`.github/workflows/`、`.gitlab-ci.yml`、运行相关 README 小节和环境变量模板；不得改写业务代码，除非集成时发现容器入口必须调整并记录在 `docs/parallel-execution-plan.md`
+- 如果作为并发分片执行，主要负责 `compose.yaml`、Dockerfile、`.dockerignore`、`infra/nginx/`、`.github/workflows/`、`.gitlab-ci.yml`、运行相关 README 小节和环境变量模板；不得改写业务代码，除非集成时发现容器入口必须调整并记录在 `doc/parallel-execution-plan.md`
 - 生成 `generated/<project-slug>/compose.yaml`
 - 服务至少包含 `nginx`、`frontend`、`backend`、`mysql`、`redis`
 - 所有配置来自 `.env`

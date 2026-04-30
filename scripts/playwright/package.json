@@ -1,0 +1,14 @@
+{
+  "name": "template-screenshot-tool",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automated frontend screenshot capture using Playwright for generated fullstack projects",
+  "type": "module",
+  "scripts": {
+    "capture": "node capture.mjs"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.24.0",
+    "playwright": "^1.44.0"
+  }
+}

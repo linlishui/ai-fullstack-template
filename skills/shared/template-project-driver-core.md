@@ -49,10 +49,10 @@ Also read the shared workflow map at `skills/shared/template-project-driver-work
 4. Derive a stable `project-slug` using lowercase letters, digits, and hyphens. Prefer an explicit project English name or system identifier from the requirement.
 5. Initialize `generated/<project-slug>/` before implementation.
 6. Generate OpenSpec in `generated/<project-slug>/openspec/` before writing backend or frontend business code.
-7. Synchronize project-level context into `generated/<project-slug>/requirements/`, `docs/`, `scripts/`, and `openspec/`.
+7. Synchronize project-level context into `generated/<project-slug>/requirements/`, `doc/`, `scripts/`, and `openspec/`.
 8. Generate implementation into `generated/<project-slug>/` only. Do not scatter business code into the repository root.
 9. Treat production-grade review items as default requirements, not optional polish, especially for observability, security, frontend resilience, Nginx, Docker, tests, OpenAPI, rate limiting, and CI assets.
-10. After OpenSpec and shared contracts are stable, use `docs/concurrent-generation.md` to decide whether backend, frontend, runtime delivery, verification, or review work can run concurrently. Concurrency must be recorded in `generated/<project-slug>/docs/parallel-execution-plan.md` and must not weaken any gate.
+10. After OpenSpec and shared contracts are stable, use `docs/concurrent-generation.md` to decide whether backend, frontend, runtime delivery, verification, or review work can run concurrently. Concurrency must be recorded in `generated/<project-slug>/doc/parallel-execution-plan.md` and must not weaken any gate.
 11. Apply quality requirements in three tiers:
     - Non-negotiable gates: OpenSpec-first, real business loop, DB-backed persistence, real frontend API/mutation actions, auth/authz/input validation, executable tests, and template audit.
     - Default production enhancements: rate limiting, request id, logs, metrics, tracing extension point, Nginx, Docker, CI, OpenAPI, and project-level security/observability/test docs.
@@ -78,8 +78,9 @@ generated/<project-slug>/
   compose.yaml
   .gitlab-ci.yml
   requirements/
-  docs/
+  doc/
     parallel-execution-plan.md
+    screenshots/
   scripts/
   openspec/
   backend/
@@ -101,10 +102,10 @@ generated/<project-slug>/
 - Core backend routes must use real SQLAlchemy-backed persistence through services/repositories. Do not use `MemoryStore`, process-global dict/list state, JSON files, or other in-memory stores for users, core business entities, workflow states, install/review actions, or statistics in production code.
 - Core frontend actions must call real API clients, TanStack Query mutations, or typed domain hooks. Do not use `setTimeout`, static success toasts, hardcoded stats/categories, or local fake data to claim create/review/install/publish/audit workflows are complete.
 - Readiness must probe database and Redis, metrics labels must avoid raw `request.url.path`, backend runtime containers must run as non-root, and generated frontends must include a standard `index.html` plus a lockfile.
-- Generate review-oriented checklists together with implementation: `docs/key-business-actions-checklist.md`, `docs/frontend-ui-checklist.md`, `docs/production-readiness-checklist.md`, `docs/security-notes.md`, `docs/observability.md`, and `docs/test-plan.md`.
+- Generate review-oriented checklists together with implementation: `doc/key-business-actions-checklist.md`, `doc/frontend-ui-checklist.md`, `doc/production-readiness-checklist.md`, `doc/security-notes.md`, `doc/observability.md`, and `doc/test-plan.md`.
 - Keep review-oriented checklists as evidence indexes, not duplicated rulebooks. Each item should name status, code/config/test/script evidence, and remaining risk.
-- Generate project-level AI collaboration assets together with implementation: `AGENTS.md`, `CLAUDE.md`, `docs/ai-workflow.md`, `docs/review-log.md`, and `docs/fix-log.md`.
-- Generate `docs/parallel-execution-plan.md` together with implementation. It must record whether concurrency was used, task ownership, write scopes, shared contracts, integration order, conflicts, and validation results.
+- Generate project-level AI collaboration assets together with implementation: `AGENTS.md`, `CLAUDE.md`, `doc/ai-workflow.md`, `doc/review-log.md`, and `doc/fix-log.md`.
+- Generate `doc/parallel-execution-plan.md` together with implementation. It must record whether concurrency was used, task ownership, write scopes, shared contracts, integration order, conflicts, and validation results.
 - Prefer minimal authentication when auth is only a supporting capability rather than the business core.
 - Validate key business actions from the actual requirement, not from a fixed demo checklist.
 
@@ -131,9 +132,10 @@ generated/<project-slug>/
 - Write `.gitignore` with runtime and build ignores only.
 - Write `.env.example` with backend, frontend, MySQL, Redis, JWT, refresh-token, CORS, cookie-security, and port-related keys as needed.
 - Include rate-limit, metrics/tracing, bootstrap/seed, and secure cookie environment keys where applicable.
-- Create `docs/architecture.md`, `docs/development.md`, `docs/key-business-actions-checklist.md`, `docs/frontend-ui-checklist.md`, `docs/production-readiness-checklist.md`, `docs/security-notes.md`, `docs/observability.md`, and `docs/test-plan.md`.
-- Create project-level AI context files `AGENTS.md`, `CLAUDE.md`, `docs/ai-workflow.md`, `docs/review-log.md`, and `docs/fix-log.md`.
-- Create `docs/parallel-execution-plan.md` before concurrent implementation starts; if concurrency is not used, record the reason and keep the file as handoff evidence.
+- Create `doc/architecture.md`, `doc/development.md`, `doc/key-business-actions-checklist.md`, `doc/frontend-ui-checklist.md`, `doc/production-readiness-checklist.md`, `doc/security-notes.md`, `doc/observability.md`, and `doc/test-plan.md`.
+- Create `doc/screenshots/` directory for frontend page screenshots. At least 3-5 core flow pages (login, dashboard, list, detail, form) must be captured after the frontend is running with real data. Screenshots must reflect actual running state, not blank or uninitialized pages.
+- Create project-level AI context files `AGENTS.md`, `CLAUDE.md`, `doc/ai-workflow.md`, `doc/review-log.md`, and `doc/fix-log.md`.
+- Create `doc/parallel-execution-plan.md` before concurrent implementation starts; if concurrency is not used, record the reason and keep the file as handoff evidence.
 - Copy the `find-skills` skill from the template repository `.claude/skills/find-skills/SKILL.md` into `generated/<project-slug>/.claude/skills/find-skills/SKILL.md` so the standalone project can discover and install Agent skills out of the box.
 - Write generated docs as compact project-specific evidence. Avoid duplicating generic template rules; reference the generated project's own files, commands, and known risks.
 - Add project-level scripts when validation or cleanup needs a stable entrypoint.
@@ -199,7 +201,7 @@ generated/<project-slug>/
 
 Before entering security review and verification, validate that the generated project delivers real business value rather than just passing static checks:
 
-- Identify 3-5 key business actions from the current requirement and record them in `docs/key-business-actions-checklist.md`. Verify each action is actually executable end-to-end, not just a page or API stub.
+- Identify 3-5 key business actions from the current requirement and record them in `doc/key-business-actions-checklist.md`. Verify each action is actually executable end-to-end, not just a page or API stub.
 - Confirm unified response structure, global exception handling, pagination, ErrorBoundary, unified HTTP error handling, Nginx, CI, and production-readiness checklist items are landed in code or config, not only mentioned in docs.
 - If authentication is only a support capability, verify auth implementation stays minimal and does not block or overshadow the main business loop.
 - Verify key state transitions have explicit entry points derived from the current requirement, not hardcoded demo examples.
@@ -213,10 +215,11 @@ Before entering security review and verification, validate that the generated pr
 
 After implementation and self-check, reconcile project-level assets against the actual generated content:
 
-- Update `README.md` to reflect the final directory structure, verification commands, environment variables, startup instructions, and any business-flow scripts actually produced.
+- Update `README.md` to reflect the final directory structure, verification commands, environment variables, startup instructions, and any business-flow scripts actually produced. Ensure README includes a「运行截图」section referencing screenshots from `doc/screenshots/`.
+- Verify `doc/screenshots/` contains at least 3 frontend page screenshots of core flow pages with real data. If screenshots are missing, capture them before finalizing.
 - Update `.env.example` to include every environment variable referenced by backend, frontend, Docker, Nginx, and CI configurations.
 - Update `.gitignore` to cover all runtime and build artifacts produced during implementation.
-- Update `docs/production-readiness-checklist.md`, `docs/security-notes.md`, `docs/observability.md`, and `docs/test-plan.md` to reflect the actual implementation state with evidence paths, not pre-implementation placeholders.
+- Update `doc/production-readiness-checklist.md`, `doc/security-notes.md`, `doc/observability.md`, and `doc/test-plan.md` to reflect the actual implementation state with evidence paths, not pre-implementation placeholders.
 - Ensure verification commands listed in README are executable against the final generated project.
 
 ### Stage 7: Security Review, Repair, And Verify
@@ -225,7 +228,8 @@ After implementation and self-check, reconcile project-level assets against the 
 - Read and apply `prompts/07-fix-and-verify.md` after generation or after any security/review/test failure.
 - Run `./scripts/audit_generated_project.sh generated/<project-slug>` for template-level completeness.
 - Run `./scripts/verify_project.sh generated/<project-slug>` for executable validation, including frontend tests and OpenAPI export.
-- Use `./scripts/verify_project.sh generated/<project-slug> --with-compose-up` when container startup and project business-flow checks should be exercised.
+- Use `./scripts/verify_project.sh generated/<project-slug> --with-compose-up` when container startup and project business-flow checks should be exercised. This also triggers `scripts/capture_screenshots.sh` to automatically capture frontend page screenshots via Playwright.
+- If screenshots were not captured automatically (e.g. services not started), run `./scripts/capture_screenshots.sh generated/<project-slug>` separately after starting services.
 - Fix clear breakages before handoff.
 
 ## Repository Entry Points
@@ -234,7 +238,8 @@ After implementation and self-check, reconcile project-level assets against the 
 - `prompts/08-security-review.md` is the security review prompt and should run before final verification for production-grade generated projects.
 - `prompts/07-fix-and-verify.md` is the repair and verification prompt.
 - `scripts/audit_generated_project.sh` checks structure, spec, README, env completeness, security/observability/test-plan docs, CI gates, and production-grade code/config evidence.
-- `scripts/verify_project.sh` checks template audit, compose, backend tests/lint, frontend build/lint/tests, OpenAPI export, and optional business-flow execution.
+- `scripts/verify_project.sh` checks template audit, compose, backend tests/lint, frontend build/lint/tests, OpenAPI export, optional business-flow execution, and optional screenshot capture.
+- `scripts/capture_screenshots.sh` uses Playwright to auto-extract frontend routes, authenticate, and capture page screenshots to `doc/screenshots/`. Called automatically by `verify_project.sh --with-compose-up`.
 - `docs/concurrent-generation.md` defines safe post-OpenSpec parallelization and required integration barriers.
 
 ## Final Reporting
@@ -245,7 +250,8 @@ When finishing work with this skill, always state:
 - the final generated directory
 - whether OpenSpec was produced before code generation
 - which audit and verification commands were run
-- whether concurrency was used and where `docs/parallel-execution-plan.md` records ownership and integration status
-- which key business actions were captured in `docs/key-business-actions-checklist.md`
+- whether concurrency was used and where `doc/parallel-execution-plan.md` records ownership and integration status
+- which key business actions were captured in `doc/key-business-actions-checklist.md`
 - which frontend and production-readiness checklist items remain open
+- whether `doc/screenshots/` contains the required frontend page screenshots (at least 3-5 core flow pages)
 - any remaining assumption, risk, or manual follow-up

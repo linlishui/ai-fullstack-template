@@ -254,7 +254,7 @@ for path in \
   "$PROJECT_DIR/.env.example" \
   "$PROJECT_DIR/compose.yaml" \
   "$PROJECT_DIR/requirements" \
-  "$PROJECT_DIR/docs" \
+  "$PROJECT_DIR/doc" \
   "$PROJECT_DIR/scripts" \
   "$PROJECT_DIR/openspec" \
   "$PROJECT_DIR/backend" \
@@ -269,20 +269,34 @@ done
 for path in \
   "$PROJECT_DIR/openspec/project.md" \
   "$PROJECT_DIR/requirements/requirement.md" \
-  "$PROJECT_DIR/docs/architecture.md" \
-  "$PROJECT_DIR/docs/development.md" \
-  "$PROJECT_DIR/docs/ai-workflow.md" \
-  "$PROJECT_DIR/docs/parallel-execution-plan.md" \
-  "$PROJECT_DIR/docs/review-log.md" \
-  "$PROJECT_DIR/docs/fix-log.md" \
-  "$PROJECT_DIR/docs/key-business-actions-checklist.md" \
-  "$PROJECT_DIR/docs/frontend-ui-checklist.md" \
-  "$PROJECT_DIR/docs/production-readiness-checklist.md" \
-  "$PROJECT_DIR/docs/security-notes.md" \
-  "$PROJECT_DIR/docs/observability.md" \
-  "$PROJECT_DIR/docs/test-plan.md"; do
+  "$PROJECT_DIR/doc/architecture.md" \
+  "$PROJECT_DIR/doc/development.md" \
+  "$PROJECT_DIR/doc/ai-workflow.md" \
+  "$PROJECT_DIR/doc/parallel-execution-plan.md" \
+  "$PROJECT_DIR/doc/review-log.md" \
+  "$PROJECT_DIR/doc/fix-log.md" \
+  "$PROJECT_DIR/doc/key-business-actions-checklist.md" \
+  "$PROJECT_DIR/doc/frontend-ui-checklist.md" \
+  "$PROJECT_DIR/doc/production-readiness-checklist.md" \
+  "$PROJECT_DIR/doc/security-notes.md" \
+  "$PROJECT_DIR/doc/observability.md" \
+  "$PROJECT_DIR/doc/test-plan.md"; do
   assert_path "$path"
 done
+
+# --- 前端页面截图检查 ---
+assert_path "$PROJECT_DIR/doc/screenshots"
+if [[ -d "$PROJECT_DIR/doc/screenshots" ]]; then
+  shopt -s nullglob
+  screenshot_files=("$PROJECT_DIR"/doc/screenshots/*.{png,jpg,jpeg,gif,webp,PNG,JPG,JPEG})
+  shopt -u nullglob
+  if [[ ${#screenshot_files[@]} -lt 3 ]]; then
+    echo "FAIL: doc/screenshots/ has only ${#screenshot_files[@]} image(s); minimum 3 frontend page screenshots required" >&2
+    echo "  Fix: add screenshots of core pages (login, dashboard, list, detail, form) to doc/screenshots/" >&2
+    exit 1
+  fi
+fi
+assert_grep "截图\|screenshot\|Screenshots" "$PROJECT_DIR/README.md"
 
 assert_glob_exists "OpenSpec capability spec" "$PROJECT_DIR/openspec/specs/*/spec.md"
 assert_glob_exists "OpenSpec proposal" "$PROJECT_DIR/openspec/changes/*/proposal.md"
@@ -397,14 +411,14 @@ assert_any_grep "CI frontend build" "npm run build" "$PROJECT_DIR/.github/workfl
 assert_any_grep "CI frontend tests" "npm test\|npm run test" "$PROJECT_DIR/.github/workflows" "$PROJECT_DIR/.gitlab-ci.yml"
 assert_any_grep "CI OpenAPI export" "export_openapi\|openapi" "$PROJECT_DIR/.github/workflows" "$PROJECT_DIR/.gitlab-ci.yml"
 assert_any_grep "CI dependency audit" "pip-audit\|safety\|npm audit" "$PROJECT_DIR/.github/workflows" "$PROJECT_DIR/.gitlab-ci.yml"
-assert_any_grep "security notes admin bootstrap" "Admin Bootstrap\|管理员初始化\|bootstrap\|seed" "$PROJECT_DIR/docs/security-notes.md"
-assert_any_grep "security notes rate limiting" "Rate Limiting\|限流\|rate limit" "$PROJECT_DIR/docs/security-notes.md"
-assert_any_grep "observability request id" "Request ID\|Correlation ID\|request_id\|correlation_id" "$PROJECT_DIR/docs/observability.md"
-assert_any_grep "observability metrics" "metrics\|Prometheus\|/metrics" "$PROJECT_DIR/docs/observability.md"
-assert_any_grep "test plan backend cases" "Auth failure\|认证失败\|Authorization failure\|越权" "$PROJECT_DIR/docs/test-plan.md"
-assert_any_grep "test plan frontend tests" "Frontend Tests\|前端测试\|Component\|Smoke" "$PROJECT_DIR/docs/test-plan.md"
-assert_any_grep "parallel plan task ownership" "owner\|Owner\|文件所有权\|写入范围" "$PROJECT_DIR/docs/parallel-execution-plan.md"
-assert_any_grep "parallel plan integration" "集成\|integration\|并发\|parallel" "$PROJECT_DIR/docs/parallel-execution-plan.md"
+assert_any_grep "security notes admin bootstrap" "Admin Bootstrap\|管理员初始化\|bootstrap\|seed" "$PROJECT_DIR/doc/security-notes.md"
+assert_any_grep "security notes rate limiting" "Rate Limiting\|限流\|rate limit" "$PROJECT_DIR/doc/security-notes.md"
+assert_any_grep "observability request id" "Request ID\|Correlation ID\|request_id\|correlation_id" "$PROJECT_DIR/doc/observability.md"
+assert_any_grep "observability metrics" "metrics\|Prometheus\|/metrics" "$PROJECT_DIR/doc/observability.md"
+assert_any_grep "test plan backend cases" "Auth failure\|认证失败\|Authorization failure\|越权" "$PROJECT_DIR/doc/test-plan.md"
+assert_any_grep "test plan frontend tests" "Frontend Tests\|前端测试\|Component\|Smoke" "$PROJECT_DIR/doc/test-plan.md"
+assert_any_grep "parallel plan task ownership" "owner\|Owner\|文件所有权\|写入范围" "$PROJECT_DIR/doc/parallel-execution-plan.md"
+assert_any_grep "parallel plan integration" "集成\|integration\|并发\|parallel" "$PROJECT_DIR/doc/parallel-execution-plan.md"
 
 assert_grep "<!doctype html\|<!DOCTYPE html" "$PROJECT_DIR/frontend/index.html"
 assert_grep "<html[^>]*lang=" "$PROJECT_DIR/frontend/index.html"
@@ -432,8 +446,8 @@ if grep -R -E -q "endswith\\([^)]*admin|startswith\\([^)]*admin|@admin\\.local|a
 fi
 
 if grep -R -E -q "localStorage\\.setItem.*token|localStorage\\.getItem.*token" "$PROJECT_DIR/frontend/src"; then
-  if [[ ! -f "$PROJECT_DIR/docs/security-notes.md" ]] || ! grep -q "localStorage" "$PROJECT_DIR/docs/security-notes.md"; then
-    echo "Token localStorage usage requires explicit risk note in docs/security-notes.md" >&2
+  if [[ ! -f "$PROJECT_DIR/doc/security-notes.md" ]] || ! grep -q "localStorage" "$PROJECT_DIR/doc/security-notes.md"; then
+    echo "Token localStorage usage requires explicit risk note in doc/security-notes.md" >&2
     exit 1
   fi
 fi
@@ -600,14 +614,14 @@ fi
 
 # --- Q. 密码哈希算法一致性 ---
 if [[ -d "$PROJECT_DIR/backend/app" ]]; then
-  if grep -R -q "argon2" "$PROJECT_DIR/docs/security-notes.md" 2>/dev/null; then
+  if grep -R -q "argon2" "$PROJECT_DIR/doc/security-notes.md" 2>/dev/null; then
     if ! grep -R -qE "argon2|PasswordHasher|hash_password" "$PROJECT_DIR/backend/app"; then
-      echo "FAIL: docs/security-notes.md mentions argon2 but backend code has no argon2 usage" >&2
+      echo "FAIL: doc/security-notes.md mentions argon2 but backend code has no argon2 usage" >&2
       exit 1
     fi
-  elif grep -R -q "bcrypt" "$PROJECT_DIR/docs/security-notes.md" 2>/dev/null; then
+  elif grep -R -q "bcrypt" "$PROJECT_DIR/doc/security-notes.md" 2>/dev/null; then
     if ! grep -R -qE "bcrypt|passlib.*bcrypt" "$PROJECT_DIR/backend/app"; then
-      echo "FAIL: docs/security-notes.md mentions bcrypt but backend code has no bcrypt usage" >&2
+      echo "FAIL: doc/security-notes.md mentions bcrypt but backend code has no bcrypt usage" >&2
       exit 1
     fi
   fi

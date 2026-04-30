@@ -8,10 +8,10 @@
 
 - `generated/<project-slug>/AGENTS.md`
 - `generated/<project-slug>/CLAUDE.md`
-- `generated/<project-slug>/docs/ai-workflow.md`
-- `generated/<project-slug>/docs/parallel-execution-plan.md`
-- `generated/<project-slug>/docs/review-log.md`
-- `generated/<project-slug>/docs/fix-log.md`
+- `generated/<project-slug>/doc/ai-workflow.md`
+- `generated/<project-slug>/doc/parallel-execution-plan.md`
+- `generated/<project-slug>/doc/review-log.md`
+- `generated/<project-slug>/doc/fix-log.md`
 
 必须覆盖：
 
@@ -25,8 +25,8 @@
 
 输出位置：
 
-- `generated/<project-slug>/docs/architecture.md`
-- `generated/<project-slug>/docs/development.md`
+- `generated/<project-slug>/doc/architecture.md`
+- `generated/<project-slug>/doc/development.md`
 
 `architecture.md` 必须记录：
 
@@ -48,7 +48,7 @@
 
 输出位置：
 
-- `generated/<project-slug>/docs/key-business-actions-checklist.md`
+- `generated/<project-slug>/doc/key-business-actions-checklist.md`
 
 必须包含当前需求提炼出的 3-5 个关键动作。每项至少记录：
 
@@ -66,7 +66,7 @@
 
 输出位置：
 
-- `generated/<project-slug>/docs/frontend-ui-checklist.md`
+- `generated/<project-slug>/doc/frontend-ui-checklist.md`
 
 必须记录：
 
@@ -82,7 +82,7 @@
 
 输出位置：
 
-- `generated/<project-slug>/docs/production-readiness-checklist.md`
+- `generated/<project-slug>/doc/production-readiness-checklist.md`
 
 必须按证据索引记录：
 
@@ -99,7 +99,7 @@
 
 输出位置：
 
-- `generated/<project-slug>/docs/security-notes.md`
+- `generated/<project-slug>/doc/security-notes.md`
 
 必须记录真实实现和剩余风险：
 
@@ -116,7 +116,7 @@
 
 输出位置：
 
-- `generated/<project-slug>/docs/observability.md`
+- `generated/<project-slug>/doc/observability.md`
 
 必须记录：
 
@@ -131,7 +131,7 @@
 
 输出位置：
 
-- `generated/<project-slug>/docs/test-plan.md`
+- `generated/<project-slug>/doc/test-plan.md`
 
 必须映射真实需求和关键风险：
 
@@ -146,7 +146,7 @@
 
 输出位置：
 
-- `generated/<project-slug>/docs/parallel-execution-plan.md`
+- `generated/<project-slug>/doc/parallel-execution-plan.md`
 
 必须记录：
 
@@ -157,7 +157,39 @@
 - 冲突记录：冲突项、影响、解决人、解决结果。
 - 集成与验证：安全审查、模板审计、项目验证、业务流脚本和剩余风险。
 
-## 10. Claude Skills Assets
+## 10. Frontend Page Screenshots
+
+输出位置：
+
+- `generated/<project-slug>/doc/screenshots/`
+
+生成项目必须在 `doc/` 目录中补充主要前端页面运行截图，建议覆盖核心业务流程页面。截图用于直观展示前端实现效果，也是「功能完整性」维度评估的参考依据之一。
+
+最低要求：
+
+- 截图文件存放于 `doc/screenshots/` 目录。
+- 至少覆盖 3-5 个核心页面，例如登录页、主列表页、详情页、工作台/Dashboard、表单提交页等关键业务流程页面。
+- 截图应反映真实运行状态（含数据），不得使用空白页或未初始化状态。
+- 项目级 `README.md` 必须包含「运行截图」章节，引用 `doc/screenshots/` 下的截图文件展示前端页面效果。
+- 若未提供截图，将影响「功能完整性」维度的评分。
+
+自动截图：
+
+模板提供 `scripts/capture_screenshots.sh`，在服务启动后通过 Playwright 自动访问前端页面并截图。该脚本会从前端路由配置自动提取页面路径，尝试 API 登录以访问受保护页面。`verify_project.sh --with-compose-up` 流程会自动调用该脚本。也可单独执行：
+
+```bash
+./scripts/capture_screenshots.sh generated/<project-slug>
+```
+
+建议截图命名规范：
+
+- `01-login.png` — 登录页
+- `02-dashboard.png` — 工作台 / Dashboard
+- `03-list.png` — 主列表页
+- `04-detail.png` — 详情页
+- `05-form.png` — 表单 / 创建页
+
+## 11. Claude Skills Assets
 
 输出位置：
 

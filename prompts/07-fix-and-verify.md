@@ -18,12 +18,12 @@
 - `generated/<project-slug>/openspec/` 下的规格文档
 - `generated/<project-slug>/AGENTS.md`
 - `generated/<project-slug>/CLAUDE.md`
-- `generated/<project-slug>/docs/key-business-actions-checklist.md`
-- `generated/<project-slug>/docs/production-readiness-checklist.md`
-- `generated/<project-slug>/docs/security-notes.md`
-- `generated/<project-slug>/docs/observability.md`
-- `generated/<project-slug>/docs/test-plan.md`
-- `generated/<project-slug>/docs/parallel-execution-plan.md`
+- `generated/<project-slug>/doc/key-business-actions-checklist.md`
+- `generated/<project-slug>/doc/production-readiness-checklist.md`
+- `generated/<project-slug>/doc/security-notes.md`
+- `generated/<project-slug>/doc/observability.md`
+- `generated/<project-slug>/doc/test-plan.md`
+- `generated/<project-slug>/doc/parallel-execution-plan.md`
 - `docs/backend-spec.md`
 - `docs/testing-spec.md`
 - `docs/deployment-spec.md`
@@ -32,16 +32,16 @@
 - `docs/production-grade-rubric.md`
 - `docs/fullstack-review-scoring.md`
 - 按 `docs/frontend-ui-spec.md` 的引用关系按需读取前端细分文档，并优先使用其中的验收清单做前端验收
-- 如果存在，读取 `generated/<project-slug>/docs/frontend-ui-checklist.md`
-- 如果存在，读取 `generated/<project-slug>/docs/ai-workflow.md`、`docs/parallel-execution-plan.md`、`docs/review-log.md`、`docs/fix-log.md`
+- 如果存在，读取 `generated/<project-slug>/doc/frontend-ui-checklist.md`
+- 如果存在，读取 `generated/<project-slug>/doc/ai-workflow.md`、`doc/parallel-execution-plan.md`、`doc/review-log.md`、`doc/fix-log.md`
 - 如果存在，读取 `generated/<project-slug>/.github/workflows/ci.yml` 与 `generated/<project-slug>/infra/nginx/`
 
-如果 `generated/<project-slug>/docs/key-business-actions-checklist.md` 不存在，必须先基于当前需求补生成一份，再继续修复与验证。
-如果 `generated/<project-slug>/docs/frontend-ui-checklist.md` 不存在，必须先补生成一份前端 UI 检查清单，再继续修复与验证。
-如果 `generated/<project-slug>/docs/production-readiness-checklist.md` 不存在，必须先补生成一份生产就绪清单，再继续修复与验证。
-如果 `generated/<project-slug>/docs/security-notes.md`、`docs/observability.md` 或 `docs/test-plan.md` 不存在，必须先补齐，并确保内容能回溯到代码、配置、测试和 CI。
-如果项目级 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md` 缺失，必须先补齐，再继续修复与验证。
-如果项目级 `docs/parallel-execution-plan.md` 缺失，必须先补齐本轮是否启用并发、文件所有权、共享契约、集成顺序和验证状态，再继续修复与验证。
+如果 `generated/<project-slug>/doc/key-business-actions-checklist.md` 不存在，必须先基于当前需求补生成一份，再继续修复与验证。
+如果 `generated/<project-slug>/doc/frontend-ui-checklist.md` 不存在，必须先补生成一份前端 UI 检查清单，再继续修复与验证。
+如果 `generated/<project-slug>/doc/production-readiness-checklist.md` 不存在，必须先补生成一份生产就绪清单，再继续修复与验证。
+如果 `generated/<project-slug>/doc/security-notes.md`、`doc/observability.md` 或 `doc/test-plan.md` 不存在，必须先补齐，并确保内容能回溯到代码、配置、测试和 CI。
+如果项目级 `AGENTS.md`、`CLAUDE.md`、`doc/ai-workflow.md`、`doc/review-log.md`、`doc/fix-log.md` 缺失，必须先补齐，再继续修复与验证。
+如果项目级 `doc/parallel-execution-plan.md` 缺失，必须先补齐本轮是否启用并发、文件所有权、共享契约、集成顺序和验证状态，再继续修复与验证。
 
 必须至少检查以下内容：
 

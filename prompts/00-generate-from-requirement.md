@@ -67,7 +67,7 @@
 - 核心业务实体的 `SoftDeleteMixin`（`deleted_at` 字段），审计日志模型（`AuditLog`），多环境配置（`.env.production.example` + `compose.prod.yml` + `ENVIRONMENT` 字段）。
 - Nginx、安全头、gzip、proxy timeout、后端非 root Dockerfile、前后端 `.dockerignore`。
 - CI workflow、compose config、依赖审计或审计报告。
-- `docs/security-notes.md`、`docs/observability.md`、`docs/test-plan.md`、生产就绪清单和前端 UI 清单。
+- `doc/security-notes.md`、`doc/observability.md`、`doc/test-plan.md`、生产就绪清单和前端 UI 清单。
 
 ### C. 按需扩展
 
@@ -91,7 +91,7 @@ generated/<project-slug>/
   .env.example
   compose.yaml
   requirements/
-  docs/
+  doc/
   scripts/
   openspec/
   backend/
@@ -130,7 +130,7 @@ generated/<project-slug>/
 - 创建项目级 `README.md`
 - 创建项目级 `.gitignore`
 - 创建项目级 `.env.example`
-- 预留 `requirements/`、`docs/`、`scripts/`、`openspec/`、`backend/`、`frontend/` 目录
+- 预留 `requirements/`、`doc/`、`scripts/`、`openspec/`、`backend/`、`frontend/` 目录
 - 后续所有生成内容都必须写入该目录树
 
 ### 阶段 3：生成 OpenSpec
@@ -144,18 +144,18 @@ generated/<project-slug>/
 ### 阶段 3.5：同步项目级上下文
 
 - 将当前业务需求快照同步输出到 `generated/<project-slug>/requirements/`
-- 生成项目级 `docs/`，至少包含开发说明与架构说明
+- 生成项目级 `doc/`，至少包含开发说明与架构说明
 - 生成项目级 `AGENTS.md` 与 `CLAUDE.md`，让独立工程保留 AI 协作规则
 - 项目级文档必须短而具体：写当前项目事实、文件路径、验证命令、证据状态和剩余风险；禁止大段复制模板仓库中的通用规则
-- 在 `generated/<project-slug>/docs/ai-workflow.md` 中生成项目级 AI 工作流说明
-- 在 `generated/<project-slug>/docs/parallel-execution-plan.md` 中生成项目级并发计划，必须记录是否启用并发、任务分片、文件所有权、共享契约、集成顺序、冲突处理和验证结果
-- 在 `generated/<project-slug>/docs/review-log.md` 与 `generated/<project-slug>/docs/fix-log.md` 中生成审查/修复记录模板
-- 在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中生成一份基于当前需求提炼的关键业务动作回归清单
-- 在 `generated/<project-slug>/docs/frontend-ui-checklist.md` 中生成前端 UI 自查清单
-- 在 `generated/<project-slug>/docs/production-readiness-checklist.md` 中生成生产就绪清单，至少覆盖 Logging、Metrics、Tracing、CORS、安全头、Refresh Token、CSRF、审计日志、Nginx、CI、健康检查与资源限制
-- 在 `generated/<project-slug>/docs/security-notes.md` 中生成安全说明，必须覆盖管理员初始化、JWT/Refresh Token、token 存储、CSRF/Origin、Redis-backed rate limiting、资源级授权、输入校验和日志脱敏
-- 在 `generated/<project-slug>/docs/observability.md` 中生成可观测性说明，必须覆盖 Request ID、结构化日志、`/metrics`、健康检查、Tracing extension point、Nginx 日志与验证方式
-- 在 `generated/<project-slug>/docs/test-plan.md` 中生成测试计划，必须映射后端关键测试、前端测试、业务流脚本、覆盖率目标和未自动化风险
+- 在 `generated/<project-slug>/doc/ai-workflow.md` 中生成项目级 AI 工作流说明
+- 在 `generated/<project-slug>/doc/parallel-execution-plan.md` 中生成项目级并发计划，必须记录是否启用并发、任务分片、文件所有权、共享契约、集成顺序、冲突处理和验证结果
+- 在 `generated/<project-slug>/doc/review-log.md` 与 `generated/<project-slug>/doc/fix-log.md` 中生成审查/修复记录模板
+- 在 `generated/<project-slug>/doc/key-business-actions-checklist.md` 中生成一份基于当前需求提炼的关键业务动作回归清单
+- 在 `generated/<project-slug>/doc/frontend-ui-checklist.md` 中生成前端 UI 自查清单
+- 在 `generated/<project-slug>/doc/production-readiness-checklist.md` 中生成生产就绪清单，至少覆盖 Logging、Metrics、Tracing、CORS、安全头、Refresh Token、CSRF、审计日志、Nginx、CI、健康检查与资源限制
+- 在 `generated/<project-slug>/doc/security-notes.md` 中生成安全说明，必须覆盖管理员初始化、JWT/Refresh Token、token 存储、CSRF/Origin、Redis-backed rate limiting、资源级授权、输入校验和日志脱敏
+- 在 `generated/<project-slug>/doc/observability.md` 中生成可观测性说明，必须覆盖 Request ID、结构化日志、`/metrics`、健康检查、Tracing extension point、Nginx 日志与验证方式
+- 在 `generated/<project-slug>/doc/test-plan.md` 中生成测试计划，必须映射后端关键测试、前端测试、业务流脚本、覆盖率目标和未自动化风险
 - 生成项目级 `scripts/`，至少包含验证或清理脚本
 - 确保生成结果可作为独立工程包脱离模板仓库继续开发
 - 不要新增需求无关的文档、服务、目录或脚本；新增资产必须能服务于业务闭环、生产级硬门禁、验证或交接
@@ -163,11 +163,11 @@ generated/<project-slug>/
 ### 阶段 3.6：规划并发生成
 
 - 先读取 `docs/concurrent-generation.md`
-- 基于 OpenSpec 生成并维护 `generated/<project-slug>/docs/parallel-execution-plan.md`
+- 基于 OpenSpec 生成并维护 `generated/<project-slug>/doc/parallel-execution-plan.md`
 - 只有在以下共享契约已经明确后，才允许并发进入实现：API 路径与响应结构、数据模型、权限规则、关键业务动作、环境变量、端口、脚本名
 - 推荐并发分片：Backend Core、Frontend App、Runtime Delivery、Verification、Review Sidecar
 - 每个分片必须声明写入范围和禁止触碰范围；同一文件只能由一个分片负责
-- 共享文件由主控最终串行集成，包括 `README.md`、`.env.example`、`compose.yaml`、`docs/production-readiness-checklist.md`、`docs/security-notes.md`、`docs/observability.md`
+- 共享文件由主控最终串行集成，包括 `README.md`、`.env.example`、`compose.yaml`、`doc/production-readiness-checklist.md`、`doc/security-notes.md`、`doc/observability.md`
 - 如需求小、接口未稳定或文件冲突风险高，可以不启用并发，但必须在并发计划中说明原因
 - 并发完成后必须回到主控串行核对并修复，不能让各分片直接各自声明完成
 
@@ -243,7 +243,7 @@ generated/<project-slug>/
 - 按钮至少提供 primary、secondary、outline、destructive、ghost 五种变体
 - 必须保证桌面端与移动端都可正常使用
 - 如果认证不是当前需求的核心链路，只实现最小可用认证支撑，不要过度展开注册/登录页面、认证体验或围绕认证增加大量非必要逻辑
-- 在 `generated/<project-slug>/docs/` 中至少输出一份项目级前端实现说明或前端 UI 审计清单，记录页面结构、主题方向和状态设计
+- 在 `generated/<project-slug>/doc/` 中至少输出一份项目级前端实现说明或前端 UI 审计清单，记录页面结构、主题方向和状态设计
 - 前端必须提供可执行的构建、lint 和开发命令
 - 前端必须提供最小测试命令或页面 smoke 验证，覆盖至少一个关键页面状态或表单校验
 - 前端必须生成标准 `index.html` 和 lockfile
@@ -282,11 +282,14 @@ generated/<project-slug>/
   - 项目简介
   - 技术栈
   - 目录结构
+  - 运行截图（引用 `doc/screenshots/` 下的前端页面截图，展示核心流程页面效果）
   - 环境变量用法
   - 本地开发命令
   - 测试与 lint 命令
   - Docker Compose 启动命令
   - Nginx、CI、健康检查、迁移与业务验证脚本说明
+- 项目级 `doc/screenshots/` 目录必须包含主要前端页面运行截图，至少覆盖 3-5 个核心流程页面；若未提供截图将影响「功能完整性」维度评估
+- 截图可通过模板脚本 `scripts/capture_screenshots.sh` 在服务启动后自动生成（Playwright 自动提取路由并截图），也会被 `verify_project.sh --with-compose-up` 自动调用
 
 ### 阶段 10.5：生成项目级环境文件
 
@@ -326,7 +329,7 @@ generated/<project-slug>/
 - 检查是否存在 `AuditLog` 模型和 migration（如业务涉及审批/状态流转）
 - 检查 `RequestIdFilter` 是否实际激活（无 `if False` 守卫）
 - 检查真实业务证据缺失：后端是否绕过数据库使用内存 store，前端核心动作是否只是 `setTimeout`/toast/硬编码数据，readiness 是否只返回静态配置状态，metrics 是否使用高基数 URL path label
-- 检查项目级文档缺失：`docs/security-notes.md`、`docs/observability.md`、`docs/test-plan.md` 必须与代码、配置、测试和 CI 互相对应
+- 检查项目级文档缺失：`doc/security-notes.md`、`doc/observability.md`、`doc/test-plan.md` 必须与代码、配置、测试和 CI 互相对应
 - 优先修复可自动识别的问题
 - 最终输出仍存在的风险项与待人工确认项
 
@@ -334,7 +337,7 @@ generated/<project-slug>/
 
 在结束前，必须至少自查以下高风险点：
 
-- 先在 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中记录基于当前需求提炼出的 3-5 个关键业务动作
+- 先在 `generated/<project-slug>/doc/key-business-actions-checklist.md` 中记录基于当前需求提炼出的 3-5 个关键业务动作
 - 先基于当前需求提炼出 3-5 个最关键的业务动作，并逐一验证这些动作是否真正可执行，而不是只有页面或接口占位
 - 统一响应结构、全局异常处理、分页、ErrorBoundary、统一 HTTP 错误处理、Nginx、CI 和生产就绪清单是否已经落地，而不是只在文档中提到
 - 如果认证只属于支撑能力，则认证自查应以“最小可用且不阻塞主链路”为标准，不要把认证当作默认主要验收对象
@@ -353,13 +356,13 @@ generated/<project-slug>/
 - 再生成代码
 - 明确告知最终输出目录 `generated/<project-slug>/`
 - 明确列出已创建的项目级文件，包括 `README.md`、`.gitignore`、`.env.example`、`compose.yaml`
-- 明确列出已创建的项目级 AI 文件，包括 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md`、`docs/review-log.md`、`docs/fix-log.md`
-- 明确列出已同步的项目级上下文目录，包括 `requirements/`、`docs/`、`scripts/`、`openspec/`
+- 明确列出已创建的项目级 AI 文件，包括 `AGENTS.md`、`CLAUDE.md`、`doc/ai-workflow.md`、`doc/review-log.md`、`doc/fix-log.md`
+- 明确列出已同步的项目级上下文目录，包括 `requirements/`、`doc/`、`scripts/`、`openspec/`
 - 生成后主动执行基础检查
 - 生成后主动说明已完成哪些质量自查
 - 生成后必须单独说明六项硬性质量原则分别由哪些目录、文件、测试、脚本或检查动作承载
-- 明确说明 `generated/<project-slug>/docs/parallel-execution-plan.md` 中记录的并发分片、文件所有权、集成顺序和验证状态；如果未启用并发，说明原因
-- 明确说明 `generated/<project-slug>/docs/key-business-actions-checklist.md` 中记录了哪些关键业务动作及其验证状态
-- 明确说明 `generated/<project-slug>/docs/frontend-ui-checklist.md`、`generated/<project-slug>/docs/production-readiness-checklist.md`、`generated/<project-slug>/docs/security-notes.md`、`generated/<project-slug>/docs/observability.md` 与 `generated/<project-slug>/docs/test-plan.md` 中记录了哪些高风险检查项及其状态
+- 明确说明 `generated/<project-slug>/doc/parallel-execution-plan.md` 中记录的并发分片、文件所有权、集成顺序和验证状态；如果未启用并发，说明原因
+- 明确说明 `generated/<project-slug>/doc/key-business-actions-checklist.md` 中记录了哪些关键业务动作及其验证状态
+- 明确说明 `generated/<project-slug>/doc/frontend-ui-checklist.md`、`generated/<project-slug>/doc/production-readiness-checklist.md`、`generated/<project-slug>/doc/security-notes.md`、`generated/<project-slug>/doc/observability.md` 与 `generated/<project-slug>/doc/test-plan.md` 中记录了哪些高风险检查项及其状态
 - 如果已生成 `generated/<project-slug>/scripts/check_business_flow.sh`，明确说明它覆盖了哪些关键业务动作
 - 修改时保持现有模板文件风格一致

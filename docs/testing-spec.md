@@ -49,7 +49,7 @@
 
 不要只做其中一层。例如只有构建通过而没有业务流测试，不算满足模板目标。
 
-对独立工程还应同步验证项目级 AI 协作资产是否存在，至少包括 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md` 与 review/fix 记录模板。
+对独立工程还应同步验证项目级 AI 协作资产是否存在，至少包括 `AGENTS.md`、`CLAUDE.md`、`doc/ai-workflow.md` 与 review/fix 记录模板。
 
 ## 5. 后端测试硬规则
 
@@ -120,7 +120,7 @@ async def client(db_session):
 
 ### 5.6 Service 层覆盖率目标
 
-后端 service 层是业务逻辑的核心承载模块。对于包含状态机、权限校验、多分支流转的 service 方法，测试覆盖率目标为 ≥60%。如果 service 层整体覆盖率低于 60%，必须在 `docs/test-plan.md` 中逐一列出未覆盖的方法和分支，说明风险等级和补充计划。
+后端 service 层是业务逻辑的核心承载模块。对于包含状态机、权限校验、多分支流转的 service 方法，测试覆盖率目标为 ≥60%。如果 service 层整体覆盖率低于 60%，必须在 `doc/test-plan.md` 中逐一列出未覆盖的方法和分支，说明风险等级和补充计划。
 
 需要重点覆盖的 service 分支包括：
 
@@ -151,7 +151,7 @@ async def client(db_session):
 
 ## 7. 项目级业务验证规则
 
-- 每个生成项目都应输出 `generated/<project-slug>/docs/key-business-actions-checklist.md`
+- 每个生成项目都应输出 `generated/<project-slug>/doc/key-business-actions-checklist.md`
 - 清单中的动作必须来自当前需求，而不是套用固定示例
 - 建议提炼 3-5 个最关键业务动作
 - 修复问题后，必须重新核对受影响动作的验证状态
@@ -199,7 +199,7 @@ async def client(db_session):
 
 1. 读取本文件 `docs/testing-spec.md`
 2. 读取 `requirements/requirement.md`
-3. 读取当前项目 OpenSpec 与 `docs/key-business-actions-checklist.md`
+3. 读取当前项目 OpenSpec 与 `doc/key-business-actions-checklist.md`
 4. 读取 `docs/backend-spec.md`
 5. 读取 `docs/frontend-ui-spec.md`
 6. 读取 `docs/deployment-spec.md`

@@ -4,7 +4,7 @@
 
 ## 1. Hard Gates
 
-生成项目必须默认满足以下门禁；若业务明确不需要某项，必须在 `docs/production-readiness-checklist.md` 中写明替代方案与风险。
+生成项目必须默认满足以下门禁；若业务明确不需要某项，必须在 `doc/production-readiness-checklist.md` 中写明替代方案与风险。
 
 - 认证与授权：不得使用 email 前缀、用户名约定、前端隐藏按钮等方式获得管理员权限；管理员初始化必须通过 seed 脚本、一次性 bootstrap token 或显式环境变量控制。
 - 密钥安全：`.env.example` 必须包含 32 字节以上示例 JWT secret，并明确生产必须替换；不得在代码中硬编码真实密钥。
@@ -15,7 +15,7 @@
 - 统一异常：不得让 `IntegrityError`、SQLAlchemy async lazy loading、内部堆栈以 500 原样泄露；数据库唯一约束冲突必须映射为稳定业务错误。
 - 可观测性：必须有 request id 中间件、结构化访问日志、`/metrics` 可被 Prometheus 抓取；Tracing 可以是可开关集成，但必须有真实接入代码或清晰 extension point。
 - Metrics 标签：HTTP metrics 的 path 标签必须使用路由模板（例如 `/api/v1/skills/{skill_id}`）而不是实际 URL（例如 `/api/v1/skills/123`），避免高基数。
-- OpenAPI：FastAPI 项目必须保留 `/openapi.json`，并提供 `scripts/export_openapi.sh` 导出到 `docs/openapi.json`。
+- OpenAPI：FastAPI 项目必须保留 `/openapi.json`，并提供 `scripts/export_openapi.sh` 导出到 `doc/openapi.json`。
 - Nginx：必须启用 gzip、基础安全头，生产配置应包含合理缓存策略和 API proxy 超时。
 - Docker：必须提供 `.dockerignore`；生产 Dockerfile 不应依赖 editable install；镜像构建不应复制 `.venv`、`node_modules`、`dist` 等本地产物；后端运行镜像默认必须使用非 root 用户。
 - 测试：后端测试不得少于 8 个关键用例，必须覆盖成功、认证失败、越权、非法输入、重复/冲突、状态非法流转、依赖异常或超时中的合理子集。
@@ -53,10 +53,10 @@
 - `backend/app/core/metrics.py` 或等价 metrics 模块
 - `backend/app/db/session.py` 或等价数据库会话依赖，且业务 service/repository 必须被 API 调用
 - `backend/scripts/export_openapi.py` 或项目级 `scripts/export_openapi.sh`
-- `docs/openapi.json` 或 README 中要求生成该文件的命令
-- `docs/security-notes.md`
-- `docs/observability.md`
-- `docs/test-plan.md`
+- `doc/openapi.json` 或 README 中要求生成该文件的命令
+- `doc/security-notes.md`
+- `doc/observability.md`
+- `doc/test-plan.md`
 - `scripts/check_business_flow.sh`
 - `backend/app/db/base.py` 中的 `SoftDeleteMixin` 或等价软删除基类
 - `backend/app/models/audit_log.py` 或等价审计日志模型

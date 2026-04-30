@@ -13,7 +13,7 @@
 
 生成流程默认把 AI 视为资深全栈架构师、生产级交付负责人和严格代码审查者。质量目标不是堆文件，而是在需求范围内交付可独立运行、可验证、可维护、接近生产环境质量的工程。主业务闭环优先级高于外围生产资产；Nginx、CI、metrics、文档和审计都必须服务于真实业务动作、状态流转、权限边界和可执行验证。
 
-为避免过度设计和资产冗余，模板使用 `docs/template-governance.md` 约束规则源和生成资产职责：模板 `docs/` 是规则源，生成项目 `docs/` 是项目事实、证据路径、验证结果和风险索引，不复制模板长规则。
+为避免过度设计和资产冗余，模板使用 `docs/template-governance.md` 约束规则源和生成资产职责：模板 `docs/` 是规则源，生成项目 `doc/` 是项目事实、证据路径、验证结果和风险索引，不复制模板长规则。
 
 ## 快速开始
 
@@ -80,8 +80,9 @@ docker compose up --build
 - 安全：环境变量化配置、非通配 CORS、JWT/Refresh Token、安全 Cookie、CSRF 防护、安全响应头、关键操作审计日志
 - 部署：多阶段 Dockerfile、`compose.yaml`、Nginx 反向代理、CI 工作流、容器健康检查、README 中完整启动与验证说明
 - 质量：后端 `pytest` + `ruff check`、前端 `npm run build` + `npm run lint`、项目级关键业务动作清单与必要时的 `scripts/check_business_flow.sh`
-- AI 工具链：项目级 `AGENTS.md`、`CLAUDE.md`、`docs/ai-workflow.md` 与 review/fix 记录模板，确保独立工程可继续被 AI 接手
-- 并发效率：OpenSpec 后生成 `docs/parallel-execution-plan.md`，按后端、前端、运行交付、验证和审查分片并行推进，最后串行集成和验证
+- 前端截图：生成项目 `doc/screenshots/` 必须包含至少 3-5 张核心流程页面运行截图，README 必须包含「运行截图」章节；缺失截图将影响「功能完整性」评分
+- AI 工具链：项目级 `AGENTS.md`、`CLAUDE.md`、`doc/ai-workflow.md` 与 review/fix 记录模板，确保独立工程可继续被 AI 接手
+- 并发效率：OpenSpec 后生成 `doc/parallel-execution-plan.md`，按后端、前端、运行交付、验证和审查分片并行推进，最后串行集成和验证
 
 ## 生产级硬门禁
 
@@ -90,7 +91,7 @@ docker compose up --build
 - Redis-backed Rate Limiting，覆盖登录、注册、刷新 token 和关键写操作
 - 安全管理员 bootstrap/seed，不允许 email 前缀或固定用户名提权
 - request id 中间件、结构化日志、真实 `/metrics`、Tracing extension point
-- OpenAPI 导出脚本和 `docs/openapi.json` 或等价产物
+- OpenAPI 导出脚本和 `doc/openapi.json` 或等价产物
 - 后端/前端 `.dockerignore`，后端非 editable 生产安装，Nginx gzip/安全头/proxy timeout
 - 后端不少于 8 个关键测试用例，前端至少一类 smoke/component/form/state 测试
 - 自包含、可重复运行、无需人工 token 的 `scripts/check_business_flow.sh`
@@ -98,7 +99,7 @@ docker compose up --build
 - 核心前端动作真实调用 API/hook/mutation，禁止用 `setTimeout`、静态 toast、硬编码统计或分类伪装业务闭环
 - readiness 真实探测 DB/Redis，metrics 使用低基数路由模板标签，后端容器非 root 运行，前端包含标准 `index.html` 和 lockfile
 
-如果某项因业务选择不适用，必须在生成项目的 `docs/production-readiness-checklist.md` 和 `docs/security-notes.md` 中说明替代方案和风险。
+如果某项因业务选择不适用，必须在生成项目的 `doc/production-readiness-checklist.md` 和 `doc/security-notes.md` 中说明替代方案和风险。
 
 ## 质量要求分层
 
@@ -136,7 +137,11 @@ docker compose up --build
 │   ├── check_prerequisites.sh
 │   ├── audit_generated_project.sh
 │   ├── verify_project.sh
-│   └── clean_generated.sh
+│   ├── capture_screenshots.sh
+│   ├── clean_generated.sh
+│   └── playwright/
+│       ├── package.json
+│       └── capture.mjs
 ├── generated/
 │   └── .gitkeep
 ├── skills/
@@ -176,7 +181,7 @@ docker compose up --build
 
 ```text
 读取并执行 prompts/00-generate-from-requirement.md。
-必须基于 requirements/requirement.md 先生成 OpenSpec，再按 docs/concurrent-generation.md 生成 generated/<project-slug>/docs/parallel-execution-plan.md，随后生成 generated/<project-slug>/ 独立工程。
+必须基于 requirements/requirement.md 先生成 OpenSpec，再按 docs/concurrent-generation.md 生成 generated/<project-slug>/doc/parallel-execution-plan.md，随后生成 generated/<project-slug>/ 独立工程。
 生成后必须继续读取并执行 prompts/08-security-review.md，完成认证、鉴权、JWT/Refresh Token、Cookie/CSRF、管理员初始化、限流、CORS、日志脱敏和生产安全门禁审查。
 随后读取并执行 prompts/07-fix-and-verify.md，修复安全审查、构建、测试、lint、OpenAPI、Compose、业务流和模板审计发现的问题。
 最后执行 scripts/audit_generated_project.sh generated/<project-slug> 和 scripts/verify_project.sh generated/<project-slug>，失败项必须先修复并重新验证，不能跳过后结束。
@@ -214,9 +219,9 @@ docker compose up --build
 - OpenSpec 仅存在于生成层的 `generated/<project-slug>/openspec/`
 - 生成层负责承载具体业务代码与部署实现
 - 每次生成时，应按需求内容创建 `generated/<project-slug>/`
-- 典型输出包括 `generated/<project-slug>/requirements/`、`generated/<project-slug>/docs/`、`generated/<project-slug>/docs/key-business-actions-checklist.md`、`generated/<project-slug>/scripts/`、`generated/<project-slug>/openspec/project.md`、`generated/<project-slug>/openspec/specs/<capability>/spec.md`、`generated/<project-slug>/openspec/changes/<change-id>/`、`generated/<project-slug>/backend/`、`generated/<project-slug>/frontend/`、`generated/<project-slug>/compose.yaml`、`generated/<project-slug>/.env.example`、`generated/<project-slug>/.gitignore`、`generated/<project-slug>/README.md`
-- 生产级增强输出通常还包括 `generated/<project-slug>/AGENTS.md`、`generated/<project-slug>/CLAUDE.md`、`generated/<project-slug>/docs/ai-workflow.md`、`generated/<project-slug>/docs/review-log.md`、`generated/<project-slug>/docs/fix-log.md`、`generated/<project-slug>/docs/frontend-ui-checklist.md`、`generated/<project-slug>/docs/production-readiness-checklist.md`、`generated/<project-slug>/docs/security-notes.md`、`generated/<project-slug>/docs/observability.md`、`generated/<project-slug>/docs/test-plan.md`、`generated/<project-slug>/infra/nginx/`、`generated/<project-slug>/.github/workflows/`
-- 并发生成输出还必须包括 `generated/<project-slug>/docs/parallel-execution-plan.md`，记录是否启用并发、任务分片、文件所有权、共享契约、集成顺序和验证结果
+- 典型输出包括 `generated/<project-slug>/requirements/`、`generated/<project-slug>/doc/`、`generated/<project-slug>/doc/key-business-actions-checklist.md`、`generated/<project-slug>/scripts/`、`generated/<project-slug>/openspec/project.md`、`generated/<project-slug>/openspec/specs/<capability>/spec.md`、`generated/<project-slug>/openspec/changes/<change-id>/`、`generated/<project-slug>/backend/`、`generated/<project-slug>/frontend/`、`generated/<project-slug>/compose.yaml`、`generated/<project-slug>/.env.example`、`generated/<project-slug>/.gitignore`、`generated/<project-slug>/README.md`
+- 生产级增强输出通常还包括 `generated/<project-slug>/AGENTS.md`、`generated/<project-slug>/CLAUDE.md`、`generated/<project-slug>/doc/ai-workflow.md`、`generated/<project-slug>/doc/review-log.md`、`generated/<project-slug>/doc/fix-log.md`、`generated/<project-slug>/doc/frontend-ui-checklist.md`、`generated/<project-slug>/doc/production-readiness-checklist.md`、`generated/<project-slug>/doc/security-notes.md`、`generated/<project-slug>/doc/observability.md`、`generated/<project-slug>/doc/test-plan.md`、`generated/<project-slug>/doc/screenshots/`、`generated/<project-slug>/infra/nginx/`、`generated/<project-slug>/.github/workflows/`
+- 并发生成输出还必须包括 `generated/<project-slug>/doc/parallel-execution-plan.md`，记录是否启用并发、任务分片、文件所有权、共享契约、集成顺序和验证结果
 - 迁移仓库位置时，不依赖机器本地绝对路径
 - 如需重新生成项目，可保留模板层，仅清理生成层
 - 生成层的目标是形成一个可单独拎走继续开发的独立工程包，而不仅仅是代码输出目录
@@ -235,6 +240,12 @@ docker compose up --build
 2. `./scripts/verify_project.sh generated/<project-slug>`
 
 如果生成项目提供了 `generated/<project-slug>/scripts/check_business_flow.sh`，模板验证脚本会在 `--with-compose-up` 场景下自动执行它，把关键业务动作检查纳入正式验证流程。
+`--with-compose-up` 还会自动调用 `scripts/capture_screenshots.sh`，通过 Playwright 从前端路由配置自动提取页面路径并截图到 `doc/screenshots/`。截图脚本也可单独执行：
+
+```bash
+./scripts/capture_screenshots.sh generated/<project-slug>
+```
+
 另外，`verify_project.sh` 会在开始时自动调用 `scripts/check_prerequisites.sh`；如果缺少 `docker`、`docker compose`、`python3`、`node` 或 `npm`，验证会直接中止并输出缺失项。`codex` 和 `claude` 仅作为可选 CLI 提示，不会阻断验证。
 
 生产级完整验证推荐：
@@ -270,7 +281,7 @@ docker compose up --build
 
 此外，生成项目应保留需求驱动的关键业务动作回归清单和项目级 AI/安全/可观测性/测试资产。模板参考统一收敛到 `docs/project-asset-templates.md`：
 
-- 项目输出：`generated/<project-slug>/AGENTS.md`、`CLAUDE.md`、`docs/parallel-execution-plan.md`、`docs/key-business-actions-checklist.md`、`docs/frontend-ui-checklist.md`、`docs/production-readiness-checklist.md`、`docs/security-notes.md`、`docs/observability.md`、`docs/test-plan.md`、`docs/review-log.md`、`docs/fix-log.md`
+- 项目输出：`generated/<project-slug>/AGENTS.md`、`CLAUDE.md`、`doc/parallel-execution-plan.md`、`doc/key-business-actions-checklist.md`、`doc/frontend-ui-checklist.md`、`doc/production-readiness-checklist.md`、`doc/security-notes.md`、`doc/observability.md`、`doc/test-plan.md`、`doc/review-log.md`、`doc/fix-log.md`
 - 作用：避免 AI 只完成静态结构和构建通过，却遗漏真正的主链路动作、状态流转、证据索引和风险记录
 
 详细策略见：

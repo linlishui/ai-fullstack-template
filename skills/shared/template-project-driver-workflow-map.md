@@ -54,7 +54,7 @@ Use them as the primary rule sources for:
 - real observability/runtime requirements: readiness probes must check database/Redis, metrics labels must avoid raw URL paths, backend containers must run as non-root
 - project-level `security-notes.md`, `observability.md`, and `test-plan.md` content that must match code, config, tests, and CI
 
-Generated project docs should be project-specific evidence indexes. Do not copy long sections from template docs into `generated/<project-slug>/docs/`; record status, paths, commands, and risks instead.
+Generated project docs should be project-specific evidence indexes. Do not copy long sections from template docs into `generated/<project-slug>/doc/`; record status, paths, commands, and risks instead.
 
 ## Frontend Guidance
 
@@ -105,7 +105,9 @@ Core frontend workflows must be wired to real API clients, TanStack Query mutati
 - `scripts/verify_project.sh generated/<project-slug>`
   - Runs template audit, `docker compose config`, backend `pytest`, backend `ruff check .`, frontend `npm run build`, frontend `npm run lint`, frontend tests, and OpenAPI export.
 - `scripts/verify_project.sh generated/<project-slug> --with-compose-up`
-  - Adds `docker compose up --build -d` and runs `generated/<project-slug>/scripts/check_business_flow.sh` when present.
+  - Adds `docker compose up --build -d`, runs `generated/<project-slug>/scripts/check_business_flow.sh` when present, and captures frontend screenshots via Playwright.
+- `scripts/capture_screenshots.sh generated/<project-slug>`
+  - Uses Playwright to auto-extract frontend routes, authenticate, and capture page screenshots to `doc/screenshots/`. Called automatically by `verify_project.sh --with-compose-up`; can also be run standalone.
 - `scripts/check_prerequisites.sh`
   - Local toolchain preflight.
 - `scripts/clean_generated.sh`
@@ -131,7 +133,8 @@ generated/<project-slug>/
   compose.yaml
   .gitlab-ci.yml
   requirements/
-  docs/
+  doc/
+  doc/screenshots/
   scripts/
   openspec/
   backend/
@@ -144,18 +147,19 @@ generated/<project-slug>/
 Minimum synchronized project context:
 
 - `requirements/requirement.md`
-- `docs/architecture.md`
-- `docs/development.md`
-- `docs/key-business-actions-checklist.md`
-- `docs/frontend-ui-checklist.md`
-- `docs/production-readiness-checklist.md`
-- `docs/security-notes.md`
-- `docs/observability.md`
-- `docs/test-plan.md`
-- `docs/ai-workflow.md`
-- `docs/parallel-execution-plan.md`
-- `docs/review-log.md`
-- `docs/fix-log.md`
+- `doc/architecture.md`
+- `doc/development.md`
+- `doc/key-business-actions-checklist.md`
+- `doc/frontend-ui-checklist.md`
+- `doc/production-readiness-checklist.md`
+- `doc/security-notes.md`
+- `doc/observability.md`
+- `doc/test-plan.md`
+- `doc/ai-workflow.md`
+- `doc/parallel-execution-plan.md`
+- `doc/review-log.md`
+- `doc/fix-log.md`
+- `doc/screenshots/` (at least 3-5 core flow page screenshots)
 - `openspec/project.md`
 - `openspec/specs/<capability>/spec.md`
 - `openspec/changes/<change-id>/proposal.md`
@@ -218,4 +222,5 @@ At the project level, README should also expose:
 - Passing static build checks while main business actions still cannot be executed
 - Running parallel work before OpenSpec is stable, or letting parallel tasks modify shared files without a documented owner and integration pass
 - Shipping README, .env.example, or verification commands that were written before implementation and never reconciled with the final generated content
+- Missing `doc/screenshots/` or providing fewer than 3 frontend page screenshots, which impacts the functional completeness scoring dimension
 - Skipping business-loop self-check and declaring the project complete based only on build and lint passing

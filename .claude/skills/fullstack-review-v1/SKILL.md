@@ -60,7 +60,7 @@ ls "$PROJECT_ROOT/"
 7. 中间件、认证、错误处理模块（`backend/app/core/`、`backend/app/middleware/`）
 8. 测试文件（`backend/tests/`、`frontend/src/**/*.test.*`）
 9. AI 配置文件（`CLAUDE.md`、`AGENTS.md`）
-10. 文档（`README.md`、`docs/`、`openspec/` 目录等）
+10. 文档（`README.md`、`doc/`、`openspec/` 目录等）
 
 ---
 
