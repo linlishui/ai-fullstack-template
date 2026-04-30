@@ -29,7 +29,9 @@
 每个生成项目默认至少交付：
 
 - `generated/<project-slug>/compose.yaml`
+- `generated/<project-slug>/compose.prod.yml`（生产覆盖：无暴露端口、资源限制、stop_grace_period）
 - `generated/<project-slug>/.env.example`
+- `generated/<project-slug>/.env.production.example`（COOKIE_SECURE=true、LOG_LEVEL=WARNING、placeholder secrets 标注 REQUIRED）
 - `generated/<project-slug>/README.md`
 - `generated/<project-slug>/backend/Dockerfile`
 - `generated/<project-slug>/backend/.dockerignore`
@@ -37,6 +39,7 @@
 - `generated/<project-slug>/frontend/.dockerignore`
 - `generated/<project-slug>/infra/nginx/`
 - `generated/<project-slug>/.github/workflows/`
+- `generated/<project-slug>/.gitlab-ci.yml`
 
 Compose 服务至少包含：
 
@@ -52,6 +55,9 @@ Compose 服务至少包含：
 - `.env.example` 必须覆盖启动所需完整键名，并提供合理示例值
 - 不允许把密码、密钥、主机地址或跨域来源写死在源码或 Compose 中
 - 区分前端构建期变量和后端运行期变量，命名应清晰
+- 后端 Settings 必须声明 `ENVIRONMENT` 字段（development | staging | production），并在 `model_validator` 中对生产环境强制安全约束（如 COOKIE_SECURE 必须为 True）
+- `.env.example` 用于开发（ENVIRONMENT=development），`.env.production.example` 用于生产参考；两者必须同时存在
+- `compose.prod.yml` 必须作为生产部署覆盖存在，至少声明：移除 backend 端口暴露、声明资源限制、设置 stop_grace_period
 - `compose.yaml` 的 `env_file` 不应直接指向 `.env.example`；应引用 `.env`（由开发者从 `.env.example` 复制并定制），或使用 `--env-file` 命令行参数。直接引用 `.env.example` 意味着公开的占位密码（如 `replace-this-...`、`ChangeMe12345!`）会成为运行时凭据。若为了验证脚本（`docker compose config`）便利而使用 `.env.example`，必须在 README 和 compose 注释中明确说明生产部署必须替换为 `.env`
 
 ## 5. 容器化规则
@@ -93,8 +99,9 @@ Compose 服务至少包含：
 - 默认使用非生产示例值，并要求使用者在真实环境覆盖
 - 跨域、Cookie、JWT 过期时间和调试开关等必须可配置
 - 不要在镜像或日志中泄漏敏感信息
-- CI 工作流必须包含 lint、test、build 基本流水线，必要时再扩展部署阶段
+- CI 工作流（GitHub Actions 与 GitLab CI）必须包含 lint、test、build 基本流水线，必要时再扩展部署阶段
 - CI 默认还应执行 `docker compose config`、OpenAPI 导出检查、前端测试、依赖安全审计或至少生成审计报告
+- 生成项目必须同时提供 `.github/workflows/ci.yml` 和 `.gitlab-ci.yml`，两套 CI 覆盖相同的质量门禁
 
 ## 8. 可观测性与健康检查
 
@@ -142,7 +149,7 @@ Compose 服务至少包含：
 生成完成后，至少自查以下问题：
 
 - `compose.yaml`、`.env.example`、Dockerfile 是否齐全且互相一致
-- Nginx 配置、gzip、安全头、proxy timeout、CI 工作流与健康检查是否齐全
+- Nginx 配置、gzip、安全头、proxy timeout、CI 工作流（`.github/workflows/` 与 `.gitlab-ci.yml`）与健康检查是否齐全
 - 数据库、Redis、JWT、前端 API 地址等是否全部来自环境变量
 - `.dockerignore` 是否排除本地依赖、构建产物和敏感文件
 - 关键服务是否有健康检查和清晰依赖关系

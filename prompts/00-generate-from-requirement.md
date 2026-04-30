@@ -64,6 +64,7 @@
 这些能力默认生成，除非需求明确不适用；不适用时必须在项目级清单中说明替代方案和风险：
 
 - Redis-backed rate limiting、request id、结构化日志、metrics、Tracing extension point。
+- 核心业务实体的 `SoftDeleteMixin`（`deleted_at` 字段），审计日志模型（`AuditLog`），多环境配置（`.env.production.example` + `compose.prod.yml` + `ENVIRONMENT` 字段）。
 - Nginx、安全头、gzip、proxy timeout、后端非 root Dockerfile、前后端 `.dockerignore`。
 - CI workflow、compose config、依赖审计或审计报告。
 - `docs/security-notes.md`、`docs/observability.md`、`docs/test-plan.md`、生产就绪清单和前端 UI 清单。
@@ -193,6 +194,10 @@ generated/<project-slug>/
 ### 阶段 5：生成数据库模型和 Alembic migration
 
 - 根据数据实体生成 SQLAlchemy 模型
+- 核心业务实体模型必须继承 `SoftDeleteMixin`，提供 `deleted_at` 软删除字段
+- 必须在 `db/base.py` 中生成 `SoftDeleteMixin`，使用 `Mapped[Optional[datetime]]` 注解
+- 涉及审批/状态流转的业务必须生成 `AuditLog` 模型和对应 migration
+- 所有模型文件必须显式导入 `from datetime import datetime` 和 `from typing import Optional`（加 `# noqa: F401`）
 - 生成初始化 Alembic 配置
 - 生成首批 migration
 - MySQL 8 作为默认数据库
@@ -315,6 +320,11 @@ generated/<project-slug>/
 
 - 检查导入错误、路径错误、环境变量遗漏、容器引用错误、构建脚本错误
 - 检查生产级门禁缺失：限流、OpenAPI 导出、request id、metrics、`.dockerignore`、前端测试、业务流脚本自包含、安全管理员初始化
+- 检查核心模型是否包含 `SoftDeleteMixin` 或 `deleted_at` 字段
+- 检查是否存在 `.env.production.example` 和 `compose.prod.yml`
+- 检查后端 Settings 是否声明 `ENVIRONMENT` 字段
+- 检查是否存在 `AuditLog` 模型和 migration（如业务涉及审批/状态流转）
+- 检查 `RequestIdFilter` 是否实际激活（无 `if False` 守卫）
 - 检查真实业务证据缺失：后端是否绕过数据库使用内存 store，前端核心动作是否只是 `setTimeout`/toast/硬编码数据，readiness 是否只返回静态配置状态，metrics 是否使用高基数 URL path label
 - 检查项目级文档缺失：`docs/security-notes.md`、`docs/observability.md`、`docs/test-plan.md` 必须与代码、配置、测试和 CI 互相对应
 - 优先修复可自动识别的问题

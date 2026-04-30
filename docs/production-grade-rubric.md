@@ -25,6 +25,9 @@
 - 前端 HTML 基线：Vite `index.html` 必须包含标准 `<!DOCTYPE html>`、`html lang`、`meta charset`、`meta viewport` 和 `title`。
 - 依赖锁定：前端必须提交 `package-lock.json`、`pnpm-lock.yaml` 或 `yarn.lock`；后端应使用 lock/constraints 或在 README/CI 中说明可复现安装策略。
 - 业务流：如果需求存在主链路，`scripts/check_business_flow.sh` 必须自包含、可重复执行、无需人工 token，且覆盖关键角色差异。
+- 软删除：核心业务实体模型必须包含 `SoftDeleteMixin` 或等价 `deleted_at` 字段，Repository 查询默认过滤已删除记录。
+- 审计日志：涉及状态流转审批（approve/reject/archive）或权限变更的业务必须有 AuditLog 模型、独立 migration 和 admin 查询端点。
+- 多环境配置：必须同时提供 `.env.example`（开发）和 `.env.production.example`（生产）；后端 Settings 必须声明 `ENVIRONMENT` 字段；必须存在 `compose.prod.yml` 生产覆盖。
 
 ## 2. Scoring Targets
 
@@ -35,7 +38,7 @@
 - 性能：列表分页必须有最大 page size；搜索避免无索引全表扫描，必要时建立 FULLTEXT/前缀索引或说明限制。
 - API 设计：必须有版本化 API、统一响应、统一错误码、OpenAPI 导出和演进策略说明。
 - 数据层：外键、唯一约束、索引、事务边界、migration 回滚必须齐全，且核心 API 必须真实使用这些模型和 repository；“模型/migration 存在但业务不用数据库”按原型处理，不得判定为生产就绪。
-- CI/CD 与部署：CI 必须覆盖后端 lint/test、前端 lint/build、compose config、OpenAPI 导出检查。
+- CI/CD 与部署：CI 必须覆盖后端 lint/test、前端 lint/build、compose config、OpenAPI 导出检查。生成项目必须同时提供 GitHub Actions（`.github/workflows/ci.yml`）和 GitLab CI（`.gitlab-ci.yml`）两套配置，覆盖相同门禁。
 - 可测试性：业务测试优先于存在性测试；测试文件数量不是目标，覆盖关键风险才是目标。
 - AI 工具链：`AGENTS.md`、`CLAUDE.md` 不得是空泛说明，必须包含本项目技术栈、验证命令、禁止事项和增量开发流程。
 
@@ -55,6 +58,12 @@
 - `docs/observability.md`
 - `docs/test-plan.md`
 - `scripts/check_business_flow.sh`
+- `backend/app/db/base.py` 中的 `SoftDeleteMixin` 或等价软删除基类
+- `backend/app/models/audit_log.py` 或等价审计日志模型
+- `backend/migrations/versions/` 中包含审计日志表创建的 migration
+- `.env.production.example`
+- `compose.prod.yml` 或 `docker-compose.prod.yml`
+- `.gitlab-ci.yml`
 
 ## 4. Verification Commands
 

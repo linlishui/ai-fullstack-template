@@ -156,3 +156,17 @@
 - 共享文件策略：README、`.env.example`、compose、CI、生产就绪/安全/可观测性文档由谁最终集成。
 - 冲突记录：冲突项、影响、解决人、解决结果。
 - 集成与验证：安全审查、模板审计、项目验证、业务流脚本和剩余风险。
+
+## 10. Claude Skills Assets
+
+输出位置：
+
+- `generated/<project-slug>/.claude/skills/find-skills/SKILL.md`
+
+生成项目必须包含模板仓库的 `find-skills` 技能副本，使独立工程开箱即可发现和安装 Agent 技能。
+
+生成方式：
+
+- 从模板仓库 `.claude/skills/find-skills/SKILL.md` 原样复制到生成项目对应路径。
+- 不修改 frontmatter 中的 `name` 和 `description` 字段。
+- 如模板仓库中 `find-skills` 内容有更新，重新生成时应同步最新版本。

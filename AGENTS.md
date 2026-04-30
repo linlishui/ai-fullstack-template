@@ -66,7 +66,7 @@
 - 生成实现时，必须统一输出到 `generated/<project-slug>/`
 - 必须先初始化项目级目录，再开始写业务代码
 - 项目级目录至少包含 `README.md`、`.gitignore`、`.env.example`、`compose.yaml`、`requirements/`、`docs/`、`scripts/`、`backend/`、`frontend/`、`openspec/`
-- 如按生产级基线生成，应同时包含 `infra/nginx/` 与 `.github/workflows/`
+- 如按生产级基线生成，应同时包含 `infra/nginx/`、`.github/workflows/`、`.gitlab-ci.yml` 与 `.claude/skills/find-skills/`
 - 独立工程默认还应包含项目级 `AGENTS.md`、`CLAUDE.md`、AI 协作记录文档、安全说明、可观测性说明与测试计划
 
 ## 项目输出结构规则
@@ -81,6 +81,7 @@ generated/<project-slug>/
   .gitignore
   .env.example
   compose.yaml
+  .gitlab-ci.yml
   requirements/
   docs/
     ai-workflow.md
@@ -98,6 +99,9 @@ generated/<project-slug>/
     nginx/
   .github/
     workflows/
+  .claude/
+    skills/
+      find-skills/
 ```
 
 如业务需要扩展目录，也必须放在 `generated/<project-slug>/` 下，不得散落到模板根目录。
@@ -111,6 +115,9 @@ generated/<project-slug>/
 - 数据库连接、Redis 连接、JWT 配置必须来自环境变量
 - 必须为关键业务接口补充测试
 - 默认提供 `api/v1` 路由、统一响应结构、全局异常处理、分页、资源级授权、结构化日志、数据库与 Redis 连通性健康检查
+- 核心业务实体模型必须使用 `SoftDeleteMixin`（含 `deleted_at` 字段），Repository 查询默认添加 `deleted_at IS NULL` 过滤
+- 涉及审批/拒绝/归档等状态流转的管理操作必须写审计日志（AuditLog 模型），记录操作者、动作、资源和客户端信息
+- 结构化日志必须通过 `RequestIdFilter` 注入 request_id 到所有 log record，禁止使用 `if False` 等方式禁用
 - 推荐后端目录骨架如下：
 
 ```text
@@ -141,6 +148,8 @@ generated/<project-slug>/backend/
 - 必须实现 Redis-backed rate limiting，至少保护登录、注册、刷新 token 和关键写操作
 - 必须提供 request id 中间件、结构化日志、真实 metrics endpoint 与 OpenAPI 导出脚本
 - SQLAlchemy async 返回响应前必须 eager load 或转换 DTO，禁止响应序列化阶段触发懒加载 IO
+- SQLAlchemy 模型的 `Mapped[]` 注解中可空字段使用 `Optional[X]` 而非 `X | None`，以兼容旧版 Python 环境下 SQLAlchemy 的运行时 eval；ruff 配置应忽略 UP045/UP007/UP037 对模型文件的建议
+- 所有继承 `SoftDeleteMixin` 或 `Base` 的模型文件必须导入 `from datetime import datetime` 和 `from typing import Optional`（加 `# noqa: F401`），因为 SQLAlchemy 在子类 namespace 中 eval 父类/mixin 的注解
 - 若需求复杂，可新增 `tasks/`、`clients/`、`workers/` 等目录，但必须职责明确
 
 ## 前端规则
@@ -211,6 +220,9 @@ generated/<project-slug>/frontend/
 - 项目级 `.gitignore` 不得错误忽略源码、`README.md`、`compose.yaml` 等工程文件
 - 敏感信息不得提交到仓库
 - 认证、授权、输入校验、错误处理必须纳入实现
+- 必须同时提供 `.env.example`（开发默认）和 `.env.production.example`（生产安全默认，COOKIE_SECURE=true，密钥占位标注 REQUIRED）
+- 后端 Settings 必须声明 `ENVIRONMENT: str = "development"`，并在生产环境下通过 validator 强制安全配置
+- 必须提供 `compose.prod.yml` 作为生产部署覆盖（移除暴露端口、声明资源限制、stop_grace_period ≥ 30s）
 
 ## 结构与模块化规则
 
@@ -237,5 +249,5 @@ generated/<project-slug>/frontend/
 - 必须验证 OpenAPI 导出脚本和项目级业务流脚本
 - 必须执行模板级审计 `scripts/audit_generated_project.sh generated/<project-slug>`，确保安全、可观测性、测试计划、CI、Nginx、限流、metrics、OpenAPI 等生产级证据齐全
 - 前端除 `build` 和 `lint` 外，还必须对照 `docs/frontend-ui-spec.md` 中的验收清单做一轮视觉与可用性自查，重点检查按钮换行、控件变形、长文本溢出和移动端筛选区布局
-- 生成项目还应补齐 `infra/nginx/`、`.github/workflows/ci.yml`、生产就绪清单与必要时的业务流验证脚本
+- 生成项目还应补齐 `infra/nginx/`、`.github/workflows/ci.yml`、`.gitlab-ci.yml`、`.claude/skills/find-skills/`、生产就绪清单与必要时的业务流验证脚本
 - 发现明显错误后应先修复再结束任务

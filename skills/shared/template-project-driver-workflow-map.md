@@ -129,6 +129,7 @@ generated/<project-slug>/
   .gitignore
   .env.example
   compose.yaml
+  .gitlab-ci.yml
   requirements/
   docs/
   scripts/
@@ -137,6 +138,7 @@ generated/<project-slug>/
   frontend/
   infra/nginx/
   .github/workflows/
+  .claude/skills/find-skills/
 ```
 
 Minimum synchronized project context:
@@ -195,6 +197,8 @@ At the project level, README should also expose:
 - Writing business implementation outside `generated/<project-slug>/`
 - Leaving project-level docs, env example, or helper scripts incomplete
 - Omitting CI workflow, Nginx assets, or production-readiness checklist while claiming production-grade output
+- Generating only GitHub Actions CI without the corresponding `.gitlab-ci.yml`, or vice versa
+- Omitting `.claude/skills/find-skills/` from the generated project, leaving the standalone project without skill discovery capability
 - Omitting project-level AI rules and review/fix trace files, leaving the standalone project without AI collaboration context
 - Building UI without required loading, empty, error, or submitting feedback
 - Claiming a workflow is complete while the UI only uses `setTimeout`, static toast, hardcoded stats/categories, or local fake data

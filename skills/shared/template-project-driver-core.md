@@ -76,6 +76,7 @@ generated/<project-slug>/
   .gitignore
   .env.example
   compose.yaml
+  .gitlab-ci.yml
   requirements/
   docs/
     parallel-execution-plan.md
@@ -85,6 +86,7 @@ generated/<project-slug>/
   frontend/
   infra/nginx/
   .github/workflows/
+  .claude/skills/find-skills/
 ```
 
 ## Non-Negotiable Rules
@@ -132,6 +134,7 @@ generated/<project-slug>/
 - Create `docs/architecture.md`, `docs/development.md`, `docs/key-business-actions-checklist.md`, `docs/frontend-ui-checklist.md`, `docs/production-readiness-checklist.md`, `docs/security-notes.md`, `docs/observability.md`, and `docs/test-plan.md`.
 - Create project-level AI context files `AGENTS.md`, `CLAUDE.md`, `docs/ai-workflow.md`, `docs/review-log.md`, and `docs/fix-log.md`.
 - Create `docs/parallel-execution-plan.md` before concurrent implementation starts; if concurrency is not used, record the reason and keep the file as handoff evidence.
+- Copy the `find-skills` skill from the template repository `.claude/skills/find-skills/SKILL.md` into `generated/<project-slug>/.claude/skills/find-skills/SKILL.md` so the standalone project can discover and install Agent skills out of the box.
 - Write generated docs as compact project-specific evidence. Avoid duplicating generic template rules; reference the generated project's own files, commands, and known risks.
 - Add project-level scripts when validation or cleanup needs a stable entrypoint.
 
@@ -186,7 +189,8 @@ generated/<project-slug>/
 - Create `compose.yaml` for at least `nginx`, `frontend`, `backend`, `mysql`, and `redis`.
 - Provide backend tests, `ruff check`, frontend build, and frontend lint support.
 - Provide backend tests with coverage command, frontend tests, OpenAPI export check, and dependency audit/report support in local scripts and CI.
-- Ensure `.env.example`, Dockerfiles, Nginx config, CI workflow, health checks, startup instructions, and key business-action validation paths align with those specs.
+- Ensure `.env.example`, Dockerfiles, Nginx config, CI workflows (both `.github/workflows/ci.yml` and `.gitlab-ci.yml`), health checks, startup instructions, and key business-action validation paths align with those specs.
+- Both GitHub Actions and GitLab CI must cover the same quality gates: backend lint/test/coverage, frontend lint/build/test, compose config, OpenAPI export, and dependency audit.
 - Generate backend/frontend `.dockerignore`; Nginx must include gzip, security headers, and proxy timeout.
 - Add `scripts/check_business_flow.sh` when the requirement defines business actions that can be asserted after startup.
 - Business-flow scripts must be self-contained, repeatable, and not require manually supplied admin tokens.

@@ -145,7 +145,11 @@ backend/
 - 状态字段必须有明确枚举或受控值域，不要使用含糊字符串
 - 唯一约束、索引、外键和级联策略必须与业务规则一致
 - 审计字段至少包含创建时间、更新时间；如有操作者语义，应补充创建人 / 更新人
-- 如果需求存在归档、回收站、恢复或可追溯删除语义，优先提供软删除字段或可扩展位
+- 核心业务实体（如用户、主要资源）必须默认提供 `SoftDeleteMixin`（含 `deleted_at` 字段和 `is_deleted` 属性）；Repository 查询默认过滤 `deleted_at IS NULL`。仅当业务明确不需要数据恢复/合规追溯时可豁免，但必须在生产就绪清单中说明风险
+- 系统级参考数据（如分类字典）和追加式记录（如版本快照）可以不使用软删除
+- 涉及敏感操作（审批/拒绝/归档/删除/权限变更）的业务必须提供审计日志模型（`AuditLog`），记录 user_id、action、resource_type、resource_id、ip_address、details 和时间戳
+- 审计日志必须有独立 migration、Repository 和查询端点（admin-only）
+- 审计记录是只追加的，不允许更新或删除
 - SQLAlchemy relationship 的 `lazy` 策略不应全局设为 `selectin` 或 `joined`；应默认使用 `lazy="raise"` 或 `lazy="select"`，在需要关联数据的查询中显式 `.options(selectinload(...))`
 
 ### 7.2 事务与一致性
@@ -186,7 +190,8 @@ backend/
 
 ## 9. 可观测性与运维基础
 
-- 应提供结构化日志或至少稳定日志格式
+- 必须提供结构化日志，日志格式必须包含 `request_id`（通过 `RequestIdFilter` 注入）、时间戳、级别和模块名
+- 禁止使用 `if False` 等守卫禁用已实现的日志格式化逻辑
 - 必须提供 request id/correlation id 中间件，并在响应头和结构化日志中输出
 - 必须提供 `/metrics` 端点，至少暴露进程存活、请求计数、请求耗时、错误计数等基础指标
 - `/metrics` 端点不应对外网完全开放；应通过 Nginx 限制为内网访问、独立端口或 Bearer token 保护
