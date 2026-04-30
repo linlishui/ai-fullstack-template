@@ -119,6 +119,7 @@ backend/
 - Refresh token 端点在签发新 access token 前，必须从数据库重新加载用户并校验其是否存在且未被禁用；不得仅凭 token 解码有效就直接签发
 - Refresh Token 端点**必须在验证通过后轮换 refresh token**——删除旧 jti、签发新 refresh token、设置新 cookie；旧 refresh token 不得继续有效。如检测到已失效 jti 被重放（即 jti 不存在于存储中但 token 签名有效），应立即吊销该用户所有 refresh token（replay detection），强制重新登录
 - 如果 Refresh Token 使用 Cookie，必须设置 `HttpOnly`、`SameSite=Strict`、`Secure` 环境感知，并保证 logout/delete cookie 属性一致
+- Refresh Token Cookie 推荐使用 `samesite="strict"`；若因跨域需求使用 `lax`，必须在 `doc/security-notes.md` 中说明原因和补偿措施（如 Origin 校验）。`secure` 属性应默认为 `True`（生产安全），开发环境通过环境变量 `COOKIE_SECURE=false` 覆盖
 - 登录、注册、刷新 token、关键写操作必须接入 Redis-backed rate limiting；不能只在文档中“预留”
 - 鉴权必须同时覆盖接口入口和关键业务动作，不允许只在前端控制
 - 关键资源必须校验归属权、角色或管理员权限
@@ -147,10 +148,14 @@ backend/
 - 审计字段至少包含创建时间、更新时间；如有操作者语义，应补充创建人 / 更新人
 - 核心业务实体（如用户、主要资源）必须默认提供 `SoftDeleteMixin`（含 `deleted_at` 字段和 `is_deleted` 属性）；Repository 查询默认过滤 `deleted_at IS NULL`。仅当业务明确不需要数据恢复/合规追溯时可豁免，但必须在生产就绪清单中说明风险
 - 系统级参考数据（如分类字典）和追加式记录（如版本快照）可以不使用软删除
-- 涉及敏感操作（审批/拒绝/归档/删除/权限变更）的业务必须提供审计日志模型（`AuditLog`），记录 user_id、action、resource_type、resource_id、ip_address、details 和时间戳
+- 涉及核心业务写入（创建/更新/删除/审批/拒绝/归档/权限变更）的操作必须调用审计日志。所有改变资源状态的 service 方法都应记录审计日志，不仅限于"敏感操作"。特别是：资源创建、状态流转、批量操作、管理员操作必须有审计记录。审计日志模型（`AuditLog`）必须记录 user_id、action、resource_type、resource_id、ip_address、details 和时间戳
 - 审计日志必须有独立 migration、Repository 和查询端点（admin-only）
 - 审计记录是只追加的，不允许更新或删除
 - SQLAlchemy relationship 的 `lazy` 策略不应全局设为 `selectin` 或 `joined`；应默认使用 `lazy="raise"` 或 `lazy="select"`，在需要关联数据的查询中显式 `.options(selectinload(...))`
+- 索引和约束定义必须使用 SQLAlchemy 跨数据库通用语法；禁止使用 `postgresql_where`、`postgresql_using`、`mssql_include` 等数据库方言特有参数。如需条件唯一约束（如"同一用户同一时段只能有一条 active 记录"），应使用以下 MySQL 兼容方案之一：
+  - 方案 A：`UniqueConstraint("user_id", "time_slot_id", "status")` + 应用层保证取消时修改 status
+  - 方案 B：增加 `cancel_token` 列（active 时为固定值如 `"0"`，取消时设为 UUID），在 `(user_id, time_slot_id, cancel_token)` 上建唯一索引
+- 涉及并发写入的业务（如预约、库存扣减）必须在 service 层使用 `try/except IntegrityError` 兜底，不能仅依赖应用层前置检查（TOCTOU 竞态风险）
 
 ### 7.2 事务与一致性
 
@@ -187,6 +192,7 @@ backend/
 - 不要为了“用了 Redis”而增加无价值缓存
 - 如引入后台任务、事件或异步副作用，必须明确失败重试和可观测性边界
 - Rate limiting 等需要 INCR + EXPIRE 的操作必须使用 Redis pipeline 或 Lua 脚本原子执行；禁止分两步独立操作，避免进程崩溃导致 key 永久无 TTL
+- 生产环境 Redis 必须配置认证：`.env.production.example` 中 `REDIS_URL` 必须包含密码占位（如 `redis://:${REDIS_PASSWORD}@redis:6379/0`）；`compose.prod.yml` 中 Redis 容器必须添加 `command: redis-server --requirepass ${REDIS_PASSWORD}` 或等价认证配置；`REDIS_PASSWORD` 必须标注 `# REQUIRED: change in production`
 
 ## 9. 可观测性与运维基础
 
@@ -216,6 +222,10 @@ backend/
 - SQLAlchemy async engine 推荐惰性创建（在 lifespan 或首次请求时），避免模块导入时执行 `create_async_engine` 导致测试必须预设 `DATABASE_URL`
 - 连接池应配置 `pool_recycle`（建议 ≤ 3600 秒）以适配 MySQL `wait_timeout`，`pool_size` 和 `max_overflow` 应可通过环境变量调整
 - 数据库 engine 和 session factory 不得作为模块级可变全局变量通过 `global` 关键字管理；推荐封装为 `app.state` 属性或 lifespan 内的局部变量，确保测试隔离和多实例安全。直接 `import SessionLocal` 绕过 `dependency_overrides` 是常见的测试泄漏来源
+- 外部依赖调用（数据库、Redis、第三方 API）应有超时配置；SQLAlchemy engine 推荐 `pool_timeout`，Redis 客户端推荐 `socket_timeout`
+- Redis 不可用时，速率限制等非核心功能应 fail-open（放行）而非 fail-closed（阻断所有请求），并记录告警日志
+- 如项目涉及外部 HTTP 调用，应使用 `httpx.AsyncClient(timeout=...)` 并配置合理超时
+- 生产级项目推荐为关键路径添加重试策略（如 tenacity），但必须配合幂等性检查，避免重复提交
 
 ## 11. 必须覆盖的测试与验证点
 

@@ -117,7 +117,7 @@ generated/<project-slug>/
 - 必须为关键业务接口补充测试
 - 默认提供 `api/v1` 路由、统一响应结构、全局异常处理、分页、资源级授权、结构化日志、数据库与 Redis 连通性健康检查
 - 核心业务实体模型必须使用 `SoftDeleteMixin`（含 `deleted_at` 字段），Repository 查询默认添加 `deleted_at IS NULL` 过滤
-- 涉及审批/拒绝/归档等状态流转的管理操作必须写审计日志（AuditLog 模型），记录操作者、动作、资源和客户端信息
+- 涉及核心业务写入（创建/更新/删除/审批/拒绝/归档/权限变更）的操作必须调用审计日志（AuditLog 模型），记录操作者、动作、资源和客户端信息；不仅限于"敏感操作"，所有改变资源状态的 service 方法都应记录
 - 结构化日志必须通过 `RequestIdFilter` 注入 request_id 到所有 log record，禁止使用 `if False` 等方式禁用
 - 推荐后端目录骨架如下：
 
@@ -149,6 +149,8 @@ generated/<project-slug>/backend/
 - 必须实现 Redis-backed rate limiting，至少保护登录、注册、刷新 token 和关键写操作
 - 必须提供 request id 中间件、结构化日志、真实 metrics endpoint 与 OpenAPI 导出脚本
 - SQLAlchemy async 返回响应前必须 eager load 或转换 DTO，禁止响应序列化阶段触发懒加载 IO
+- SQLAlchemy relationship 必须使用 `lazy="raise"` 作为默认策略，禁止全局 `lazy="selectin"` 或 `lazy="joined"`；在需要关联数据的查询中显式 `.options(selectinload(...))`
+- 索引和约束定义必须使用 SQLAlchemy 跨数据库通用语法，禁止 `postgresql_where`、`postgresql_using` 等方言特有参数；并发写入场景必须 `try/except IntegrityError` 兜底
 - SQLAlchemy 模型的 `Mapped[]` 注解中可空字段使用 `Optional[X]` 而非 `X | None`，以兼容旧版 Python 环境下 SQLAlchemy 的运行时 eval；ruff 配置应忽略 UP045/UP007/UP037 对模型文件的建议
 - 所有继承 `SoftDeleteMixin` 或 `Base` 的模型文件必须导入 `from datetime import datetime` 和 `from typing import Optional`（加 `# noqa: F401`），因为 SQLAlchemy 在子类 namespace 中 eval 父类/mixin 的注解
 - 若需求复杂，可新增 `tasks/`、`clients/`、`workers/` 等目录，但必须职责明确
@@ -207,6 +209,7 @@ generated/<project-slug>/frontend/
 - 前端至少应提供：依赖声明、Vite 配置、应用入口、页面目录、API 封装目录
 - 前端必须提供最小测试命令，默认 `npm test -- --run`，覆盖关键页面、表单、空态/错误态或未登录引导中的合理子集
 - 前端测试至少提供 3 个测试文件，分别覆盖 API client、认证流程、页面交互中不同类别的验证路径；仅有 1 个冒烟测试不满足模板要求
+- 前端测试禁止全部为纯 API mock 测试（仅 mock 函数 + 断言返回值）；至少一个测试文件必须导入 `render`/`screen` 渲染真实 React 组件并验证 DOM 输出
 - 需要认证的页面必须有路由级守卫（ProtectedRoute），未登录时重定向到登录页；全局导航必须根据认证状态动态显示登录/登出入口；统一 HTTP client 必须实现 401 → refresh → retry 自动刷新机制；App 初始化必须尝试 session 恢复
 - 不得默认把长期 token 存入 localStorage；如采用 bearer token，应在 `doc/security-notes.md` 中说明 XSS 风险与替代方案
 
@@ -224,6 +227,9 @@ generated/<project-slug>/frontend/
 - 必须同时提供 `.env.example`（开发默认）和 `.env.production.example`（生产安全默认，COOKIE_SECURE=true，密钥占位标注 REQUIRED）
 - 后端 Settings 必须声明 `ENVIRONMENT: str = "development"`，并在生产环境下通过 validator 强制安全配置
 - 必须提供 `compose.prod.yml` 作为生产部署覆盖（移除暴露端口、声明资源限制、stop_grace_period ≥ 30s）
+- Nginx 安全头必须包含 HSTS；CSP `script-src` 禁止 `'unsafe-inline'`；`/metrics` 端点必须配置 `allow/deny` 限制为内网访问
+- 生产环境 Redis 必须配置认证（`.env.production.example` 含 `REDIS_PASSWORD`，`compose.prod.yml` Redis 容器配置 `--requirepass`）
+- CI 中依赖安全审计（`pip-audit`、`npm audit`）不得使用 `|| true` 无条件忽略失败
 
 ## 结构与模块化规则
 
@@ -234,6 +240,9 @@ generated/<project-slug>/frontend/
 - 项目级 `doc/` 必须跟随生成项目一起输出，至少包含开发与架构说明
 - 项目级 `doc/` 还应包含 `key-business-actions-checklist.md`、`frontend-ui-checklist.md`、`production-readiness-checklist.md`、`security-notes.md`、`observability.md`、`test-plan.md`
 - 项目级 AI 协作文件应跟随生成项目一起输出，至少包含 `AGENTS.md`、`CLAUDE.md`、`doc/ai-workflow.md`、`doc/parallel-execution-plan.md`、`doc/review-log.md`、`doc/fix-log.md`
+- 项目级 `.claude/memory/` 必须包含 `PLANNING.md`、`DECISIONS.md`、`PROGRESS.md` 三个文件，记录项目计划、关键技术决策和开发进度
+- 项目级 `.mcp.json` 必须存在（至少为空配置 `{ "mcpServers": {} }`）
+- 项目级 `CHANGELOG.md` 必须存在，记录初始版本功能列表和已知限制
 - OpenSpec 仅保留在项目级 `generated/<project-slug>/openspec/` 中，不再在模板根目录维护业务级 OpenSpec 副本
 - 项目级 `openspec/` 必须跟随生成项目一起输出，至少包含 `project.md`、`specs/<capability>/spec.md` 形式的当前业务规格，以及 `changes/<change-id>/proposal.md`、`design.md`、`tasks.md` 等完整变更文档
 - 项目级 `scripts/` 必须跟随生成项目一起输出，至少包含验证或清理等项目级辅助脚本

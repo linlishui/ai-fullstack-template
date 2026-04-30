@@ -89,6 +89,44 @@ async def client(db_session):
 
 - 前端测试依赖必须安装到 `devDependencies`：至少包含 `vitest`、`@testing-library/react`、`@testing-library/jest-dom`、`jsdom`
 - 至少有一个测试文件导入 `@testing-library/react` 的 `render` 或 `screen` 并渲染真实组件
+- 前端测试禁止全部为纯 API mock 测试（仅 mock 函数 + 断言返回值）；至少一个测试文件必须渲染真实 React 组件并验证 DOM 输出
+
+参考前端组件测试最小模板：
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, it, expect, vi } from 'vitest';
+
+// 替换为项目实际组件和 Provider
+import { LoginPage } from '../pages/LoginPage';
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
+
+describe('LoginPage', () => {
+  it('renders login form with username and password fields', () => {
+    render(<LoginPage />, { wrapper: createWrapper() });
+    expect(screen.getByLabelText(/username|email|账号/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password|密码/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /login|登录|sign in/i })).toBeInTheDocument();
+  });
+
+  it('shows validation error for empty submission', async () => {
+    render(<LoginPage />, { wrapper: createWrapper() });
+    await userEvent.click(screen.getByRole('button', { name: /login|登录|sign in/i }));
+    // 应有校验提示出现（根据项目实际调整断言）
+    expect(screen.getByText(/required|必填|不能为空/i)).toBeInTheDocument();
+  });
+});
+```
 - 测试组件必须包裹必要的 Provider（QueryClientProvider、AuthProvider 等）
 - `package.json` 的 `test` 脚本必须调用 `vitest`（或 jest/mocha/cypress/playwright），禁止指向自定义静态检查脚本
 - `build` 脚本必须调用真实构建工具（vite/tsc/next/webpack），禁止指向自定义静态检查脚本

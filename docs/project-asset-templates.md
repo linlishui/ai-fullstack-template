@@ -202,3 +202,62 @@
 - 从模板仓库 `.claude/skills/find-skills/SKILL.md` 原样复制到生成项目对应路径。
 - 不修改 frontmatter 中的 `name` 和 `description` 字段。
 - 如模板仓库中 `find-skills` 内容有更新，重新生成时应同步最新版本。
+
+## 12. CHANGELOG
+
+输出位置：
+
+- `generated/<project-slug>/CHANGELOG.md`
+
+必须包含：
+
+- 版本号（语义版本，如 v1.0.0）和日期。
+- 按 Added / Changed / Fixed / Removed 分类的变更记录。
+- 初始版本必须记录核心功能和已知限制。
+
+示例结构：
+
+```markdown
+# Changelog
+
+## [1.0.0] - 2026-XX-XX
+
+### Added
+- 用户认证（注册/登录/JWT/Refresh Token）
+- 核心业务 CRUD + 状态流转
+- 管理员后台
+- Docker Compose 部署
+- CI/CD 管线（GitHub Actions + GitLab CI）
+
+### Known Limitations
+- 未实现邮件通知
+- 未集成外部支付
+```
+
+## 13. Claude Memory Assets
+
+输出位置：
+
+- `generated/<project-slug>/.claude/memory/PLANNING.md`
+- `generated/<project-slug>/.claude/memory/DECISIONS.md`
+- `generated/<project-slug>/.claude/memory/PROGRESS.md`
+
+`PLANNING.md` 记录项目开发计划、里程碑和优先级排序。`DECISIONS.md` 记录关键架构和技术选型决策及其理由（如"选择 bcrypt 而非 Argon2id 的原因"）。`PROGRESS.md` 记录当前开发进度、已完成项和待办事项。
+
+这些文件帮助 Claude 在跨会话开发时保持上下文连续性。初始生成时应包含项目创建阶段的关键决策记录。
+
+## 14. MCP Configuration
+
+输出位置：
+
+- `generated/<project-slug>/.mcp.json`
+
+生成项目应包含 MCP 配置文件，定义项目可用的 AI 工具服务器。最低要求为空配置：
+
+```json
+{
+  "mcpServers": {}
+}
+```
+
+如项目有特殊的工具需求（如数据库查询、API 测试），可在此配置对应的 MCP server。

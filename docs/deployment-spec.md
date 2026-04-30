@@ -72,6 +72,8 @@ Compose 服务至少包含：
 - 不要把本地开发垃圾文件打进镜像
 - `.dockerignore` 必须排除 `.venv`、`__pycache__`、`.pytest_cache`、`.ruff_cache`、`node_modules`、`dist`、日志与本地 `.env`
 - 启动命令应显式，不依赖人工进入容器后再执行
+- CI 中 Docker 镜像构建应使用 commit SHA 或语义版本号作为 tag，禁止仅使用隐式 `latest`；推荐格式 `registry/app:${GIT_SHA:0:8}` 或 `registry/app:v1.0.0`
+- `compose.prod.yml` 中的 `image:` 字段应预留 tag 变量：`image: ${REGISTRY:-local}/${APP_NAME}:${TAG:-latest}`
 
 ### 5.2 Compose
 
@@ -81,6 +83,11 @@ Compose 服务至少包含：
 - Nginx 应负责前端静态资源与 API 反向代理，并补基础安全头
 - Nginx 必须启用 gzip，并为 API proxy 设置合理 connect/read/send timeout
 - Nginx CSP 默认不得在生产配置中硬编码 `localhost` 作为 `connect-src`；开发来源应通过单独开发配置、环境注入或相对 API 路径处理
+- Nginx 安全头必须包含以下全部项（不可遗漏）：
+  - `Strict-Transport-Security: max-age=31536000; includeSubDomains`（HSTS）
+  - `Content-Security-Policy` 中 `script-src` 禁止使用 `'unsafe-inline'`（React/Vite SPA 所有 JS 为独立静态文件，不需要 inline script）；`style-src` 可保留 `'unsafe-inline'`（Tailwind 内联样式需要）
+  - `X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`
+- `/metrics` 端点必须通过 Nginx `allow/deny` 限制为内网 IP 段访问（如 `allow 10.0.0.0/8; allow 172.16.0.0/12; deny all;`），不得对公网完全开放
 - `depends_on` 只解决启动顺序，不等于可用性；关键服务应结合健康检查或启动脚本处理就绪问题
 - 如前后端存在联调依赖，前端指向后端的地址必须与容器网络和本地访问方式一致
 - 如资源约束不是明显不适用，Compose 应声明合理的内存/CPU 限制或至少在文档中说明部署建议
@@ -102,6 +109,7 @@ Compose 服务至少包含：
 - CI 工作流（GitHub Actions 与 GitLab CI）必须包含 lint、test、build 基本流水线，必要时再扩展部署阶段
 - CI 默认还应执行 `docker compose config`、OpenAPI 导出检查、前端测试、依赖安全审计或至少生成审计报告
 - 生成项目必须同时提供 `.github/workflows/ci.yml` 和 `.gitlab-ci.yml`，两套 CI 覆盖相同的质量门禁
+- CI 中的依赖安全审计（`pip-audit`、`npm audit`）不得使用 `|| true` 无条件忽略失败；应使用 `continue-on-error: true`（GitHub Actions）或 `allow_failure: true`（GitLab CI）替代，确保高危漏洞可见。对 `--audit-level=critical` 级别的漏洞，CI 应阻断并要求修复
 
 ## 8. 可观测性与健康检查
 

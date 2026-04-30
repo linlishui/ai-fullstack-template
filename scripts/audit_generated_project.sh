@@ -995,4 +995,111 @@ if [[ -d "$PROJECT_DIR/backend/migrations/versions" ]]; then
   fi
 fi
 
+# ============================================================
+# PHASE 3: 审查报告驱动补充 (2026-04-30)
+# 来源: fullstack-review-v1 + v2 共性扣分项 → 模板级审计强制
+# ============================================================
+
+# --- U1. [安全 L2] Nginx 必须配置 HSTS ---
+if [[ -d "$PROJECT_DIR/infra/nginx" ]]; then
+  assert_any_grep "Nginx HSTS header" "Strict-Transport-Security" \
+    "$PROJECT_DIR/infra/nginx"
+fi
+
+# --- U2. [安全 L2] CSP 禁止 script-src unsafe-inline ---
+if [[ -d "$PROJECT_DIR/infra/nginx" ]]; then
+  if grep -E -q "script-src[^;]*'unsafe-inline'" "$PROJECT_DIR/infra/nginx"/*.conf 2>/dev/null; then
+    echo "FAIL: CSP script-src contains 'unsafe-inline' — React SPA should not need inline scripts" >&2
+    echo "  Fix: remove 'unsafe-inline' from script-src in nginx.conf; keep it only in style-src if needed for Tailwind" >&2
+    exit 1
+  fi
+fi
+
+# --- U3. [安全 L2] /metrics 端点必须有 IP 限制 ---
+if [[ -d "$PROJECT_DIR/infra/nginx" ]]; then
+  if grep -q '/metrics' "$PROJECT_DIR/infra/nginx"/*.conf 2>/dev/null; then
+    if ! grep -A8 '/metrics' "$PROJECT_DIR/infra/nginx"/*.conf 2>/dev/null | grep -q 'deny\|allow'; then
+      echo "FAIL: /metrics endpoint in Nginx has no IP access control (allow/deny)" >&2
+      echo "  Fix: add 'allow 10.0.0.0/8; allow 172.16.0.0/12; deny all;' to /metrics location block" >&2
+      exit 1
+    fi
+  fi
+fi
+
+# --- U4. [安全 WARN] 生产 Redis 必须配置认证 ---
+if [[ -f "$PROJECT_DIR/.env.production.example" ]]; then
+  if grep -q 'REDIS' "$PROJECT_DIR/.env.production.example" 2>/dev/null; then
+    if ! grep -E -q 'REDIS_PASSWORD|requirepass|redis://:[^@]*@' "$PROJECT_DIR/.env.production.example" 2>/dev/null; then
+      echo "WARNING: .env.production.example has Redis config but no REDIS_PASSWORD or auth in REDIS_URL" >&2
+      echo "  Fix: add REDIS_PASSWORD= with '# REQUIRED: change in production' comment, and include password in REDIS_URL" >&2
+    fi
+  fi
+fi
+
+# --- U5. [后端 L1] 禁止 PostgreSQL 方言特有索引参数 ---
+if [[ -d "$PROJECT_DIR/backend/app/models" ]]; then
+  if grep -R -E -q "postgresql_where|postgresql_using|postgresql_ops|mssql_include" \
+    "$PROJECT_DIR/backend/app/models" --include='*.py' 2>/dev/null; then
+    echo "FAIL: PostgreSQL-specific index parameters found in models — project uses MySQL, these are silently ignored" >&2
+    echo "  Fix: replace postgresql_where with cross-database UniqueConstraint + application-level logic" >&2
+    exit 1
+  fi
+fi
+
+# --- U6. [安全 WARN] 核心 write service 必须调用审计日志 ---
+if [[ -d "$PROJECT_DIR/backend/app/services" ]]; then
+  has_audit_model=$(grep -R -l "AuditLog\|audit_service\|AuditService" "$PROJECT_DIR/backend/app" --include='*.py' 2>/dev/null | head -1 || true)
+  if [[ -n "$has_audit_model" ]]; then
+    for svc_file in "$PROJECT_DIR"/backend/app/services/*.py; do
+      [[ ! -f "$svc_file" ]] && continue
+      [[ "$(basename "$svc_file")" == "__init__.py" ]] && continue
+      [[ "$(basename "$svc_file")" == "audit.py" ]] && continue
+      has_create=$(grep -c -E "async def create_|async def add_|async def register" "$svc_file" 2>/dev/null || echo 0)
+      if [[ "$has_create" -gt 0 ]]; then
+        has_audit_call=$(grep -c -E "audit_service|AuditService|audit_log" "$svc_file" 2>/dev/null || echo 0)
+        if [[ "$has_audit_call" -eq 0 ]]; then
+          echo "WARNING: Service $(basename "$svc_file") has create/write methods but no audit log calls" >&2
+          echo "  Fix: add audit_service.log() calls for all create/update/delete operations" >&2
+        fi
+      fi
+    done
+  fi
+fi
+
+# --- U7. [部署 WARN] CI 依赖审计禁止 || true ---
+for ci_file in "$PROJECT_DIR/.github/workflows/ci.yml" "$PROJECT_DIR/.gitlab-ci.yml"; do
+  if [[ -f "$ci_file" ]]; then
+    if grep -E -q '(pip-audit|npm audit).*\|\| true' "$ci_file" 2>/dev/null; then
+      echo "WARNING: $(basename "$ci_file") uses '|| true' to suppress dependency audit failures — high-severity vulnerabilities will be silently ignored" >&2
+      echo "  Fix: use 'continue-on-error: true' (GitHub Actions) or 'allow_failure: true' (GitLab CI) instead" >&2
+    fi
+  fi
+done
+
+# --- U8. [部署 WARN] compose.prod.yml 必须配置 stop_grace_period ---
+if [[ -f "$PROJECT_DIR/compose.prod.yml" ]]; then
+  if ! grep -q "stop_grace_period" "$PROJECT_DIR/compose.prod.yml" 2>/dev/null; then
+    echo "WARNING: compose.prod.yml missing stop_grace_period for graceful shutdown" >&2
+    echo "  Fix: add 'stop_grace_period: 30s' to backend, frontend, and nginx services" >&2
+  fi
+fi
+
+# --- U9. [AI WARN] 缺少 CHANGELOG.md ---
+if [[ ! -f "$PROJECT_DIR/CHANGELOG.md" ]]; then
+  echo "WARNING: No CHANGELOG.md found — version history helps track releases and changes" >&2
+  echo "  Fix: create CHANGELOG.md with initial v1.0.0 entry listing core features" >&2
+fi
+
+# --- U10. [AI WARN] 缺少 .claude/memory 目录 ---
+if [[ ! -d "$PROJECT_DIR/.claude/memory" ]]; then
+  echo "WARNING: No .claude/memory/ directory found — Claude memory files help maintain cross-session context" >&2
+  echo "  Fix: create .claude/memory/ with PLANNING.md, DECISIONS.md, PROGRESS.md" >&2
+fi
+
+# --- U11. [AI WARN] 缺少 .mcp.json ---
+if [[ ! -f "$PROJECT_DIR/.mcp.json" ]]; then
+  echo "WARNING: No .mcp.json found — MCP configuration enables AI tool server integration" >&2
+  echo "  Fix: create .mcp.json with minimal { \"mcpServers\": {} }" >&2
+fi
+
 echo "Template-level audit passed for $PROJECT_DIR"

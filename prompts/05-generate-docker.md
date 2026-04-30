@@ -27,6 +27,10 @@
 - `compose.yaml` 中 `env_file` 应指向 `.env`（gitignored 的真实配置），不应直接引用 `.env.example`；README 中应说明从 `.env.example` 复制为 `.env` 的步骤
 - 后端生产镜像必须使用非 root 用户运行，并在 Dockerfile 中显式 `USER`
 - Nginx 负责 API 代理、前端静态资源、gzip、基础安全头、proxy timeout 和合理缓存策略；生产默认 CSP 不得硬编码 `localhost` 作为 `connect-src`
+- Nginx 安全头必须包含 `Strict-Transport-Security`（HSTS）；CSP `script-src` 禁止 `'unsafe-inline'`（React SPA 不需要 inline script）；`/metrics` location 必须配置 `allow/deny` 限制为内网 IP 段
+- `.env.production.example` 中 `REDIS_URL` 必须包含密码占位（如 `redis://:${REDIS_PASSWORD}@redis:6379/0`）；`compose.prod.yml` Redis 容器必须配置 `--requirepass`
+- `compose.prod.yml` 中所有长运行服务必须配置 `stop_grace_period`（推荐 30s）
+- CI 中 `pip-audit` / `npm audit` 不得使用 `|| true` 无条件忽略失败；应使用 `continue-on-error: true`（GitHub Actions）或 `allow_failure: true`（GitLab CI）
 - 后端 readiness/healthcheck 必须真实探测数据库和 Redis，禁止只检查进程或配置存在
 - CI 至少覆盖后端 lint/test/coverage、前端 lint/build/test、compose config、OpenAPI 导出检查、依赖安全审计或审计报告；GitHub Actions 与 GitLab CI 必须同时生成
 - README 必须包含 `docker compose --env-file .env.example up --build`、健康检查、migration、seed/bootstrap、业务流验证和故障排查说明

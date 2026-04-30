@@ -32,11 +32,27 @@
 - JWT/Refresh Token/Cookie/CSRF 策略必须符合 `docs/production-grade-rubric.md`
 - 密码哈希默认使用 Argon2id；如因依赖或平台原因使用 bcrypt/PBKDF2，必须在 `doc/security-notes.md` 中说明取舍，并保证文档与代码算法一致
 - SQLAlchemy async 返回 DTO 前必须 eager load 关联，避免响应序列化触发 lazy loading
+- SQLAlchemy relationship 必须使用 `lazy="raise"` 作为默认策略；在需要关联数据的 repository 查询中显式使用 `.options(selectinload(...))`。禁止全局设置 `lazy="selectin"` 或 `lazy="joined"`
+- 索引和约束定义禁止使用 `postgresql_where`、`postgresql_using` 等数据库方言特有参数；如需条件唯一约束，使用通用 `UniqueConstraint` + 应用层逻辑实现 MySQL 兼容
+- 并发写入场景（预约、库存扣减）必须在 service 层使用 `try/except IntegrityError` 兜底
 - FastAPI 启停逻辑优先使用 lifespan，避免新增已废弃的 `@app.on_event`
 - 同步生成 migration、健康检查和启动所需的最小基础设施
 - 后端生产 Dockerfile 必须使用非 root 用户运行，且不得依赖 editable install
 - 补充不少于 8 个后端关键测试：成功、认证失败、越权、非法输入、冲突、非法状态流转、限流或依赖异常
 - 管理页面需要的专用数据视图（如 pending 审核列表、按状态筛选等）必须有独立 API 端点，不得让前端复用公共列表接口后在客户端过滤
-- Rate limiting 的 INCR + EXPIRE 必须使用 Redis pipeline 原子执行，禁止分两步独立操作（TOCTOU 竞态可导致 key 永久无 TTL）
+- Rate limiting 的 INCR + EXPIRE 必须使用 Redis Lua 脚本原子执行，禁止分两步独立操作（TOCTOU 竞态可导致 key 永久无 TTL）。参考模板：
+
+```python
+RATE_LIMIT_LUA = """
+local current = redis.call('INCR', KEYS[1])
+if current == 1 then
+    redis.call('EXPIRE', KEYS[1], ARGV[1])
+end
+return current
+"""
+# 调用：await redis.eval(RATE_LIMIT_LUA, 1, key, window_seconds)
+```
+
+- 所有核心业务写入（create/update/delete/状态流转）的 service 方法必须调用 `AuditService.log()`，不仅限于取消/删除操作
 - Refresh token 端点必须从数据库重新加载用户并校验其是否存在且未被禁用，不得仅凭 token 有效就直接签发
 - OpenAPI 导出脚本必须从 FastAPI app 实例调用 `app.openapi()` 导出真实 spec；禁止用 `printf`/`echo`/`cat` 手写静态 JSON
